@@ -132,6 +132,7 @@
         <label style="margin:0">マイコレクション</label>
         <button id="refreshBtn" class="btn small secondary" type="button">一覧を更新</button>
       </div>
+
       <div id="list">
         <p class="muted">pCloudに接続すると保存済みの一覧を読み込みます。</p>
       </div>
@@ -279,12 +280,20 @@
 
       if (form) {
         form.append('access_token', token());
-        options = { method: 'POST', body: form };
+        options = {
+          method: 'POST',
+          body: form
+        };
       } else {
         options = {
           method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams({ ...params, access_token: token() })
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: new URLSearchParams({
+            ...params,
+            access_token: token()
+          })
         };
       }
 
@@ -426,8 +435,49 @@
                 }
               ],
               generationConfig: {
-                responseMimeType: 'application/json',
-                maxOutputTokens: 800
+                maxOutputTokens: 800,
+                responseFormat: {
+                  text: {
+                    mimeType: 'application/json',
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        name: {
+                          type: 'string',
+                          description: 'シール名'
+                        },
+                        series: {
+                          type: 'string',
+                          description: 'シリーズ・作品名'
+                        },
+                        kind: {
+                          type: 'string',
+                          enum: ['シール', 'トレカ', '食玩']
+                        },
+                        rarity: {
+                          type: 'string',
+                          enum: ['N', 'R', 'SR', 'SSR', 'SC', 'UR', 'SEC', 'PR', '不明']
+                        },
+                        price: {
+                          type: 'string',
+                          description: '日本円の推定価格。約○○円の形式'
+                        },
+                        memo: {
+                          type: 'string',
+                          description: '判定根拠や状態のメモ'
+                        }
+                      },
+                      required: [
+                        'name',
+                        'series',
+                        'kind',
+                        'rarity',
+                        'price',
+                        'memo'
+                      ]
+                    }
+                  }
+                }
               }
             })
           }
@@ -447,11 +497,13 @@
 
         $('name').value = analysis.name || '';
         $('series').value = analysis.series || '';
+
         $('kind').value = ['シール', 'トレカ', '食玩'].includes(analysis.kind)
           ? analysis.kind
           : 'シール';
 
         const validRarity = ['N', 'R', 'SR', 'SSR', 'SC', 'UR', 'SEC', 'PR', '不明'];
+
         $('rarity').value = validRarity.includes(analysis.rarity)
           ? analysis.rarity
           : '不明';
