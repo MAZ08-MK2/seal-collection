@@ -6,18 +6,17 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>コレクトAI v5.0</title>
+  <title>コレクトAI v6.0</title>
   
   <style>
     :root { --primary: #007AFF; --bg: #f2f2f7; --card: #ffffff; }
     body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); margin: 0; padding: 16px; color: #1c1c1e; }
     h1 { font-size: 1.3rem; text-align: center; margin-bottom: 4px; }
-    .ver-badge { text-align: center; font-size: 0.8rem; color: #5856d6; font-weight: bold; margin-bottom: 16px; }
+    .ver-badge { text-align: center; font-size: 0.8rem; color: #ff9500; font-weight: bold; margin-bottom: 16px; }
     .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
     label { font-size: 0.85rem; font-weight: bold; color: #6c6c70; display: block; margin-bottom: 6px; }
-    input[type="text"] { width: 100%; padding: 10px; border: 1px solid #c6c6c8; border-radius: 8px; box-sizing: border-box; margin-bottom: 12px; }
     .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-    .upload-box { border: 2px dashed #c6c6c8; border-radius: 8px; padding: 12px; text-align: center; background: #fafafa; position: relative; }
+    .upload-box { border: 2px dashed #c6c6c8; border-radius: 8px; padding: 12px; text-align: center; background: #fafafa; position: relative; cursor: pointer; }
     .upload-box img { width: 100%; height: 100px; object-fit: contain; display: none; margin-top: 8px; }
     .upload-box input { display: none; }
     .btn { background: var(--primary); color: white; border: none; width: 100%; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer; }
@@ -30,12 +29,7 @@
 <body>
 
   <h1>✨ コレクションAIスキャン</h1>
-  <div class="ver-badge">App Version: 5.0.0 (Auto-Select Stable Model)</div>
-
-  <div class="card">
-    <label for="apiKey">Gemini API Key</label>
-    <input type="text" id="apiKey" placeholder="APIキーを入力" onchange="saveApiKey(this.value)">
-  </div>
+  <div class="ver-badge">App Version: 6.0.0 (Key Embedded)</div>
 
   <div class="card">
     <div class="upload-grid">
@@ -65,19 +59,14 @@
   </div>
 
   <script>
+    // 埋め込み済みのAPIキー
+    const EMBEDDED_API_KEY = "AQ.Ab8RN6Jv0ZeQCyCCJiLISPpHHPQMNHuYEYuvx_AAPU5yFPfZ2";
+
     let currentAnalysis = null;
 
     window.onload = function() {
-      const savedKey = localStorage.getItem('gemini_api_key');
-      if (savedKey) {
-        document.getElementById('apiKey').value = savedKey;
-      }
       renderCollection();
     };
-
-    function saveApiKey(val) {
-      localStorage.setItem('gemini_api_key', val.trim());
-    }
 
     function previewImage(input, previewId) {
       if (input.files && input.files[0]) {
@@ -101,14 +90,10 @@
     }
 
     async function analyzeImages() {
-      const apiKeyInput = document.getElementById('apiKey').value.trim();
       const frontFile = document.getElementById('imgFront').files[0];
       const backFile = document.getElementById('imgBack').files[0];
 
-      if (!apiKeyInput) return alert('APIキーを入力してください');
       if (!frontFile) return alert('表面の画像を選択してください');
-
-      saveApiKey(apiKeyInput);
 
       const btn = document.getElementById('scanBtn');
       btn.disabled = true;
@@ -123,10 +108,9 @@
           parts.push({ inline_data: { mime_type: backFile.type, data: backBase64 } });
         }
 
-        // 試行するエンドポイントリスト（v1標準とv1betaを順番にテスト）
         const endpoints = [
-          `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKeyInput}`,
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKeyInput}`
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${EMBEDDED_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${EMBEDDED_API_KEY}`
         ];
 
         let successData = null;
