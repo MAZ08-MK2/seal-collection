@@ -1,3 +1,4 @@
+```html
 <!doctype html>
 <html lang="ja">
 <head>
@@ -104,7 +105,21 @@
           </select>
         </div>
 
-        <div><label>レア度ランク</label><input id="rarity"></div>
+        <div>
+          <label>レア度ランク</label>
+          <select id="rarity">
+            <option>N</option>
+            <option>R</option>
+            <option>SR</option>
+            <option>SSR</option>
+            <option>SC</option>
+            <option>UR</option>
+            <option>SEC</option>
+            <option>PR</option>
+            <option>不明</option>
+          </select>
+        </div>
+
         <div><label>価格</label><input id="price"></div>
         <div><label>メモ</label><textarea id="memo"></textarea></div>
       </div>
@@ -264,22 +279,12 @@
 
       if (form) {
         form.append('access_token', token());
-        options = {
-          method: 'POST',
-          body: form
-        };
+        options = { method: 'POST', body: form };
       } else {
-        const body = new URLSearchParams({
-          ...params,
-          access_token: token()
-        });
-
         options = {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          body
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ ...params, access_token: token() })
         };
       }
 
@@ -328,12 +333,22 @@
 
     function prompt() {
       return `あなたは日本のコレクション品を画像から判定するアシスタントです。
-画像を確認して、次のJSONだけを返してください。
-推測は断定せず「不明」と書いてください。
-価格は画像だけで相場を裏付けられない場合は「要確認」。
-種類は必ず「シール」「トレカ」「食玩」のいずれか。
+画像を確認し、Google検索も必要に応じて利用してください。
+次のJSONだけを返してください。Markdownや説明文は不要です。
 
-{"name":"","series":"","kind":"シール","rarity":"","price":"","memo":""}`;
+種類は必ず「シール」「トレカ」「食玩」のいずれかにしてください。
+
+レア度ランクは、画像から判断できる範囲で
+「N」「R」「SR」「SSR」「SC」「UR」「SEC」「PR」「不明」
+のいずれか1つを返してください。
+画像にレア表記が見当たらない場合でも、見た目・ホログラム・作品内の一般的な分類から最も近いランクを推定してください。
+
+価格は、Google検索で見つかるメルカリの公開掲載・販売済み掲載を優先して参考にし、
+日本円の推定相場を「約○○円」の形式で記載してください。
+十分な情報がない場合は、画像からの推定価格を
+「約○○円（推定）」と記載してください。
+
+{"name":"","series":"","kind":"シール","rarity":"N","price":"","memo":""}`;
     }
 
     async function b64(file) {
@@ -367,7 +382,7 @@
       $('scanBtn').disabled = true;
 
       try {
-        setStatus('画像をAIで解析しています…');
+        setStatus('画像と公開情報をAIで解析しています…');
 
         const parts = [
           { text: prompt() },
@@ -405,6 +420,11 @@
                   parts
                 }
               ],
+              tools: [
+                {
+                  google_search: {}
+                }
+              ],
               generationConfig: {
                 responseMimeType: 'application/json',
                 maxOutputTokens: 800
@@ -425,9 +445,19 @@
 
         analysis = jsonFromText(text);
 
-        for (const key of ['name', 'series', 'kind', 'rarity', 'price', 'memo']) {
-          $(key).value = analysis[key] || '';
-        }
+        $('name').value = analysis.name || '';
+        $('series').value = analysis.series || '';
+        $('kind').value = ['シール', 'トレカ', '食玩'].includes(analysis.kind)
+          ? analysis.kind
+          : 'シール';
+
+        const validRarity = ['N', 'R', 'SR', 'SSR', 'SC', 'UR', 'SEC', 'PR', '不明'];
+        $('rarity').value = validRarity.includes(analysis.rarity)
+          ? analysis.rarity
+          : '不明';
+
+        $('price').value = analysis.price || '';
+        $('memo').value = analysis.memo || '';
 
         $('resultCard').style.display = 'block';
         setStatus('判定できました。内容を確認して保存してください。');
@@ -442,7 +472,7 @@
         name: $('name').value.trim() || '名称未設定',
         series: $('series').value.trim(),
         kind: $('kind').value,
-        rarity: $('rarity').value.trim(),
+        rarity: $('rarity').value,
         price: $('price').value.trim(),
         memo: $('memo').value.trim(),
         savedAt: new Date().toISOString()
@@ -624,3 +654,4 @@
   </script>
 </body>
 </html>
+```
