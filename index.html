@@ -6,13 +6,13 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>コレクトAI v6.0</title>
+  <title>コレクトAI v7.0</title>
   
   <style>
     :root { --primary: #007AFF; --bg: #f2f2f7; --card: #ffffff; }
     body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); margin: 0; padding: 16px; color: #1c1c1e; }
     h1 { font-size: 1.3rem; text-align: center; margin-bottom: 4px; }
-    .ver-badge { text-align: center; font-size: 0.8rem; color: #ff9500; font-weight: bold; margin-bottom: 16px; }
+    .ver-badge { text-align: center; font-size: 0.8rem; color: #34c759; font-weight: bold; margin-bottom: 16px; }
     .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
     label { font-size: 0.85rem; font-weight: bold; color: #6c6c70; display: block; margin-bottom: 6px; }
     .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
@@ -29,7 +29,7 @@
 <body>
 
   <h1>✨ コレクションAIスキャン</h1>
-  <div class="ver-badge">App Version: 6.0.0 (Key Embedded)</div>
+  <div class="ver-badge">App Version: 7.0.0 (Bearer Auth Supported)</div>
 
   <div class="card">
     <div class="upload-grid">
@@ -59,8 +59,8 @@
   </div>
 
   <script>
-    // 埋め込み済みのAPIキー
-    const EMBEDDED_API_KEY = "AQ.Ab8RN6Jv0ZeQCyCCJiLISPpHHPQMNHuYEYuvx_AAPU5yFPfZ2";
+    // AQから始まる新しいトークン認証形式に対応したキー
+    const TOKEN_KEY = "AQ.Ab8RN6Jv0ZeQCyCCJiLISPpHHPQMNHuYEYuvx_AAPU5yFPfZ2Q";
 
     let currentAnalysis = null;
 
@@ -108,39 +108,34 @@
           parts.push({ inline_data: { mime_type: backFile.type, data: backBase64 } });
         }
 
-        const endpoints = [
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${EMBEDDED_API_KEY}`,
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${EMBEDDED_API_KEY}`
-        ];
+        // 新認証（Bearer Token）と従来認証（API Key）の自動切り替え判定
+        let res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${TOKEN_KEY}`
+          },
+          body: JSON.stringify({ contents: [{ parts: parts }] })
+        });
 
-        let successData = null;
-        let lastErrorMsg = '';
+        let data = await res.json();
 
-        for (const url of endpoints) {
-          try {
-            const res = await fetch(url, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ contents: [{ parts: parts }] })
-            });
-            const data = await res.json();
-            if (!data.error && data.candidates && data.candidates[0]) {
-              successData = data;
-              break;
-            } else if (data.error) {
-              lastErrorMsg = data.error.message;
-            }
-          } catch (e) {
-            lastErrorMsg = e.message;
-          }
+        // もしBearerで失敗した場合は従来のKeyクエリで再試行
+        if (data.error && data.error.code === 401) {
+          res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${TOKEN_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: parts }] })
+          });
+          data = await res.json();
         }
 
-        if (!successData) {
-          alert('APIエラー: ' + lastErrorMsg);
+        if (data.error) {
+          alert('APIエラー: ' + data.error.message);
           return;
         }
 
-        const text = successData.candidates[0].content.parts[0].text;
+        const text = data.candidates[0].content.parts[0].text;
         currentAnalysis = { text, frontImg: document.getElementById('prevFront').src };
         
         const resultDiv = document.getElementById('result');
