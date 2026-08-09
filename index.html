@@ -3,13 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+
   <title>シールコレクション AI</title>
 
   <style>
+
     :root{
       --blue:#1677ff;
       --green:#16a34a;
       --red:#dc2626;
+      --orange:#f59e0b;
       --bg:#f5f7fb;
       --line:#dde3ee;
       --text:#172033;
@@ -23,7 +26,8 @@
     body{
       margin:0;
       background:var(--bg);
-      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      font-family:-apple-system,BlinkMacSystemFont,
+        "Segoe UI",sans-serif;
       color:var(--text)
     }
 
@@ -196,6 +200,35 @@
       gap:10px
     }
 
+    .price-box{
+      background:#f8fafc;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px;
+      margin-top:4px
+    }
+
+    .price-title{
+      font-size:12px;
+      font-weight:700;
+      color:var(--sub);
+      margin-bottom:5px
+    }
+
+    .price-value{
+      font-size:20px;
+      font-weight:800;
+      color:var(--green)
+    }
+
+    .price-reference{
+      font-size:12px;
+      line-height:1.6;
+      color:var(--sub);
+      white-space:pre-wrap;
+      margin-top:7px
+    }
+
     .item{
       display:flex;
       gap:12px;
@@ -244,6 +277,7 @@
     }
 
     @media(max-width:390px){
+
       .grid{
         gap:7px
       }
@@ -251,9 +285,12 @@
       .photo{
         min-height:140px
       }
+
     }
+
   </style>
 </head>
+
 
 <body>
 
@@ -262,11 +299,14 @@
   <h1>✨ シールコレクション AI</h1>
 
   <p class="lead">
-    表面・裏面を選んで、シンプルに記録
+    表面・裏面をAI判定して、相場も自動調査
   </p>
 
 
-  <!-- pCloud -->
+  <!-- =====================================================
+       pCloud
+  ====================================================== -->
+
   <section class="card">
 
     <div class="row">
@@ -299,7 +339,9 @@
       id="loginBtn"
       class="btn secondary full"
       type="button">
+
       pCloud に接続
+
     </button>
 
 
@@ -307,13 +349,18 @@
       id="logoutBtn"
       class="btn small hidden"
       type="button">
+
       接続を解除
+
     </button>
 
   </section>
 
 
-  <!-- Gemini -->
+  <!-- =====================================================
+       Gemini API
+  ====================================================== -->
+
   <section class="card">
 
     <label for="apiKey">
@@ -329,13 +376,18 @@
 
 
     <p class="hint">
+
       キーはこの端末・このブラウザ内にのみ保存されます。
+
     </p>
 
   </section>
 
 
-  <!-- 画像 -->
+  <!-- =====================================================
+       画像
+  ====================================================== -->
+
   <section class="card">
 
     <div class="grid">
@@ -382,7 +434,7 @@
       class="btn full"
       type="button">
 
-      AIで判定する
+      🔍 AIで判定・相場調査
 
     </button>
 
@@ -401,7 +453,10 @@
   </section>
 
 
-  <!-- 解析結果 -->
+  <!-- =====================================================
+       AI解析結果
+  ====================================================== -->
+
   <section
     id="resultCard"
     class="card result">
@@ -414,27 +469,39 @@
     <div class="fields">
 
 
+      <!-- 名前 -->
+
       <div>
 
-        <label>シール名</label>
+        <label>
+          シール名
+        </label>
 
         <input id="name">
 
       </div>
 
 
+      <!-- シリーズ -->
+
       <div>
 
-        <label>シリーズ・作品名</label>
+        <label>
+          シリーズ・作品名
+        </label>
 
         <input id="series">
 
       </div>
 
 
+      <!-- 種類 -->
+
       <div>
 
-        <label>種類</label>
+        <label>
+          種類
+        </label>
 
         <select id="kind">
 
@@ -447,9 +514,13 @@
       </div>
 
 
+      <!-- レア度 -->
+
       <div>
 
-        <label>レア度ランク</label>
+        <label>
+          レア度ランク
+        </label>
 
         <select id="rarity">
 
@@ -468,25 +539,80 @@
       </div>
 
 
+      <!-- 価格 -->
+
       <div>
 
-        <label>価格</label>
+        <label>
+          現在の推定相場
+        </label>
 
-        <input id="price">
+        <input
+          id="price"
+          placeholder="例：約3,000円">
 
       </div>
 
 
+      <!-- 価格根拠 -->
+
       <div>
 
-        <label>メモ</label>
+        <label>
+          価格の参考情報
+        </label>
 
-        <textarea id="memo"></textarea>
+        <textarea
+          id="priceReference"
+          placeholder="メルカリ・まんだらけ等の価格情報">
+        </textarea>
+
+      </div>
+
+
+      <!-- メモ -->
+
+      <div>
+
+        <label>
+          メモ
+        </label>
+
+        <textarea
+          id="memo">
+        </textarea>
 
       </div>
 
     </div>
 
+
+    <!-- 相場表示 -->
+
+    <div class="price-box">
+
+      <div class="price-title">
+        AI推定・現在相場
+      </div>
+
+      <div
+        id="priceDisplay"
+        class="price-value">
+
+        -
+
+      </div>
+
+      <div
+        id="priceReferenceDisplay"
+        class="price-reference">
+
+      </div>
+
+    </div>
+
+
+    <!-- 保存 -->
 
     <button
       id="saveBtn"
@@ -500,13 +626,18 @@
   </section>
 
 
-  <!-- コレクション -->
+  <!-- =====================================================
+       コレクション
+  ====================================================== -->
+
   <section class="card">
 
     <div class="row">
 
       <label style="margin:0">
+
         マイコレクション
+
       </label>
 
 
@@ -526,7 +657,8 @@
 
       <p class="muted">
 
-        pCloudに接続すると保存済みの一覧を読み込みます。
+        pCloudに接続すると
+        保存済みの一覧を読み込みます。
 
       </p>
 
@@ -541,18 +673,23 @@
 
 /* =========================================================
    pCloud Client ID
-   ========================================================= */
+========================================================= */
 
 const PCLOUD_CLIENT_ID =
   'PASTE_YOUR_PCLOUD_CLIENT_ID_HERE';
 
 
 /* =========================================================
-   Gemini設定
-   ========================================================= */
+   Gemini
+========================================================= */
 
 const GEMINI_MODEL =
   'gemini-3.6-flash';
+
+
+/* =========================================================
+   pCloud
+========================================================= */
 
 const ROOT_FOLDER =
   'シールコレクション';
@@ -560,22 +697,25 @@ const ROOT_FOLDER =
 
 /* =========================================================
    共通
-   ========================================================= */
+========================================================= */
 
 const $ =
   id => document.getElementById(id);
 
+
 const store =
   localStorage;
 
+
 let analysis = null;
+
 
 let records = [];
 
 
 /* =========================================================
-   メッセージ
-   ========================================================= */
+   ステータス
+========================================================= */
 
 function setStatus(text){
 
@@ -616,7 +756,7 @@ function clearMessage(){
 
 /* =========================================================
    HTMLエスケープ
-   ========================================================= */
+========================================================= */
 
 function esc(text){
 
@@ -639,7 +779,7 @@ function esc(text){
 
 /* =========================================================
    ID
-   ========================================================= */
+========================================================= */
 
 function uid(){
 
@@ -654,7 +794,7 @@ function uid(){
 
 /* =========================================================
    MIME
-   ========================================================= */
+========================================================= */
 
 function mime(file){
 
@@ -665,8 +805,8 @@ function mime(file){
 
 
 /* =========================================================
-   画像プレビュー
-   ========================================================= */
+   プレビュー
+========================================================= */
 
 function preview(
   input,
@@ -719,8 +859,8 @@ $('back').onchange =
 
 
 /* =========================================================
-   Gemini API Key
-   ========================================================= */
+   API Key
+========================================================= */
 
 function saveKey(){
 
@@ -736,7 +876,7 @@ function saveKey(){
 
 /* =========================================================
    pCloud
-   ========================================================= */
+========================================================= */
 
 function apiHost(){
 
@@ -796,6 +936,10 @@ function redirectURI(){
 }
 
 
+/* =========================================================
+   pCloud接続
+========================================================= */
+
 function connect(){
 
   if(
@@ -816,7 +960,7 @@ function connect(){
   ){
 
     throw Error(
-      'このHTMLはHTTPSで公開してから使ってください。file:// ではOAuthの戻り先を登録できません。'
+      'このHTMLはHTTPSで公開してから使ってください。'
     );
 
   }
@@ -856,6 +1000,10 @@ function connect(){
 
 }
 
+
+/* =========================================================
+   OAuth
+========================================================= */
 
 function readOAuth(){
 
@@ -916,6 +1064,7 @@ function readOAuth(){
 
   }
 
+
   else if(
     params.get('error')
   ){
@@ -933,7 +1082,7 @@ function readOAuth(){
 
 /* =========================================================
    pCloud API
-   ========================================================= */
+========================================================= */
 
 async function pcall(
   method,
@@ -981,6 +1130,7 @@ async function pcall(
 
   }
 
+
   else{
 
     options = {
@@ -1025,7 +1175,7 @@ async function pcall(
   catch{
 
     throw Error(
-      'pCloudへ接続できませんでした。公開URL・通信環境・pCloudの設定を確認してください。'
+      'pCloudへ接続できませんでした。'
     );
 
   }
@@ -1044,11 +1194,7 @@ async function pcall(
   catch{
 
     throw Error(
-      'pCloudから正しい応答が返りませんでした（HTTP '
-      +
-      response.status
-      +
-      '）。'
+      'pCloudから正しい応答が返りませんでした。'
     );
 
   }
@@ -1082,7 +1228,7 @@ async function pcall(
 
 /* =========================================================
    pCloudルート
-   ========================================================= */
+========================================================= */
 
 async function root(){
 
@@ -1107,7 +1253,7 @@ async function root(){
 
 /* =========================================================
    Upload
-   ========================================================= */
+========================================================= */
 
 async function upload(
   folderid,
@@ -1154,29 +1300,101 @@ async function upload(
 
 
 /* =========================================================
-   Geminiプロンプト
-   ========================================================= */
+   AIプロンプト
+========================================================= */
 
 function prompt(){
 
-  return `あなたは日本のコレクション品を画像から判定するアシスタントです。
+  return `あなたは日本のコレクション品を調査する専門AIです。
 
-表面・裏面の画像を確認してください。
+画像の表面・裏面を確認して、
+商品をできるだけ正確に特定してください。
 
-必要に応じてGoogle検索を利用してください。
+必要に応じてGoogle検索を使用してください。
 
-特に商品名、シリーズ名、レア度、相場について公開情報を確認してください。
+特に以下を確認してください。
 
-次のJSONだけを返してください。
-Markdownや説明文は不要です。
+・商品名
+・キャラクター名
+・シリーズ名
+・作品名
+・弾数
+・番号
+・発売時期
+・レア度
+・通常版か限定版か
+・懸賞品かどうか
+・ホログラム等の仕様
+・裏面の文字
+・価格相場
 
-種類は必ず
-「シール」
-「トレカ」
-「食玩」
-のいずれかにしてください。
 
-レア度ランクは次のいずれか1つにしてください。
+【重要：価格調査】
+
+価格は単なる推測ではなく、
+Google検索で現在確認できる公開情報を調査してください。
+
+
+優先して調べるサイト：
+
+1. まんだらけ
+2. メルカリ
+3. その他の信頼できるコレクションショップ
+
+
+【まんだらけ】
+
+まんだらけの通販ページに
+該当商品または同一商品の販売価格が確認できる場合、
+その価格を参考価格として使用してください。
+
+状態が
+美品、並品、難あり等で分かれている場合は、
+画像から判断した状態に近い価格を優先してください。
+
+
+【メルカリ】
+
+メルカリでは、
+同一商品または同一仕様の商品を検索してください。
+
+販売済み情報が確認できる場合は、
+販売済み価格を優先してください。
+
+販売済み情報が確認できない場合は、
+現在出品されている価格を参考にしてください。
+
+まとめ売りの商品を、
+1枚単体の価格としてそのまま使用しないでください。
+
+
+【価格の決め方】
+
+まんだらけとメルカリの価格が複数確認できた場合、
+極端に高い価格・安い価格をそのまま採用せず、
+同一商品・同程度の状態の価格帯から
+現在の妥当な相場を推定してください。
+
+情報が少ない場合は、
+無理に高い価格を付けないでください。
+
+相場が確認できない場合は
+「確認できません」
+としてください。
+
+
+【種類】
+
+種類は必ず以下のいずれか：
+
+シール
+トレカ
+食玩
+
+
+【レア度】
+
+レア度は必ず以下のいずれか：
 
 N
 R
@@ -1188,18 +1406,15 @@ SEC
 PR
 不明
 
-画像にレア度表記がない場合は、
-作品内での一般的な分類や見た目を参考に、
-最も近いものを推定してください。
+画像や公開情報からレア度が確認できない場合は、
+「不明」にしてください。
 
-価格は日本円で、
-公開されている販売価格・掲載価格を参考にしてください。
+根拠なく高いレア度にしないでください。
 
-十分な情報がない場合は、
-「約○○円（推定）」
-としてください。
 
-必ず以下のJSON構造で返してください。
+【JSON】
+
+必ず以下のJSONだけを返してください。
 
 {
   "name": "",
@@ -1207,15 +1422,59 @@ PR
   "kind": "シール",
   "rarity": "不明",
   "price": "",
+  "priceReference": "",
   "memo": ""
-}`;
+}
+
+
+【price】
+
+priceには、
+現在の推定相場を日本円で記載してください。
+
+例：
+
+約3,000円
+
+相場が確認できない場合：
+
+確認できません
+
+
+【priceReference】
+
+priceReferenceには、
+価格調査の根拠を簡潔に記載してください。
+
+例：
+
+まんだらけ：約3,300円
+メルカリ：約2,500～3,500円
+同一商品の販売情報を中心に判断
+
+検索結果が少ない場合：
+
+まんだらけ：該当商品なし
+メルカリ：約2,800円
+類似商品の価格を参考
+
+必ず「まんだらけ」「メルカリ」のどちらを確認したか分かるようにしてください。
+
+
+【memo】
+
+memoには、
+商品の特定根拠、状態、注意点などを記載してください。
+
+推測した部分がある場合は、
+そのことも記載してください。`;
 
 }
 
 
 /* =========================================================
    Base64
-   ========================================================= */
+========================================================= */
 
 async function b64(file){
 
@@ -1254,7 +1513,7 @@ async function b64(file){
 
 /* =========================================================
    JSON解析
-   ========================================================= */
+========================================================= */
 
 function jsonFromText(text){
 
@@ -1280,7 +1539,7 @@ function jsonFromText(text){
 
 /* =========================================================
    AI判定
-   ========================================================= */
+========================================================= */
 
 async function scan(){
 
@@ -1331,15 +1590,17 @@ async function scan(){
   try{
 
     setStatus(
-      '画像と公開情報をAIで解析しています…'
+      '①画像を解析しています…'
     );
 
 
     const parts = [
 
       {
+
         text:
           prompt()
+
       },
 
       {
@@ -1378,12 +1639,15 @@ async function scan(){
     }
 
 
+    setStatus(
+      '②Google検索で商品情報と相場を調査しています…'
+    );
+
+
     /*
-     * Gemini Generate Content API
+     * Gemini GenerateContent API
      *
-     * Gemini 3.6 Flash
-     * Google Search
-     * Structured Output
+     * 2026年8月現在のREST形式
      */
 
     const requestBody = {
@@ -1415,116 +1679,119 @@ async function scan(){
       generationConfig:{
 
         maxOutputTokens:
-          800,
+          1200,
+
+        temperature:
+          0.2,
+
+        responseMimeType:
+          'application/json',
+
+        responseSchema:{
+
+          type:'object',
+
+          properties:{
+
+            name:{
+
+              type:'string',
+
+              description:
+                '商品名・シール名'
+
+            },
 
 
-        responseFormat:{
+            series:{
 
-          text:{
+              type:'string',
 
-            mimeType:
-              'application/json',
+              description:
+                'シリーズ・作品名・弾数など'
 
-
-            schema:{
-
-              type:'object',
+            },
 
 
-              properties:{
+            kind:{
 
-                name:{
+              type:'string',
 
-                  type:'string',
+              enum:[
 
-                  description:
-                    'シール名'
-
-                },
-
-
-                series:{
-
-                  type:'string',
-
-                  description:
-                    'シリーズ・作品名'
-
-                },
-
-
-                kind:{
-
-                  type:'string',
-
-                  enum:[
-
-                    'シール',
-                    'トレカ',
-                    '食玩'
-
-                  ]
-
-                },
-
-
-                rarity:{
-
-                  type:'string',
-
-                  enum:[
-
-                    'N',
-                    'R',
-                    'SR',
-                    'SSR',
-                    'SC',
-                    'UR',
-                    'SEC',
-                    'PR',
-                    '不明'
-
-                  ]
-
-                },
-
-
-                price:{
-
-                  type:'string',
-
-                  description:
-                    '日本円の推定価格。約○○円の形式'
-
-                },
-
-
-                memo:{
-
-                  type:'string',
-
-                  description:
-                    '判定根拠や状態のメモ'
-
-                }
-
-              },
-
-
-              required:[
-
-                'name',
-                'series',
-                'kind',
-                'rarity',
-                'price',
-                'memo'
+                'シール',
+                'トレカ',
+                '食玩'
 
               ]
 
+            },
+
+
+            rarity:{
+
+              type:'string',
+
+              enum:[
+
+                'N',
+                'R',
+                'SR',
+                'SSR',
+                'SC',
+                'UR',
+                'SEC',
+                'PR',
+                '不明'
+
+              ]
+
+            },
+
+
+            price:{
+
+              type:'string',
+
+              description:
+                '現在の推定相場。例：約3000円。確認できない場合は確認できません'
+
+            },
+
+
+            priceReference:{
+
+              type:'string',
+
+              description:
+                'まんだらけ・メルカリ等で確認した価格情報と判断根拠'
+
+            },
+
+
+            memo:{
+
+              type:'string',
+
+              description:
+                '商品特定の根拠、状態、注意点など'
+
             }
 
-          }
+          },
+
+
+          required:[
+
+            'name',
+            'series',
+            'kind',
+            'rarity',
+            'price',
+            'priceReference',
+            'memo'
+
+          ]
 
         }
 
@@ -1597,9 +1864,22 @@ async function scan(){
     }
 
 
-    const text =
+    const candidate =
       data
-        .candidates?.[0]
+        .candidates?.[0];
+
+
+    if(!candidate){
+
+      throw Error(
+        'Geminiから解析結果が返ってきませんでした。'
+      );
+
+    }
+
+
+    const text =
+      candidate
         ?.content
         ?.parts
         ?.map(
@@ -1625,6 +1905,10 @@ async function scan(){
         text
       );
 
+
+    /* =====================================================
+       結果表示
+    ====================================================== */
 
     $('name').value =
       analysis.name || '';
@@ -1682,8 +1966,23 @@ async function scan(){
       analysis.price || '';
 
 
+    $('priceReference').value =
+      analysis.priceReference || '';
+
+
     $('memo').value =
       analysis.memo || '';
+
+
+    $('priceDisplay').textContent =
+      analysis.price ||
+      '確認できません';
+
+
+    $('priceReferenceDisplay')
+      .textContent =
+        analysis.priceReference ||
+        '価格情報を確認できませんでした。';
 
 
     $('resultCard')
@@ -1692,7 +1991,7 @@ async function scan(){
 
 
     setStatus(
-      '判定できました。内容を確認して保存してください。'
+      '③判定・相場調査が完了しました。内容を確認してください。'
     );
 
   }
@@ -1710,7 +2009,7 @@ async function scan(){
 
 /* =========================================================
    現在のデータ
-   ========================================================= */
+========================================================= */
 
 function current(){
 
@@ -1742,6 +2041,11 @@ function current(){
         .value
         .trim(),
 
+    priceReference:
+      $('priceReference')
+        .value
+        .trim(),
+
     memo:
       $('memo')
         .value
@@ -1758,7 +2062,7 @@ function current(){
 
 /* =========================================================
    pCloud保存
-   ========================================================= */
+========================================================= */
 
 async function save(){
 
@@ -1809,7 +2113,7 @@ async function save(){
   try{
 
     setStatus(
-      'pCloudに保存しています（フォルダ作成 → 画像 → データ）…'
+      'pCloudに保存しています…'
     );
 
 
@@ -1862,6 +2166,8 @@ async function save(){
       };
 
 
+    /* 表面 */
+
     await upload(
       folderid,
       front,
@@ -1869,6 +2175,8 @@ async function save(){
       ext(front)
     );
 
+
+    /* 裏面 */
 
     if(back){
 
@@ -1881,6 +2189,8 @@ async function save(){
 
     }
 
+
+    /* データ */
 
     const dataFile =
       new File(
@@ -1945,7 +2255,7 @@ async function save(){
 
 /* =========================================================
    一覧更新
-   ========================================================= */
+========================================================= */
 
 async function refresh(){
 
@@ -2023,6 +2333,8 @@ async function refresh(){
 
         price:'',
 
+        priceReference:'',
+
         memo:'',
 
         savedAt:
@@ -2044,7 +2356,7 @@ async function refresh(){
 
 /* =========================================================
    削除
-   ========================================================= */
+========================================================= */
 
 async function del(id){
 
@@ -2119,7 +2431,7 @@ async function del(id){
 
 /* =========================================================
    一覧表示
-   ========================================================= */
+========================================================= */
 
 function render(){
 
@@ -2156,26 +2468,49 @@ function render(){
 
 
               <p>
+
                 ${esc(record.series)}
+
                 　
+
                 ${esc(record.kind)}
+
                 　
+
                 ${esc(record.rarity)}
+
               </p>
 
 
               <p>
+
                 ${esc(record.price)}
+
                 　
+
                 ${
+                  record.savedAt
+                  ?
                   new Date(
                     record.savedAt
                   )
                   .toLocaleDateString(
                     'ja-JP'
                   )
+                  :
+                  ''
                 }
+
               </p>
+
+
+              ${
+                record.priceReference
+                ?
+                `<p>${esc(record.priceReference)}</p>`
+                :
+                ''
+              }
 
             </div>
 
@@ -2199,7 +2534,7 @@ function render(){
 
 /* =========================================================
    ボタン
-   ========================================================= */
+========================================================= */
 
 $('loginBtn').onclick =
   () => {
@@ -2241,22 +2576,28 @@ $('logoutBtn').onclick =
 
 $('scanBtn').onclick =
   () =>
-    scan().catch(fail);
+    scan().catch(
+      fail
+    );
 
 
 $('saveBtn').onclick =
   () =>
-    save().catch(fail);
+    save().catch(
+      fail
+    );
 
 
 $('refreshBtn').onclick =
   () =>
-    refresh().catch(fail);
+    refresh().catch(
+      fail
+    );
 
 
 /* =========================================================
    初期化
-   ========================================================= */
+========================================================= */
 
 try{
 
