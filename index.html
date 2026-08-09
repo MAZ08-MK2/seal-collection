@@ -1,2189 +1,599 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, user-scalable=no"
-  >
-
-  <meta
-    http-equiv="Cache-Control"
-    content="no-cache, no-store, must-revalidate"
-  >
-
-  <meta
-    http-equiv="Pragma"
-    content="no-cache"
-  >
-
-  <meta
-    http-equiv="Expires"
-    content="0"
-  >
-
-  <title>コレクションAIスキャン</title>
-
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>シールコレクション AI</title>
   <style>
-
-    :root {
-      --primary: #007AFF;
-      --bg: #f2f2f7;
-      --card: #ffffff;
-      --text: #1c1c1e;
-      --subtext: #6c6c70;
-      --border: #c6c6c8;
-      --success: #34c759;
-      --danger: #ff3b30;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "Helvetica Neue",
-        sans-serif;
-
-      background: var(--bg);
-
-      margin: 0;
-
-      padding: 16px;
-
-      color: var(--text);
-    }
-
-    h1 {
-      font-size: 1.3rem;
-
-      text-align: center;
-
-      margin: 8px 0 4px;
-    }
-
-    .ver-badge {
-      text-align: center;
-
-      font-size: 0.8rem;
-
-      color: var(--success);
-
-      font-weight: bold;
-
-      margin-bottom: 16px;
-    }
-
-    .card {
-      background: var(--card);
-
-      border-radius: 14px;
-
-      padding: 16px;
-
-      margin-bottom: 16px;
-
-      box-shadow:
-        0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-
-    label {
-      font-size: 0.85rem;
-
-      font-weight: bold;
-
-      color: var(--subtext);
-
-      display: block;
-
-      margin-bottom: 6px;
-    }
-
-    input[type="password"] {
-      width: 100%;
-
-      padding: 12px;
-
-      border: 1px solid var(--border);
-
-      border-radius: 8px;
-
-      margin-bottom: 8px;
-
-      font-size: 0.9rem;
-
-      background: #fff;
-    }
-
-    .key-hint {
-      font-size: 0.75rem;
-
-      color: #8e8e93;
-
-      line-height: 1.45;
-    }
-
-    .upload-grid {
-      display: grid;
-
-      grid-template-columns: 1fr 1fr;
-
-      gap: 12px;
-
-      margin-bottom: 16px;
-    }
-
-    .upload-box {
-      border: 2px dashed #c6c6c8;
-
-      border-radius: 10px;
-
-      padding: 12px;
-
-      text-align: center;
-
-      background: #fafafa;
-
-      position: relative;
-
-      cursor: pointer;
-
-      min-height: 150px;
-    }
-
-    .upload-box:active {
-      background: #eeeeee;
-    }
-
-    .upload-box span {
-      display: block;
-
-      font-size: 0.85rem;
-
-      font-weight: bold;
-
-      color: #555;
-
-      margin-bottom: 4px;
-    }
-
-    .upload-box input {
-      display: none;
-    }
-
-    .upload-box img {
-      width: 100%;
-
-      height: 105px;
-
-      object-fit: contain;
-
-      display: none;
-
-      margin-top: 8px;
-
-      border-radius: 5px;
-    }
-
-    .btn {
-      background: var(--primary);
-
-      color: white;
-
-      border: none;
-
-      width: 100%;
-
-      padding: 14px;
-
-      border-radius: 10px;
-
-      font-weight: bold;
-
-      font-size: 1rem;
-
-      cursor: pointer;
-    }
-
-    .btn:disabled {
-      background: #a2a2a7;
-
-      cursor: not-allowed;
-    }
-
-    .save-btn {
-      background: var(--success);
-
-      margin-top: 12px;
-    }
-
-    .clear-btn {
-      background: var(--danger);
-
-      margin-top: 10px;
-
-      padding: 11px;
-
-      font-size: 0.85rem;
-    }
-
-    #result {
-      display: none;
-
-      white-space: pre-wrap;
-
-      font-size: 0.9rem;
-
-      line-height: 1.6;
-
-      background: #eef6ff;
-
-      border-left: 4px solid var(--primary);
-
-      padding: 12px;
-
-      border-radius: 5px;
-
-      word-break: break-word;
-    }
-
-    .error-box {
-      display: none;
-
-      white-space: pre-wrap;
-
-      font-size: 0.85rem;
-
-      line-height: 1.55;
-
-      background: #fff2f2;
-
-      border-left: 4px solid var(--danger);
-
-      padding: 12px;
-
-      border-radius: 5px;
-
-      margin-top: 12px;
-
-      color: #8b0000;
-    }
-
-    .status {
-      display: none;
-
-      text-align: center;
-
-      font-size: 0.82rem;
-
-      color: #6c6c70;
-
-      margin-top: 12px;
-
-      line-height: 1.5;
-    }
-
-    .collection-item {
-      display: flex;
-
-      align-items: center;
-
-      gap: 12px;
-
-      border-bottom: 1px solid #e5e5ea;
-
-      padding: 10px 0;
-    }
-
-    .collection-item:last-child {
-      border-bottom: none;
-    }
-
-    .collection-item img {
-      width: 58px;
-
-      height: 58px;
-
-      object-fit: cover;
-
-      border-radius: 6px;
-
-      background: #f2f2f7;
-
-      flex-shrink: 0;
-    }
-
-    .collection-info {
-      flex: 1;
-
-      min-width: 0;
-    }
-
-    .collection-title {
-      font-size: 0.85rem;
-
-      font-weight: bold;
-
-      line-height: 1.4;
-
-      word-break: break-word;
-    }
-
-    .collection-date {
-      font-size: 0.7rem;
-
-      color: #8e8e93;
-
-      margin-top: 4px;
-    }
-
-    .empty {
-      color: #8e8e93;
-
-      font-size: 0.85rem;
-
-      text-align: center;
-
-      padding: 15px 0;
-    }
-
-    .model-info {
-      font-size: 0.7rem;
-
-      color: #8e8e93;
-
-      text-align: center;
-
-      margin-top: 8px;
-    }
-
-    @media (max-width: 480px) {
-
-      body {
-        padding: 10px;
-      }
-
-      .card {
-        padding: 14px;
-      }
-
-      .upload-grid {
-        gap: 8px;
-      }
-
-    }
-
+    :root{--blue:#1677ff;--green:#16a34a;--red:#dc2626;--bg:#f5f7fb;--line:#dde3ee;--text:#172033;--sub:#667085}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
+    main{max-width:680px;margin:auto;padding:20px 14px 42px}
+    h1{font-size:23px;text-align:center;margin:8px 0 4px}
+    .lead{text-align:center;color:var(--sub);font-size:13px;margin:0 0 18px}
+    .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 2px 10px #16213a0a}
+    .row{display:flex;gap:10px;align-items:center;justify-content:space-between}
+    .muted,.hint{color:var(--sub);font-size:12px;line-height:1.5}
+    .hint{margin-top:7px}
+    label{display:block;font-size:13px;font-weight:700;margin:0 0 6px}
+    input,textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;font:inherit;background:#fff}
+    textarea{min-height:72px;resize:vertical}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .photo{border:2px dashed #b8c3d6;border-radius:13px;min-height:160px;padding:10px;text-align:center;cursor:pointer;color:var(--sub);font-size:13px}
+    .photo img{width:100%;height:118px;object-fit:contain;display:none;margin-top:8px}
+    .photo input{display:none}
+    .btn{border:0;border-radius:11px;padding:12px 14px;background:var(--blue);color:#fff;font-weight:700;font-size:14px;cursor:pointer}
+    .btn:disabled{opacity:.55;cursor:not-allowed}
+    .btn.secondary{background:#eef4ff;color:#125dc9}
+    .btn.green{background:var(--green)}
+    .btn.red{background:var(--red)}
+    .btn.small{padding:8px 10px;font-size:12px;width:auto}
+    .full{width:100%;margin-top:12px}
+    .status{display:none;margin-top:11px;padding:10px;border-radius:9px;background:#eff6ff;color:#1957a7;font-size:13px;white-space:pre-wrap}
+    .error{display:none;margin-top:11px;padding:10px;border-radius:9px;background:#fff1f2;color:#a9162b;font-size:13px;white-space:pre-wrap}
+    .result{display:none}
+    .fields{display:grid;gap:10px}
+    .item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+    .item:last-child{border:0}
+    .thumb{width:64px;height:64px;object-fit:cover;border-radius:10px;background:#edf1f7}
+    .item h3{font-size:15px;margin:0 0 3px}
+    .item p{font-size:12px;color:var(--sub);margin:2px 0}
+    .item .grow{flex:1;min-width:0}
+    .badge{font-size:12px;color:#17643b;background:#e9f9ef;padding:5px 8px;border-radius:999px}
+    .hidden{display:none}
+    @media(max-width:390px){.grid{gap:7px}.photo{min-height:140px}}
   </style>
-
 </head>
-
 <body>
+  <main>
+    <h1>✨ シールコレクション AI</h1>
+    <p class="lead">表面・裏面を撮影して、シンプルに記録</p>
 
+    <section class="card">
+      <div class="row">
+        <strong>pCloud 保存先</strong>
+        <span id="cloudState" class="badge">未接続</span>
+      </div>
+      <p class="hint">
+        承認後に下の <code>PCLOUD_CLIENT_ID</code> だけを変更し、
+        pCloud My Apps の Redirect URI にこのHTMLの公開URLを登録してください。
+        Client Secret は入力しません。
+      </p>
+      <button id="loginBtn" class="btn secondary full" type="button">pCloud に接続</button>
+      <button id="logoutBtn" class="btn small hidden" type="button">接続を解除</button>
+    </section>
 
-  <h1>✨ コレクションAIスキャン</h1>
+    <section class="card">
+      <label for="apiKey">Gemini API Key</label>
+      <input id="apiKey" type="password" autocomplete="off" placeholder="Gemini APIキーを貼り付け">
+      <p class="hint">キーはこの端末・このブラウザ内にのみ保存されます。</p>
+    </section>
 
-  <div class="ver-badge">
-    App Version: 8.3.2
-  </div>
-
-
-  <!-- APIキー -->
-
-  <div class="card">
-
-    <label for="apiKey">
-      Gemini API Key
-    </label>
-
-    <input
-      type="password"
-      id="apiKey"
-      placeholder="Gemini APIキーを貼り付け"
-      autocomplete="off"
-    >
-
-    <div class="key-hint">
-      ※APIキーはこのブラウザのlocalStorageに保存されます。<br>
-      ※APIキーは他人と共有しないでください。
-    </div>
-
-  </div>
-
-
-  <!-- 画像 -->
-
-  <div class="card">
-
-    <div class="upload-grid">
-
-
-      <!-- 表面 -->
-
-      <div
-        class="upload-box"
-        onclick="document.getElementById('imgFront').click()"
-      >
-
-        <span>
+    <section class="card">
+      <div class="grid">
+        <label class="photo">
           🖼 表面の画像
-        </span>
+          <input id="front" type="file" accept="image/*" capture="environment">
+          <img id="frontPreview" alt="表面のプレビュー">
+        </label>
 
-        <input
-          type="file"
-          id="imgFront"
-          accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-          onchange="previewImage(this, 'prevFront')"
-        >
-
-        <img
-          id="prevFront"
-          alt="表面画像"
-        >
-
+        <label class="photo">
+          🖼 裏面の画像（任意）
+          <input id="back" type="file" accept="image/*" capture="environment">
+          <img id="backPreview" alt="裏面のプレビュー">
+        </label>
       </div>
 
+      <button id="scanBtn" class="btn full" type="button">AIで判定する</button>
+      <div id="status" class="status"></div>
+      <div id="error" class="error"></div>
+    </section>
 
-      <!-- 裏面 -->
+    <section id="resultCard" class="card result">
+      <label>解析結果（必要なら修正してください）</label>
 
-      <div
-        class="upload-box"
-        onclick="document.getElementById('imgBack').click()"
-      >
-
-        <span>
-          🖼 裏面の画像
-        </span>
-
-        <input
-          type="file"
-          id="imgBack"
-          accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-          onchange="previewImage(this, 'prevBack')"
-        >
-
-        <img
-          id="prevBack"
-          alt="裏面画像"
-        >
-
+      <div class="fields">
+        <div><label>シール名</label><input id="name"></div>
+        <div><label>シリーズ・作品名</label><input id="series"></div>
+        <div>
+          <label>種類</label>
+          <select id="kind">
+            <option>シール</option>
+            <option>トレカ</option>
+            <option>食玩</option>
+          </select>
+        </div>
+        <div><label>レア度ランク</label><input id="rarity"></div>
+        <div><label>価格</label><input id="price"></div>
+        <div><label>メモ</label><textarea id="memo"></textarea></div>
       </div>
 
-    </div>
+      <button id="saveBtn" class="btn green full" type="button">💾 pCloudに保存</button>
+    </section>
 
+    <section class="card">
+      <div class="row">
+        <label style="margin:0">マイコレクション</label>
+        <button id="refreshBtn" class="btn small secondary" type="button">一覧を更新</button>
+      </div>
+      <div id="list">
+        <p class="muted">pCloudに接続すると保存済みの一覧を読み込みます。</p>
+      </div>
+    </section>
+  </main>
 
-    <button
-      class="btn"
-      id="scanBtn"
-      onclick="analyzeImages()"
-    >
-      AIで判定 & 相場分析
-    </button>
+  <script>
+    /* ===== pCloud承認後にここだけ変更 ===== */
+    const PCLOUD_CLIENT_ID = 'PASTE_YOUR_PCLOUD_CLIENT_ID_HERE';
 
+    /*
+      HTMLは file:// ではなく HTTPS で公開して使ってください。
+      pCloud My Apps の Redirect URI には、このHTMLの公開URLを登録します。
+    */
+    const GEMINI_MODEL = 'gemini-3.6-flash';
+    const ROOT_FOLDER = 'シールコレクション';
 
-    <div
-      class="status"
-      id="status"
-    >
-      AIが画像を解析しています...
-    </div>
+    const $ = id => document.getElementById(id);
+    const store = localStorage;
 
+    let analysis = null;
+    let records = [];
 
-    <div
-      class="model-info"
-      id="modelInfo"
-    >
-      使用モデル：Gemini 3.5 Flash-Lite
-    </div>
-
-
-    <div
-      class="error-box"
-      id="errorBox"
-    ></div>
-
-  </div>
-
-
-  <!-- 結果 -->
-
-  <div
-    class="card"
-    id="resultCard"
-    style="display:none;"
-  >
-
-    <label>
-      解析結果
-    </label>
-
-    <div id="result"></div>
-
-    <button
-      class="btn save-btn"
-      onclick="saveToCollection()"
-    >
-      💾 コレクションに保存
-    </button>
-
-  </div>
-
-
-  <!-- コレクション -->
-
-  <div class="card">
-
-    <label>
-      マイコレクション
-    </label>
-
-    <div id="collectionList"></div>
-
-    <button
-      class="btn clear-btn"
-      onclick="clearCollection()"
-    >
-      コレクションをすべて削除
-    </button>
-
-  </div>
-
-
-<script>
-
-
-  /*
-   ============================================================
-   コレクトAI v8.3.2
-   ============================================================
-
-   使用モデル
-
-   第1候補：
-   gemini-3.5-flash-lite
-
-   第2候補：
-   gemini-3.6-flash
-
-   503 / 429 の場合は自動再試行します。
-   ============================================================
-  */
-
-
-  const MODELS = [
-
-    "gemini-3.5-flash-lite",
-
-    "gemini-3.6-flash"
-
-  ];
-
-
-  const API_BASE_URL =
-    "https://generativelanguage.googleapis.com/v1beta/models/";
-
-
-  let currentAnalysis = null;
-
-
-  /*
-   ============================================================
-   起動
-   ============================================================
-  */
-
-  window.onload = function () {
-
-    const savedKey =
-      localStorage.getItem(
-        "gemini_api_key"
-      );
-
-
-    if (savedKey) {
-
-      document.getElementById(
-        "apiKey"
-      ).value = savedKey;
-
+    function setStatus(text) {
+      $('status').textContent = text;
+      $('status').style.display = text ? 'block' : 'none';
     }
 
-
-    renderCollection();
-
-  };
-
-
-  /*
-   ============================================================
-   APIキー保存
-   ============================================================
-  */
-
-  function saveApiKey(value) {
-
-    const key =
-      value.trim();
-
-
-    if (key) {
-
-      localStorage.setItem(
-        "gemini_api_key",
-        key
-      );
-
+    function fail(error) {
+      console.error(error);
+      $('error').textContent = error.message || String(error);
+      $('error').style.display = 'block';
     }
 
-  }
-
-
-  /*
-   ============================================================
-   画像プレビュー
-   ============================================================
-  */
-
-  function previewImage(
-    input,
-    previewId
-  ) {
-
-    if (
-      !input.files ||
-      !input.files[0]
-    ) {
-
-      return;
-
+    function clearMessage() {
+      $('error').style.display = 'none';
+      setStatus('');
     }
 
+    function esc(text) {
+      return String(text ?? '').replace(/[&<>"']/g, c => ({
+        '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+      }[c]));
+    }
 
-    const file =
-      input.files[0];
+    function uid() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    }
 
+    function mime(file) {
+      return file.type || 'image/jpeg';
+    }
 
-    const reader =
-      new FileReader();
+    function preview(input, image) {
+      const file = input.files[0];
+      if (!file) return;
 
-
-    reader.onload =
-      function (event) {
-
-        const img =
-          document.getElementById(
-            previewId
-          );
-
-
-        img.src =
-          event.target.result;
-
-
-        img.style.display =
-          "block";
-
+      const reader = new FileReader();
+      reader.onload = () => {
+        image.src = reader.result;
+        image.style.display = 'block';
       };
-
-
-    reader.onerror =
-      function () {
-
-        alert(
-          "画像の読み込みに失敗しました。"
-        );
-
-      };
-
-
-    reader.readAsDataURL(file);
-
-  }
-
-
-  /*
-   ============================================================
-   File → Base64
-   ============================================================
-  */
-
-  function fileToBase64(file) {
-
-    return new Promise(
-      function (resolve, reject) {
-
-        const reader =
-          new FileReader();
-
-
-        reader.onload =
-          function () {
-
-            try {
-
-              const result =
-                reader.result;
-
-
-              const base64 =
-                result.split(",")[1];
-
-
-              resolve(base64);
-
-            } catch (error) {
-
-              reject(error);
-
-            }
-
-          };
-
-
-        reader.onerror =
-          function (error) {
-
-            reject(error);
-
-          };
-
-
-        reader.readAsDataURL(file);
-
-      }
-    );
-
-  }
-
-
-  /*
-   ============================================================
-   エラー表示
-   ============================================================
-  */
-
-  function showError(message) {
-
-    const errorBox =
-      document.getElementById(
-        "errorBox"
-      );
-
-
-    errorBox.innerText =
-      message;
-
-
-    errorBox.style.display =
-      "block";
-
-  }
-
-
-  function hideError() {
-
-    const errorBox =
-      document.getElementById(
-        "errorBox"
-      );
-
-
-    errorBox.innerText =
-      "";
-
-
-    errorBox.style.display =
-      "none";
-
-  }
-
-
-  /*
-   ============================================================
-   待機
-   ============================================================
-  */
-
-  function sleep(ms) {
-
-    return new Promise(
-      function (resolve) {
-
-        setTimeout(
-          resolve,
-          ms
-        );
-
-      }
-    );
-
-  }
-
-
-  /*
-   ============================================================
-   Gemini API呼び出し
-   ============================================================
-  */
-
-  async function callGemini(
-    model,
-    apiKey,
-    parts
-  ) {
-
-
-    const url =
-      API_BASE_URL +
-      model +
-      ":generateContent";
-
-
-    const response =
-      await fetch(
-        url,
-        {
-
-          method: "POST",
-
-          headers: {
-
-            "Content-Type":
-              "application/json",
-
-            "x-goog-api-key":
-              apiKey
-
-          },
-
-          body:
-            JSON.stringify({
-
-              contents: [
-
-                {
-
-                  role: "user",
-
-                  parts:
-                    parts
-
-                }
-
-              ],
-
-              generationConfig: {
-
-                maxOutputTokens: 4000
-
-              }
-
-            })
-
-        }
-      );
-
-
-    let data = null;
-
-
-    try {
-
-      data =
-        await response.json();
-
-    } catch (error) {
-
-      throw new Error(
-        "GeminiからJSON形式の回答を取得できませんでした。"
-      );
-
+      reader.readAsDataURL(file);
     }
 
-
-    return {
-
-      response:
-        response,
-
-      data:
-        data
-
-    };
-
-  }
-
-
-  /*
-   ============================================================
-   Gemini API
-   503 / 429 自動リトライ
-   ============================================================
-  */
-
-  async function requestGemini(
-    apiKey,
-    parts
-  ) {
-
-
-    let lastError =
-      null;
-
-
-    /*
-     * モデルを順番に試す
-     */
-
-    for (
-      let modelIndex = 0;
-      modelIndex < MODELS.length;
-      modelIndex++
-    ) {
-
-
-      const model =
-        MODELS[modelIndex];
-
-
-      /*
-       * 各モデル最大3回
-       */
-
-      for (
-        let attempt = 1;
-        attempt <= 3;
-        attempt++
-      ) {
-
-
-        try {
-
-          updateStatus(
-            "AI解析中...\n" +
-            model +
-            "\n" +
-            "試行 " +
-            attempt +
-            " / 3"
-          );
-
-
-          const result =
-            await callGemini(
-              model,
-              apiKey,
-              parts
-            );
-
-
-          const response =
-            result.response;
-
-
-          const data =
-            result.data;
-
-
-          /*
-           * 成功
-           */
-
-          if (
-            response.ok &&
-            data.candidates &&
-            data.candidates.length > 0
-          ) {
-
-            return {
-
-              model:
-                model,
-
-              data:
-                data
-
-            };
-
-          }
-
-
-          /*
-           * エラー内容
-           */
-
-          let errorMessage =
-            "Gemini APIでエラーが発生しました。";
-
-
-          if (
-            data &&
-            data.error &&
-            data.error.message
-          ) {
-
-            errorMessage =
-              data.error.message;
-
-          }
-
-
-          const status =
-            response.status;
-
-
-          lastError =
-            new Error(
-              "APIエラー (" +
-              status +
-              ")\n\n" +
-              errorMessage
-            );
-
-
-          /*
-           * 503 または429
-           *
-           * 一時的な混雑・レート制限
-           */
-
-          if (
-            status === 503 ||
-            status === 429
-          ) {
-
-
-            /*
-             * 最後の試行でなければ待つ
-             */
-
-            if (
-              attempt < 3
-            ) {
-
-              const waitTime =
-                attempt === 1
-                  ? 2500
-                  : 5000;
-
-
-              updateStatus(
-                "Gemini側が混雑しています。\n" +
-                Math.round(
-                  waitTime / 1000
-                ) +
-                "秒後に再試行します..."
-              );
-
-
-              await sleep(
-                waitTime
-              );
-
-
-              continue;
-
-            }
-
-
-            /*
-             * このモデルは諦めて
-             * 次のモデルへ
-             */
-
-            break;
-
-          }
-
-
-          /*
-           * 400 / 401 / 403 / 404
-           *
-           * 再試行しても意味がない
-           */
-
-          throw lastError;
-
-
-        } catch (error) {
-
-
-          /*
-           * ネットワークエラー
-           */
-
-          lastError =
-            error;
-
-
-          /*
-           * fetch失敗なら再試行
-           */
-
-          if (
-            attempt < 3
-          ) {
-
-            updateStatus(
-              "通信を再試行しています..."
-            );
-
-
-            await sleep(
-              2500
-            );
-
-
-            continue;
-
-          }
-
-        }
-
+    $('front').onchange = () => preview($('front'), $('frontPreview'));
+    $('back').onchange = () => preview($('back'), $('backPreview'));
+
+    function saveKey() {
+      store.setItem('stickerGeminiKey', $('apiKey').value.trim());
+    }
+
+    function apiHost() {
+      return store.getItem('pcloudHost') || 'api.pcloud.com';
+    }
+
+    function token() {
+      return store.getItem('pcloudToken');
+    }
+
+    function updateCloud() {
+      const connected = !!token();
+      $('cloudState').textContent = connected ? '接続済み' : '未接続';
+      $('loginBtn').classList.toggle('hidden', connected);
+      $('logoutBtn').classList.toggle('hidden', !connected);
+    }
+
+    function redirectURI() {
+      return location.href.split('#')[0];
+    }
+
+    function connect() {
+      if (PCLOUD_CLIENT_ID.includes('PASTE_')) {
+        throw Error('PCLOUD_CLIENT_ID に承認後の Client ID を入力してください。');
       }
 
-
-      /*
-       * 次のモデルへ
-       */
-
-      if (
-        modelIndex <
-        MODELS.length - 1
-      ) {
-
-        updateStatus(
-          "別のGeminiモデルへ切り替えています..."
-        );
-
-
-        await sleep(
-          1000
-        );
-
+      if (location.protocol === 'file:') {
+        throw Error('このHTMLはHTTPSで公開してから使ってください。file:// ではOAuthの戻り先を登録できません。');
       }
 
-    }
+      const state = uid();
+      store.setItem('pcloudState', state);
 
-
-    /*
-     * 全部失敗
-     */
-
-    throw (
-      lastError ||
-      new Error(
-        "Gemini APIに接続できませんでした。"
-      )
-    );
-
-  }
-
-
-  /*
-   ============================================================
-   ステータス
-   ============================================================
-  */
-
-  function updateStatus(
-    message
-  ) {
-
-    const status =
-      document.getElementById(
-        "status"
-      );
-
-
-    status.innerText =
-      message;
-
-
-    status.style.display =
-      "block";
-
-  }
-
-
-  /*
-   ============================================================
-   AI解析
-   ============================================================
-  */
-
-  async function analyzeImages() {
-
-
-    hideError();
-
-
-    const apiKey =
-      document.getElementById(
-        "apiKey"
-      ).value.trim();
-
-
-    const frontFile =
-      document.getElementById(
-        "imgFront"
-      ).files[0];
-
-
-    const backFile =
-      document.getElementById(
-        "imgBack"
-      ).files[0];
-
-
-    /*
-     * APIキー確認
-     */
-
-    if (!apiKey) {
-
-      alert(
-        "Gemini APIキーを入力してください。"
-      );
-
-      return;
-
-    }
-
-
-    /*
-     * 表面画像確認
-     */
-
-    if (!frontFile) {
-
-      alert(
-        "表面の画像を選択してください。"
-      );
-
-      return;
-
-    }
-
-
-    /*
-     * APIキー保存
-     */
-
-    saveApiKey(
-      apiKey
-    );
-
-
-    /*
-     * ボタン
-     */
-
-    const btn =
-      document.getElementById(
-        "scanBtn"
-      );
-
-
-    btn.disabled =
-      true;
-
-
-    btn.innerText =
-      "AI解析中...";
-
-
-    try {
-
-
-      /*
-       * 表面画像をBase64化
-       */
-
-      updateStatus(
-        "表面画像を読み込んでいます..."
-      );
-
-
-      const frontBase64 =
-        await fileToBase64(
-          frontFile
-        );
-
-
-      /*
-       * Gemini parts
-       */
-
-      const parts = [];
-
-
-      /*
-       * プロンプト
-       */
-
-      parts.push({
-
-        text:
-          getPrompt()
-
+      const params = new URLSearchParams({
+        client_id: PCLOUD_CLIENT_ID,
+        response_type: 'token',
+        redirect_uri: redirectURI(),
+        state
       });
 
+      location.href = 'https://my.pcloud.com/oauth2/authorize?' + params;
+    }
 
-      /*
-       * 表面画像
-       */
+    function readOAuth() {
+      if (!location.hash) return;
 
-      parts.push({
+      const params = new URLSearchParams(location.hash.slice(1));
 
-        inline_data: {
-
-          mime_type:
-            getMimeType(
-              frontFile
-            ),
-
-          data:
-            frontBase64
-
+      if (params.get('access_token')) {
+        if (params.get('state') !== store.getItem('pcloudState')) {
+          throw Error('pCloud認証の確認値が一致しません。もう一度接続してください。');
         }
 
-      });
+        store.setItem('pcloudToken', params.get('access_token'));
+        store.setItem('pcloudHost', params.get('hostname') || 'api.pcloud.com');
+        history.replaceState(null, '', redirectURI());
+      } else if (params.get('error')) {
+        throw Error('pCloud認証が完了しませんでした: ' + params.get('error'));
+      }
+    }
 
+    async function pcall(method, params = {}, form = null) {
+      if (!token()) {
+        throw Error('先に pCloud に接続してください。');
+      }
 
-      /*
-       * 裏面画像
-       */
+      const url = 'https://' + apiHost() + '/' + method;
+      let options;
 
-      if (backFile) {
-
-
-        updateStatus(
-          "裏面画像を読み込んでいます..."
-        );
-
-
-        const backBase64 =
-          await fileToBase64(
-            backFile
-          );
-
-
-        parts.push({
-
-          inline_data: {
-
-            mime_type:
-              getMimeType(
-                backFile
-              ),
-
-            data:
-              backBase64
-
-          }
-
+      if (form) {
+        form.append('access_token', token());
+        options = { method: 'POST', body: form };
+      } else {
+        const body = new URLSearchParams({
+          ...params,
+          access_token: token()
         });
 
+        options = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body
+        };
       }
 
+      let response;
+      try {
+        response = await fetch(url, options);
+      } catch {
+        throw Error('pCloudへ接続できませんでした。公開URL・通信環境・pCloudの設定を確認してください。');
+      }
 
-      /*
-       * Gemini API
-       */
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        throw Error('pCloudから正しい応答が返りませんでした（HTTP ' + response.status + '）。');
+      }
 
-      updateStatus(
-        "Gemini AIに画像を送信しています..."
-      );
+      if (!response.ok || data.result !== 0) {
+        throw Error('pCloudエラー: ' + (data.error || data.result || response.status));
+      }
 
+      return data;
+    }
 
-      const result =
-        await requestGemini(
-          apiKey,
-          parts
-        );
+    async function root() {
+      const data = await pcall('createfolderifnotexists', {
+        folderid: 0,
+        name: ROOT_FOLDER
+      });
+      return data.metadata.folderid;
+    }
 
+    async function upload(folderid, file, filename) {
+      const form = new FormData();
+      form.append('folderid', folderid);
+      form.append('nopartial', '1');
+      form.append('renameifexists', '0');
+      form.append('file', file, filename);
+      return pcall('uploadfile', {}, form);
+    }
 
-      /*
-       * 使用モデル表示
-       */
+    function prompt() {
+      return `あなたは日本のコレクション品を画像から判定するアシスタントです。
+画像を確認して、次のJSONだけを返してください。
+推測は断定せず「不明」と書いてください。
+価格は画像だけで相場を裏付けられない場合は「要確認」。
+種類は必ず「シール」「トレカ」「食玩」のいずれか。
 
-      const modelInfo =
-        document.getElementById(
-          "modelInfo"
-        );
+{"name":"","series":"","kind":"シール","rarity":"","price":"","memo":""}`;
+    }
 
+    async function b64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
 
-      modelInfo.innerText =
-        "使用モデル：" +
-        result.model;
+    function jsonFromText(text) {
+      return JSON.parse(text.replace(/^```(?:json)?|```$/gm, '').trim());
+    }
 
+    async function scan() {
+      clearMessage();
 
-      /*
-       * テキスト取得
-       */
+      const key = $('apiKey').value.trim();
+      const front = $('front').files[0];
+      const back = $('back').files[0];
 
-      const data =
-        result.data;
+      if (!key) throw Error('Gemini API Keyを入力してください。');
+      if (!front) throw Error('表面の画像を選択してください。');
 
+      saveKey();
+      $('scanBtn').disabled = true;
 
-      let text =
-        "";
+      try {
+        setStatus('画像をAIで解析しています…');
 
-
-      if (
-        data.candidates &&
-        data.candidates[0] &&
-        data.candidates[0].content &&
-        data.candidates[0].content.parts
-      ) {
-
-
-        data.candidates[0]
-          .content
-          .parts
-          .forEach(
-            function (part) {
-
-              if (part.text) {
-
-                text +=
-                  part.text;
-
-              }
-
+        const parts = [
+          { text: prompt() },
+          {
+            inline_data: {
+              mime_type: mime(front),
+              data: await b64(front)
             }
-          );
+          }
+        ];
 
-      }
-
-
-      /*
-       * 結果が空
-       */
-
-      if (!text.trim()) {
-
-        throw new Error(
-          "AIから解析結果が返ってきませんでした。"
-        );
-
-      }
-
-
-      /*
-       * 保存用データ
-       */
-
-      currentAnalysis = {
-
-        text:
-          text,
-
-        frontImg:
-          document.getElementById(
-            "prevFront"
-          ).src,
-
-        backImg:
-          backFile
-            ? document.getElementById(
-                "prevBack"
-              ).src
-            : "",
-
-        createdAt:
-          new Date().toISOString(),
-
-        model:
-          result.model
-
-      };
-
-
-      /*
-       * 結果表示
-       */
-
-      const resultDiv =
-        document.getElementById(
-          "result"
-        );
-
-
-      resultDiv.innerText =
-        text;
-
-
-      resultDiv.style.display =
-        "block";
-
-
-      /*
-       * 結果カード表示
-       */
-
-      document.getElementById(
-        "resultCard"
-      ).style.display =
-        "block";
-
-
-      /*
-       * 結果位置へスクロール
-       */
-
-      setTimeout(
-        function () {
-
-          document.getElementById(
-            "resultCard"
-          ).scrollIntoView({
-            behavior: "smooth",
-            block: "start"
+        if (back) {
+          parts.push({
+            inline_data: {
+              mime_type: mime(back),
+              data: await b64(back)
+            }
           });
-
-        },
-        100
-      );
-
-
-    } catch (error) {
-
-
-      console.error(
-        "Gemini Error:",
-        error
-      );
-
-
-      showError(
-        "解析に失敗しました。\n\n" +
-        error.message +
-        "\n\n" +
-        "時間をおいてもう一度お試しください。"
-      );
-
-
-    } finally {
-
-
-      btn.disabled =
-        false;
-
-
-      btn.innerText =
-        "AIで判定 & 相場分析";
-
-
-      document.getElementById(
-        "status"
-      ).style.display =
-        "none";
-
-    }
-
-  }
-
-
-  /*
-   ============================================================
-   MIMEタイプ
-   ============================================================
-  */
-
-  function getMimeType(
-    file
-  ) {
-
-    if (
-      file.type &&
-      file.type.startsWith(
-        "image/"
-      )
-    ) {
-
-      return file.type;
-
-    }
-
-
-    const name =
-      file.name.toLowerCase();
-
-
-    if (
-      name.endsWith(".jpg") ||
-      name.endsWith(".jpeg")
-    ) {
-
-      return "image/jpeg";
-
-    }
-
-
-    if (
-      name.endsWith(".png")
-    ) {
-
-      return "image/png";
-
-    }
-
-
-    if (
-      name.endsWith(".webp")
-    ) {
-
-      return "image/webp";
-
-    }
-
-
-    if (
-      name.endsWith(".heic")
-    ) {
-
-      return "image/heic";
-
-    }
-
-
-    if (
-      name.endsWith(".heif")
-    ) {
-
-      return "image/heif";
-
-    }
-
-
-    return "image/jpeg";
-
-  }
-
-
-  /*
-   ============================================================
-   AIプロンプト
-   ============================================================
-  */
-
-  function getPrompt() {
-
-    return `あなたは日本のシール・トレーディングカード専門の鑑定士です。
-
-提供された画像を詳しく確認してください。
-
-1枚目は表面画像です。
-2枚目がある場合は裏面画像です。
-
-画像から確認できる情報だけを使用してください。
-分からない情報を推測して断定しないでください。
-
-特に、
-ビックリマンシール、
-食玩シール、
-ドラゴンボールカード、
-トレーディングカード、
-その他のコレクターズアイテム
-について可能な限り具体的に判定してください。
-
-以下の形式で回答してください。
-
-
-【1. タイトル】
-
-商品名・カード名・シール名など。
-
-正式名称が画像から特定できる場合は正式名称を書いてください。
-
-特定できない場合は、
-
-「特定できません」
-
-としてください。
-
-候補がある場合は候補を2～3個まで示してください。
-
-
-【2. 種別・シリーズ】
-
-シリーズ名、商品カテゴリー、弾数など。
-
-例：
-
-旧ビックリマン
-ビックリマンチョコ
-食玩シール
-ドラゴンボールカード
-トレーディングカード
-
-など。
-
-
-【3. 表面の特徴】
-
-キャラクター、
-ロゴ、
-番号、
-文字、
-絵柄、
-箔、
-ホログラム、
-レアリティ、
-印刷など、
-画像から確認できる特徴を説明してください。
-
-
-【4. 裏面の特徴】
-
-裏面の色、
-ロゴ、
-文字、
-模様、
-番号、
-印刷、
-素材などを確認してください。
-
-裏面画像がない場合は、
-
-「裏面画像なし」
-
-としてください。
-
-
-【5. 推定コンディション】
-
-以下を目安にしてください。
-
-S：非常に良好
-A：良好
-B：一般的な中古状態
-C：傷・汚れが目立つ
-D：大きなダメージあり
-
-傷、
-折れ、
-汚れ、
-擦れ、
-角の傷み、
-反り、
-色あせ、
-印刷状態など、
-画像から確認できるものを説明してください。
-
-画像から判断できない部分については
-「画像では確認できません」
-としてください。
-
-
-【6. 参考相場価格】
-
-一般的な中古市場での参考価格を記載してください。
-
-ただし、
-リアルタイムのオークション・フリマ市場を検索していない場合は、
-
-「画像だけでは現在の正確な相場を確認できません」
-
-と明記してください。
-
-価格を根拠なく断定しないでください。
-
-
-【7. 鑑定ポイント】
-
-この商品の価値を左右するポイントを説明してください。
-
-特に、
-
-・初期版
-・後期版
-・復刻版
-・アイス版
-・チョコ版
-・印刷違い
-・裏面違い
-・素材違い
-・エラー版
-・レアリティ
-・状態
-・希少性
-
-などについて、
-画像から確認できる場合のみ説明してください。
-
-
-【8. 類似品・別バージョン】
-
-画像から判断できる場合は、
-似た商品や別バージョンとの見分け方を説明してください。
-
-判断できない場合は
-「確認できません」
-としてください。
-
-
-【9. 判定の確信度】
-
-以下の3段階で評価してください。
-
-高：
-画像からかなり確実に判断できる。
-
-中：
-候補をかなり絞れるが断定できない。
-
-低：
-画像だけでは特定が難しい。
-
-
-重要：
-
-画像から確認できない情報を作らないでください。
-
-特に、
-商品名、
-発売時期、
-版違い、
-希少性、
-価格については、
-根拠がない場合は断定しないでください。
-
-価格については、
-リアルタイム市場を直接検索していない場合、
-そのことを明記してください。
-
-日本語で分かりやすく回答してください。`;
-
-  }
-
-
-  /*
-   ============================================================
-   コレクション保存
-   ============================================================
-  */
-
-  function saveToCollection() {
-
-
-    if (!currentAnalysis) {
-
-      alert(
-        "保存できる解析結果がありません。"
-      );
-
-      return;
-
-    }
-
-
-    const list =
-      JSON.parse(
-        localStorage.getItem(
-          "my_collection"
-        ) || "[]"
-      );
-
-
-    list.unshift(
-      currentAnalysis
-    );
-
-
-    localStorage.setItem(
-      "my_collection",
-      JSON.stringify(
-        list
-      )
-    );
-
-
-    renderCollection();
-
-
-    alert(
-      "コレクションに保存しました！"
-    );
-
-  }
-
-
-  /*
-   ============================================================
-   タイトル取得
-   ============================================================
-  */
-
-  function getCollectionTitle(
-    text
-  ) {
-
-
-    if (!text) {
-
-      return "不明なアイテム";
-
-    }
-
-
-    const match =
-      text.match(
-        /【1\.\s*タイトル】\s*[\r\n]+([^\r\n]+)/
-      );
-
-
-    if (
-      match &&
-      match[1]
-    ) {
-
-      return match[1].trim();
-
-    }
-
-
-    return "不明なアイテム";
-
-  }
-
-
-  /*
-   ============================================================
-   コレクション表示
-   ============================================================
-  */
-
-  function renderCollection() {
-
-
-    const list =
-      JSON.parse(
-        localStorage.getItem(
-          "my_collection"
-        ) || "[]"
-      );
-
-
-    const container =
-      document.getElementById(
-        "collectionList"
-      );
-
-
-    if (
-      list.length === 0
-    ) {
-
-      container.innerHTML =
-        '<div class="empty">' +
-        "保存されたアイテムはありません" +
-        "</div>";
-
-      return;
-
-    }
-
-
-    container.innerHTML =
-      "";
-
-
-    list.forEach(
-      function (item) {
-
-
-        const div =
-          document.createElement(
-            "div"
-          );
-
-
-        div.className =
-          "collection-item";
-
-
-        /*
-         * 画像
-         */
-
-        const img =
-          document.createElement(
-            "img"
-          );
-
-
-        img.src =
-          item.frontImg || "";
-
-
-        img.alt =
-          "コレクション画像";
-
-
-        /*
-         * 情報
-         */
-
-        const info =
-          document.createElement(
-            "div"
-          );
-
-
-        info.className =
-          "collection-info";
-
-
-        /*
-         * タイトル
-         */
-
-        const titleDiv =
-          document.createElement(
-            "div"
-          );
-
-
-        titleDiv.className =
-          "collection-title";
-
-
-        titleDiv.innerText =
-          getCollectionTitle(
-            item.text
-          );
-
-
-        /*
-         * 日付
-         */
-
-        const dateDiv =
-          document.createElement(
-            "div"
-          );
-
-
-        dateDiv.className =
-          "collection-date";
-
-
-        if (
-          item.createdAt
-        ) {
-
-          const date =
-            new Date(
-              item.createdAt
-            );
-
-
-          dateDiv.innerText =
-            date.toLocaleString(
-              "ja-JP"
-            );
-
         }
 
-
-        /*
-         * 追加
-         */
-
-        info.appendChild(
-          titleDiv
+        const response = await fetch(
+          'https://generativelanguage.googleapis.com/v1beta/models/' +
+          GEMINI_MODEL + ':generateContent',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': key
+            },
+            body: JSON.stringify({
+              contents: [{ role: 'user', parts }],
+              generationConfig: {
+                responseMimeType: 'application/json',
+                maxOutputTokens: 800
+              }
+            })
+          }
         );
 
+        const data = await response.json();
 
-        info.appendChild(
-          dateDiv
-        );
+        if (!response.ok) {
+          throw Error('Geminiエラー: ' + (data.error?.message || response.status));
+        }
 
+        const text = data.candidates?.[0]?.content?.parts
+          ?.map(part => part.text || '')
+          .join('') || '';
 
-        div.appendChild(
-          img
-        );
+        analysis = jsonFromText(text);
 
+        for (const key of ['name', 'series', 'kind', 'rarity', 'price', 'memo']) {
+          $(key).value = analysis[key] || '';
+        }
 
-        div.appendChild(
-          info
-        );
-
-
-        container.appendChild(
-          div
-        );
-
+        $('resultCard').style.display = 'block';
+        setStatus('判定できました。内容を確認して保存してください。');
+      } finally {
+        $('scanBtn').disabled = false;
       }
-    );
-
-  }
-
-
-  /*
-   ============================================================
-   コレクション全削除
-   ============================================================
-  */
-
-  function clearCollection() {
-
-
-    const list =
-      JSON.parse(
-        localStorage.getItem(
-          "my_collection"
-        ) || "[]"
-      );
-
-
-    if (
-      list.length === 0
-    ) {
-
-      alert(
-        "削除するコレクションがありません。"
-      );
-
-      return;
-
     }
 
-
-    const confirmed =
-      confirm(
-        "保存されているコレクションをすべて削除しますか？"
-      );
-
-
-    if (!confirmed) {
-
-      return;
-
+    function current() {
+      return {
+        id: uid(),
+        name: $('name').value.trim() || '名称未設定',
+        series: $('series').value.trim(),
+        kind: $('kind').value,
+        rarity: $('rarity').value.trim(),
+        price: $('price').value.trim(),
+        memo: $('memo').value.trim(),
+        savedAt: new Date().toISOString()
+      };
     }
 
+    async function save() {
+      clearMessage();
 
-    localStorage.removeItem(
-      "my_collection"
-    );
+      if (!analysis) throw Error('先にAIで判定してください。');
 
+      const front = $('front').files[0];
+      const back = $('back').files[0];
 
-    renderCollection();
+      if (!front) throw Error('表面の画像がありません。');
 
+      $('saveBtn').disabled = true;
 
-    alert(
-      "コレクションを削除しました。"
-    );
+      try {
+        setStatus('pCloudに保存しています（フォルダ作成 → 画像 → データ）…');
 
-  }
+        const rootFolderId = await root();
+        const item = current();
 
-</script>
+        const folder = await pcall('createfolderifnotexists', {
+          folderid: rootFolderId,
+          name: 'item-' + item.id
+        });
 
+        const folderid = folder.metadata.folderid;
+
+        const ext = file => {
+          return (file.name.split('.').pop() || 'jpg')
+            .replace(/[^a-z0-9]/gi, '')
+            .toLowerCase();
+        };
+
+        await upload(folderid, front, 'front.' + ext(front));
+
+        if (back) {
+          await upload(folderid, back, 'back.' + ext(back));
+        }
+
+        const dataFile = new File(
+          [JSON.stringify(item, null, 2)],
+          'data.json',
+          { type: 'application/json' }
+        );
+
+        await upload(folderid, dataFile, 'data.json');
+
+        item.folderid = folderid;
+        item.preview = $('frontPreview').src;
+
+        records.unshift(item);
+        render();
+
+        setStatus('pCloudに保存しました。');
+      } finally {
+        $('saveBtn').disabled = false;
+      }
+    }
+
+    async function refresh() {
+      clearMessage();
+
+      if (!token()) throw Error('先に pCloud に接続してください。');
+
+      setStatus('pCloudのフォルダ一覧を取得しています…');
+
+      const rootFolderId = await root();
+
+      const data = await pcall('listfolder', {
+        folderid: rootFolderId,
+        recursive: 0
+      });
+
+      const folders = (data.metadata.contents || []).filter(item => {
+        return item.isfolder && item.name.startsWith('item-');
+      });
+
+      records = folders.map(folder => ({
+        id: folder.name.slice(5),
+        folderid: folder.folderid,
+        name: '保存済みアイテム',
+        series: '',
+        kind: '',
+        rarity: '',
+        price: '',
+        memo: '',
+        savedAt: folder.modified
+      }));
+
+      render();
+      setStatus('一覧を更新しました。');
+    }
+
+    async function del(id) {
+      const record = records.find(item => item.id === id);
+
+      if (!record) return;
+
+      if (!confirm('このアイテムをpCloudから削除します。よろしいですか？')) {
+        return;
+      }
+
+      clearMessage();
+
+      try {
+        setStatus('pCloudから削除しています…');
+
+        await pcall('deletefolderrecursive', {
+          folderid: record.folderid
+        });
+
+        records = records.filter(item => item.id !== id);
+        render();
+
+        setStatus('削除しました。');
+      } catch (error) {
+        fail(error);
+      }
+    }
+
+    function render() {
+      if (!records.length) {
+        $('list').innerHTML = '<p class="muted">まだ保存されていません。</p>';
+        return;
+      }
+
+      $('list').innerHTML = records.map(record => `
+        <div class="item">
+          <img
+            class="thumb"
+            src="${record.preview || ''}"
+            alt=""
+            onerror="this.style.visibility='hidden'"
+          >
+          <div class="grow">
+            <h3>${esc(record.name)}</h3>
+            <p>${esc(record.series)}　${esc(record.kind)}　${esc(record.rarity)}</p>
+            <p>${esc(record.price)}　${new Date(record.savedAt).toLocaleDateString('ja-JP')}</p>
+          </div>
+          <button class="btn small red" onclick="del('${record.id}')">削除</button>
+        </div>
+      `).join('');
+    }
+
+    $('loginBtn').onclick = () => {
+      try {
+        connect();
+      } catch (error) {
+        fail(error);
+      }
+    };
+
+    $('logoutBtn').onclick = () => {
+      store.removeItem('pcloudToken');
+      store.removeItem('pcloudHost');
+      updateCloud();
+      records = [];
+      render();
+    };
+
+    $('scanBtn').onclick = () => scan().catch(fail);
+    $('saveBtn').onclick = () => save().catch(fail);
+    $('refreshBtn').onclick = () => refresh().catch(fail);
+
+    try {
+      readOAuth();
+    } catch (error) {
+      fail(error);
+    }
+
+    $('apiKey').value = store.getItem('stickerGeminiKey') || '';
+
+    updateCloud();
+    render();
+  </script>
 </body>
 </html>
