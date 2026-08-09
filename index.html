@@ -1,709 +1,2162 @@
-```html
 <!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>シールコレクション AI</title>
+
   <style>
-    :root{--blue:#1677ff;--green:#16a34a;--red:#dc2626;--bg:#f5f7fb;--line:#dde3ee;--text:#172033;--sub:#667085}
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
-    main{max-width:680px;margin:auto;padding:20px 14px 42px}
-    h1{font-size:23px;text-align:center;margin:8px 0 4px}
-    .lead{text-align:center;color:var(--sub);font-size:13px;margin:0 0 18px}
-    .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 2px 10px #16213a0a}
-    .row{display:flex;gap:10px;align-items:center;justify-content:space-between}
-    .muted,.hint{color:var(--sub);font-size:12px;line-height:1.5}
-    .hint{margin-top:7px}
-    label{display:block;font-size:13px;font-weight:700;margin:0 0 6px}
-    input,textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;font:inherit;background:#fff}
-    textarea{min-height:72px;resize:vertical}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .photo{border:2px dashed #b8c3d6;border-radius:13px;min-height:160px;padding:10px;text-align:center;cursor:pointer;color:var(--sub);font-size:13px}
-    .photo img{width:100%;height:118px;object-fit:contain;display:none;margin-top:8px}
-    .photo input{display:none}
-    .btn{border:0;border-radius:11px;padding:12px 14px;background:var(--blue);color:#fff;font-weight:700;font-size:14px;cursor:pointer}
-    .btn:disabled{opacity:.55;cursor:not-allowed}
-    .btn.secondary{background:#eef4ff;color:#125dc9}
-    .btn.green{background:var(--green)}
-    .btn.red{background:var(--red)}
-    .btn.small{padding:8px 10px;font-size:12px;width:auto}
-    .full{width:100%;margin-top:12px}
-    .status{display:none;margin-top:11px;padding:10px;border-radius:9px;background:#eff6ff;color:#1957a7;font-size:13px;white-space:pre-wrap}
-    .error{display:none;margin-top:11px;padding:10px;border-radius:9px;background:#fff1f2;color:#a9162b;font-size:13px;white-space:pre-wrap}
-    .result{display:none}
-    .fields{display:grid;gap:10px}
-    .item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
-    .item:last-child{border:0}
-    .thumb{width:64px;height:64px;object-fit:cover;border-radius:10px;background:#edf1f7}
-    .item h3{font-size:15px;margin:0 0 3px}
-    .item p{font-size:12px;color:var(--sub);margin:2px 0}
-    .item .grow{flex:1;min-width:0}
-    .badge{font-size:12px;color:#17643b;background:#e9f9ef;padding:5px 8px;border-radius:999px}
-    .hidden{display:none}
-    @media(max-width:390px){.grid{gap:7px}.photo{min-height:140px}}
+    :root{
+      --blue:#1677ff;
+      --green:#16a34a;
+      --red:#dc2626;
+      --bg:#f5f7fb;
+      --line:#dde3ee;
+      --text:#172033;
+      --sub:#667085
+    }
+
+    *{
+      box-sizing:border-box
+    }
+
+    body{
+      margin:0;
+      background:var(--bg);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--text)
+    }
+
+    main{
+      max-width:680px;
+      margin:auto;
+      padding:20px 14px 42px
+    }
+
+    h1{
+      font-size:23px;
+      text-align:center;
+      margin:8px 0 4px
+    }
+
+    .lead{
+      text-align:center;
+      color:var(--sub);
+      font-size:13px;
+      margin:0 0 18px
+    }
+
+    .card{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:16px;
+      margin:12px 0;
+      box-shadow:0 2px 10px #16213a0a
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between
+    }
+
+    .muted,
+    .hint{
+      color:var(--sub);
+      font-size:12px;
+      line-height:1.5
+    }
+
+    .hint{
+      margin-top:7px
+    }
+
+    label{
+      display:block;
+      font-size:13px;
+      font-weight:700;
+      margin:0 0 6px
+    }
+
+    input,
+    textarea,
+    select{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:11px;
+      font:inherit;
+      background:#fff
+    }
+
+    textarea{
+      min-height:72px;
+      resize:vertical
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px
+    }
+
+    .photo{
+      border:2px dashed #b8c3d6;
+      border-radius:13px;
+      min-height:160px;
+      padding:10px;
+      text-align:center;
+      cursor:pointer;
+      color:var(--sub);
+      font-size:13px
+    }
+
+    .photo img{
+      width:100%;
+      height:118px;
+      object-fit:contain;
+      display:none;
+      margin-top:8px
+    }
+
+    .photo input{
+      display:none
+    }
+
+    .btn{
+      border:0;
+      border-radius:11px;
+      padding:12px 14px;
+      background:var(--blue);
+      color:#fff;
+      font-weight:700;
+      font-size:14px;
+      cursor:pointer
+    }
+
+    .btn:disabled{
+      opacity:.55;
+      cursor:not-allowed
+    }
+
+    .btn.secondary{
+      background:#eef4ff;
+      color:#125dc9
+    }
+
+    .btn.green{
+      background:var(--green)
+    }
+
+    .btn.red{
+      background:var(--red)
+    }
+
+    .btn.small{
+      padding:8px 10px;
+      font-size:12px;
+      width:auto
+    }
+
+    .full{
+      width:100%;
+      margin-top:12px
+    }
+
+    .status{
+      display:none;
+      margin-top:11px;
+      padding:10px;
+      border-radius:9px;
+      background:#eff6ff;
+      color:#1957a7;
+      font-size:13px;
+      white-space:pre-wrap
+    }
+
+    .error{
+      display:none;
+      margin-top:11px;
+      padding:10px;
+      border-radius:9px;
+      background:#fff1f2;
+      color:#a9162b;
+      font-size:13px;
+      white-space:pre-wrap
+    }
+
+    .result{
+      display:none
+    }
+
+    .fields{
+      display:grid;
+      gap:10px
+    }
+
+    .item{
+      display:flex;
+      gap:12px;
+      padding:12px 0;
+      border-bottom:1px solid var(--line)
+    }
+
+    .item:last-child{
+      border:0
+    }
+
+    .thumb{
+      width:64px;
+      height:64px;
+      object-fit:cover;
+      border-radius:10px;
+      background:#edf1f7
+    }
+
+    .item h3{
+      font-size:15px;
+      margin:0 0 3px
+    }
+
+    .item p{
+      font-size:12px;
+      color:var(--sub);
+      margin:2px 0
+    }
+
+    .item .grow{
+      flex:1;
+      min-width:0
+    }
+
+    .badge{
+      font-size:12px;
+      color:#17643b;
+      background:#e9f9ef;
+      padding:5px 8px;
+      border-radius:999px
+    }
+
+    .hidden{
+      display:none
+    }
+
+    @media(max-width:390px){
+      .grid{
+        gap:7px
+      }
+
+      .photo{
+        min-height:140px
+      }
+    }
   </style>
 </head>
+
 <body>
-  <main>
-    <h1>✨ シールコレクション AI</h1>
-    <p class="lead">表面・裏面を選んで、シンプルに記録</p>
 
-    <section class="card">
-      <div class="row">
-        <strong>pCloud 保存先</strong>
-        <span id="cloudState" class="badge">未接続</span>
+<main>
+
+  <h1>✨ シールコレクション AI</h1>
+  <p class="lead">表面・裏面を選んで、シンプルに記録</p>
+
+  <!-- pCloud -->
+  <section class="card">
+
+    <div class="row">
+      <strong>pCloud 保存先</strong>
+      <span id="cloudState" class="badge">未接続</span>
+    </div>
+
+    <p class="hint">
+      pCloud承認後に
+      <code>PCLOUD_CLIENT_ID</code>
+      を入力してください。<br>
+      Client Secret は入力しません。
+    </p>
+
+    <button
+      id="loginBtn"
+      class="btn secondary full"
+      type="button">
+      pCloud に接続
+    </button>
+
+    <button
+      id="logoutBtn"
+      class="btn small hidden"
+      type="button">
+      接続を解除
+    </button>
+
+  </section>
+
+
+  <!-- Gemini -->
+  <section class="card">
+
+    <label for="apiKey">
+      Gemini API Key
+    </label>
+
+    <input
+      id="apiKey"
+      type="password"
+      autocomplete="off"
+      placeholder="Gemini APIキーを貼り付け">
+
+    <p class="hint">
+      キーはこの端末・このブラウザ内にのみ保存されます。
+    </p>
+
+  </section>
+
+
+  <!-- 画像 -->
+  <section class="card">
+
+    <div class="grid">
+
+      <label class="photo">
+
+        🖼 表面の画像
+
+        <input
+          id="front"
+          type="file"
+          accept="image/*">
+
+        <img
+          id="frontPreview"
+          alt="表面のプレビュー">
+
+      </label>
+
+
+      <label class="photo">
+
+        🖼 裏面の画像（任意）
+
+        <input
+          id="back"
+          type="file"
+          accept="image/*">
+
+        <img
+          id="backPreview"
+          alt="裏面のプレビュー">
+
+      </label>
+
+    </div>
+
+
+    <button
+      id="scanBtn"
+      class="btn full"
+      type="button">
+      AIで判定する
+    </button>
+
+
+    <div
+      id="status"
+      class="status">
+    </div>
+
+
+    <div
+      id="error"
+      class="error">
+    </div>
+
+  </section>
+
+
+  <!-- 解析結果 -->
+  <section
+    id="resultCard"
+    class="card result">
+
+    <label>
+      解析結果（必要なら修正してください）
+    </label>
+
+
+    <div class="fields">
+
+      <div>
+        <label>シール名</label>
+        <input id="name">
       </div>
-      <p class="hint">
-        pCloud承認後に <code>PCLOUD_CLIENT_ID</code> を入力してください。
-        Client Secret は入力しません。
+
+
+      <div>
+        <label>シリーズ・作品名</label>
+        <input id="series">
+      </div>
+
+
+      <div>
+
+        <label>種類</label>
+
+        <select id="kind">
+
+          <option>シール</option>
+          <option>トレカ</option>
+          <option>食玩</option>
+
+        </select>
+
+      </div>
+
+
+      <div>
+
+        <label>レア度ランク</label>
+
+        <select id="rarity">
+
+          <option>N</option>
+          <option>R</option>
+          <option>SR</option>
+          <option>SSR</option>
+          <option>SC</option>
+          <option>UR</option>
+          <option>SEC</option>
+          <option>PR</option>
+          <option>不明</option>
+
+        </select>
+
+      </div>
+
+
+      <div>
+
+        <label>価格</label>
+
+        <input id="price">
+
+      </div>
+
+
+      <div>
+
+        <label>メモ</label>
+
+        <textarea id="memo"></textarea>
+
+      </div>
+
+    </div>
+
+
+    <button
+      id="saveBtn"
+      class="btn green full"
+      type="button">
+      💾 pCloudに保存
+    </button>
+
+  </section>
+
+
+  <!-- コレクション -->
+  <section class="card">
+
+    <div class="row">
+
+      <label style="margin:0">
+        マイコレクション
+      </label>
+
+      <button
+        id="refreshBtn"
+        class="btn small secondary"
+        type="button">
+        一覧を更新
+      </button>
+
+    </div>
+
+
+    <div id="list">
+
+      <p class="muted">
+        pCloudに接続すると保存済みの一覧を読み込みます。
       </p>
-      <button id="loginBtn" class="btn secondary full" type="button">pCloud に接続</button>
-      <button id="logoutBtn" class="btn small hidden" type="button">接続を解除</button>
-    </section>
 
-    <section class="card">
-      <label for="apiKey">Gemini API Key</label>
-      <input id="apiKey" type="password" autocomplete="off" placeholder="Gemini APIキーを貼り付け">
-      <p class="hint">キーはこの端末・このブラウザ内にのみ保存されます。</p>
-    </section>
+    </div>
 
-    <section class="card">
-      <div class="grid">
-        <label class="photo">
-          🖼 表面の画像
-          <input id="front" type="file" accept="image/*">
-          <img id="frontPreview" alt="表面のプレビュー">
-        </label>
+  </section>
 
-        <label class="photo">
-          🖼 裏面の画像（任意）
-          <input id="back" type="file" accept="image/*">
-          <img id="backPreview" alt="裏面のプレビュー">
-        </label>
-      </div>
+</main>
 
-      <button id="scanBtn" class="btn full" type="button">AIで判定する</button>
-      <div id="status" class="status"></div>
-      <div id="error" class="error"></div>
-    </section>
 
-    <section id="resultCard" class="card result">
-      <label>解析結果（必要なら修正してください）</label>
+<script>
 
-      <div class="fields">
-        <div><label>シール名</label><input id="name"></div>
-        <div><label>シリーズ・作品名</label><input id="series"></div>
+/* =========================================================
+   pCloud Client ID
+   ========================================================= */
 
-        <div>
-          <label>種類</label>
-          <select id="kind">
-            <option>シール</option>
-            <option>トレカ</option>
-            <option>食玩</option>
-          </select>
-        </div>
+const PCLOUD_CLIENT_ID =
+  'PASTE_YOUR_PCLOUD_CLIENT_ID_HERE';
 
-        <div>
-          <label>レア度ランク</label>
-          <select id="rarity">
-            <option>N</option>
-            <option>R</option>
-            <option>SR</option>
-            <option>SSR</option>
-            <option>SC</option>
-            <option>UR</option>
-            <option>SEC</option>
-            <option>PR</option>
-            <option>不明</option>
-          </select>
-        </div>
 
-        <div><label>価格</label><input id="price"></div>
-        <div><label>メモ</label><textarea id="memo"></textarea></div>
-      </div>
+/* =========================================================
+   設定
+   ========================================================= */
 
-      <button id="saveBtn" class="btn green full" type="button">💾 pCloudに保存</button>
-    </section>
+const GEMINI_MODEL =
+  'gemini-3.6-flash';
 
-    <section class="card">
-      <div class="row">
-        <label style="margin:0">マイコレクション</label>
-        <button id="refreshBtn" class="btn small secondary" type="button">一覧を更新</button>
-      </div>
+const ROOT_FOLDER =
+  'シールコレクション';
 
-      <div id="list">
-        <p class="muted">pCloudに接続すると保存済みの一覧を読み込みます。</p>
-      </div>
-    </section>
-  </main>
 
-  <script>
-    /* ===== pCloud承認後にここだけ変更 ===== */
-    const PCLOUD_CLIENT_ID = 'PASTE_YOUR_PCLOUD_CLIENT_ID_HERE';
+/* =========================================================
+   共通
+   ========================================================= */
 
-    /*
-      HTMLは file:// ではなく HTTPS で公開して使ってください。
-      pCloud My Apps の Redirect URI には、このHTMLの公開URLを登録します。
-    */
-    const GEMINI_MODEL = 'gemini-3.6-flash';
-    const ROOT_FOLDER = 'シールコレクション';
+const $ = id =>
+  document.getElementById(id);
 
-    const $ = id => document.getElementById(id);
-    const store = localStorage;
+const store =
+  localStorage;
 
-    let analysis = null;
-    let records = [];
+let analysis = null;
 
-    function setStatus(text) {
-      $('status').textContent = text;
-      $('status').style.display = text ? 'block' : 'none';
+let records = [];
+
+
+/* =========================================================
+   メッセージ
+   ========================================================= */
+
+function setStatus(text){
+
+  $('status').textContent = text;
+
+  $('status').style.display =
+    text ? 'block' : 'none';
+}
+
+
+function fail(error){
+
+  console.error(error);
+
+  $('error').textContent =
+    error.message || String(error);
+
+  $('error').style.display =
+    'block';
+}
+
+
+function clearMessage(){
+
+  $('error').style.display =
+    'none';
+
+  setStatus('');
+}
+
+
+/* =========================================================
+   HTMLエスケープ
+   ========================================================= */
+
+function esc(text){
+
+  return String(text ?? '')
+    .replace(/[&<>"']/g, c => ({
+      '&':'&amp;',
+      '<':'&lt;',
+      '>':'&gt;',
+      '"':'&quot;',
+      "'":'&#39;'
+    }[c]));
+
+}
+
+
+/* =========================================================
+   ID
+   ========================================================= */
+
+function uid(){
+
+  return Date.now().toString(36)
+    +
+    Math.random()
+      .toString(36)
+      .slice(2,8);
+
+}
+
+
+/* =========================================================
+   MIME
+   ========================================================= */
+
+function mime(file){
+
+  return file.type ||
+    'image/jpeg';
+
+}
+
+
+/* =========================================================
+   プレビュー
+   ========================================================= */
+
+function preview(input,image){
+
+  const file =
+    input.files[0];
+
+  if(!file) return;
+
+  const reader =
+    new FileReader();
+
+  reader.onload = () => {
+
+    image.src =
+      reader.result;
+
+    image.style.display =
+      'block';
+
+  };
+
+  reader.readAsDataURL(file);
+
+}
+
+
+$('front').onchange = () =>
+  preview(
+    $('front'),
+    $('frontPreview')
+  );
+
+
+$('back').onchange = () =>
+  preview(
+    $('back'),
+    $('backPreview')
+  );
+
+
+/* =========================================================
+   Gemini API Key
+   ========================================================= */
+
+function saveKey(){
+
+  store.setItem(
+    'stickerGeminiKey',
+    $('apiKey').value.trim()
+  );
+
+}
+
+
+/* =========================================================
+   pCloud
+   ========================================================= */
+
+function apiHost(){
+
+  return store.getItem('pcloudHost')
+    ||
+    'api.pcloud.com';
+
+}
+
+
+function token(){
+
+  return store.getItem(
+    'pcloudToken'
+  );
+
+}
+
+
+function updateCloud(){
+
+  const connected =
+    !!token();
+
+  $('cloudState').textContent =
+    connected
+      ? '接続済み'
+      : '未接続';
+
+  $('loginBtn')
+    .classList
+    .toggle(
+      'hidden',
+      connected
+    );
+
+  $('logoutBtn')
+    .classList
+    .toggle(
+      'hidden',
+      !connected
+    );
+
+}
+
+
+function redirectURI(){
+
+  return location.href
+    .split('#')[0];
+
+}
+
+
+function connect(){
+
+  if(
+    PCLOUD_CLIENT_ID.includes(
+      'PASTE_'
+    )
+  ){
+
+    throw Error(
+      'PCLOUD_CLIENT_ID に承認後の Client ID を入力してください。'
+    );
+
+  }
+
+
+  if(
+    location.protocol === 'file:'
+  ){
+
+    throw Error(
+      'このHTMLはHTTPSで公開してから使ってください。file:// ではOAuthの戻り先を登録できません。'
+    );
+
+  }
+
+
+  const state =
+    uid();
+
+  store.setItem(
+    'pcloudState',
+    state
+  );
+
+
+  const params =
+    new URLSearchParams({
+
+      client_id:
+        PCLOUD_CLIENT_ID,
+
+      response_type:
+        'token',
+
+      redirect_uri:
+        redirectURI(),
+
+      state
+
+    });
+
+
+  location.href =
+    'https://my.pcloud.com/oauth2/authorize?'
+    +
+    params;
+
+}
+
+
+function readOAuth(){
+
+  if(!location.hash)
+    return;
+
+
+  const params =
+    new URLSearchParams(
+      location.hash.slice(1)
+    );
+
+
+  if(
+    params.get(
+      'access_token'
+    )
+  ){
+
+    if(
+      params.get('state')
+      !==
+      store.getItem(
+        'pcloudState'
+      )
+    ){
+
+      throw Error(
+        'pCloud認証の確認値が一致しません。もう一度接続してください。'
+      );
+
     }
 
-    function fail(error) {
-      console.error(error);
-      $('error').textContent = error.message || String(error);
-      $('error').style.display = 'block';
-    }
 
-    function clearMessage() {
-      $('error').style.display = 'none';
-      setStatus('');
-    }
+    store.setItem(
+      'pcloudToken',
+      params.get(
+        'access_token'
+      )
+    );
 
-    function esc(text) {
-      return String(text ?? '').replace(/[&<>"']/g, c => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-      }[c]));
-    }
 
-    function uid() {
-      return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-    }
+    store.setItem(
+      'pcloudHost',
+      params.get(
+        'hostname'
+      )
+      ||
+      'api.pcloud.com'
+    );
 
-    function mime(file) {
-      return file.type || 'image/jpeg';
-    }
 
-    function preview(input, image) {
-      const file = input.files[0];
-      if (!file) return;
+    history.replaceState(
+      null,
+      '',
+      redirectURI()
+    );
 
-      const reader = new FileReader();
+  }
 
-      reader.onload = () => {
-        image.src = reader.result;
-        image.style.display = 'block';
-      };
 
-      reader.readAsDataURL(file);
-    }
+  else if(
+    params.get('error')
+  ){
 
-    $('front').onchange = () => preview($('front'), $('frontPreview'));
-    $('back').onchange = () => preview($('back'), $('backPreview'));
+    throw Error(
+      'pCloud認証が完了しませんでした: '
+      +
+      params.get('error')
+    );
 
-    function saveKey() {
-      store.setItem('stickerGeminiKey', $('apiKey').value.trim());
-    }
+  }
 
-    function apiHost() {
-      return store.getItem('pcloudHost') || 'api.pcloud.com';
-    }
+}
 
-    function token() {
-      return store.getItem('pcloudToken');
-    }
 
-    function updateCloud() {
-      const connected = !!token();
-      $('cloudState').textContent = connected ? '接続済み' : '未接続';
-      $('loginBtn').classList.toggle('hidden', connected);
-      $('logoutBtn').classList.toggle('hidden', !connected);
-    }
+/* =========================================================
+   pCloud API
+   ========================================================= */
 
-    function redirectURI() {
-      return location.href.split('#')[0];
-    }
+async function pcall(
+  method,
+  params = {},
+  form = null
+){
 
-    function connect() {
-      if (PCLOUD_CLIENT_ID.includes('PASTE_')) {
-        throw Error('PCLOUD_CLIENT_ID に承認後の Client ID を入力してください。');
+  if(!token()){
+
+    throw Error(
+      '先に pCloud に接続してください。'
+    );
+
+  }
+
+
+  const url =
+    'https://'
+    +
+    apiHost()
+    +
+    '/'
+    +
+    method;
+
+
+  let options;
+
+
+  if(form){
+
+    form.append(
+      'access_token',
+      token()
+    );
+
+
+    options = {
+
+      method:'POST',
+
+      body:form
+
+    };
+
+  }
+
+
+  else{
+
+    options = {
+
+      method:'POST',
+
+      headers:{
+        'Content-Type':
+          'application/x-www-form-urlencoded'
+      },
+
+      body:
+        new URLSearchParams({
+
+          ...params,
+
+          access_token:
+            token()
+
+        })
+
+    };
+
+  }
+
+
+  let response;
+
+
+  try{
+
+    response =
+      await fetch(
+        url,
+        options
+      );
+
+  }
+
+  catch{
+
+    throw Error(
+      'pCloudへ接続できませんでした。公開URL・通信環境・pCloudの設定を確認してください。'
+    );
+
+  }
+
+
+  let data;
+
+
+  try{
+
+    data =
+      await response.json();
+
+  }
+
+  catch{
+
+    throw Error(
+      'pCloudから正しい応答が返りませんでした（HTTP '
+      +
+      response.status
+      +
+      '）。'
+    );
+
+  }
+
+
+  if(
+    !response.ok
+    ||
+    data.result !== 0
+  ){
+
+    throw Error(
+      'pCloudエラー: '
+      +
+      (
+        data.error
+        ||
+        data.result
+        ||
+        response.status
+      )
+    );
+
+  }
+
+
+  return data;
+
+}
+
+
+/* =========================================================
+   pCloud ルート
+   ========================================================= */
+
+async function root(){
+
+  const data =
+    await pcall(
+      'createfolderifnotexists',
+      {
+        folderid:0,
+        name:ROOT_FOLDER
       }
+    );
 
-      if (location.protocol === 'file:') {
-        throw Error('このHTMLはHTTPSで公開してから使ってください。file:// ではOAuthの戻り先を登録できません。');
-      }
 
-      const state = uid();
-      store.setItem('pcloudState', state);
+  return data.metadata.folderid;
 
-      const params = new URLSearchParams({
-        client_id: PCLOUD_CLIENT_ID,
-        response_type: 'token',
-        redirect_uri: redirectURI(),
-        state
-      });
+}
 
-      location.href = 'https://my.pcloud.com/oauth2/authorize?' + params;
-    }
 
-    function readOAuth() {
-      if (!location.hash) return;
+/* =========================================================
+   pCloud Upload
+   ========================================================= */
 
-      const params = new URLSearchParams(location.hash.slice(1));
+async function upload(
+  folderid,
+  file,
+  filename
+){
 
-      if (params.get('access_token')) {
-        if (params.get('state') !== store.getItem('pcloudState')) {
-          throw Error('pCloud認証の確認値が一致しません。もう一度接続してください。');
-        }
+  const form =
+    new FormData();
 
-        store.setItem('pcloudToken', params.get('access_token'));
-        store.setItem('pcloudHost', params.get('hostname') || 'api.pcloud.com');
-        history.replaceState(null, '', redirectURI());
-      } else if (params.get('error')) {
-        throw Error('pCloud認証が完了しませんでした: ' + params.get('error'));
-      }
-    }
 
-    async function pcall(method, params = {}, form = null) {
-      if (!token()) {
-        throw Error('先に pCloud に接続してください。');
-      }
+  form.append(
+    'folderid',
+    folderid
+  );
 
-      const url = 'https://' + apiHost() + '/' + method;
-      let options;
 
-      if (form) {
-        form.append('access_token', token());
-        options = {
-          method: 'POST',
-          body: form
-        };
-      } else {
-        options = {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          body: new URLSearchParams({
-            ...params,
-            access_token: token()
-          })
-        };
-      }
+  form.append(
+    'nopartial',
+    '1'
+  );
 
-      let response;
 
-      try {
-        response = await fetch(url, options);
-      } catch {
-        throw Error('pCloudへ接続できませんでした。公開URL・通信環境・pCloudの設定を確認してください。');
-      }
+  form.append(
+    'renameifexists',
+    '0'
+  );
 
-      let data;
 
-      try {
-        data = await response.json();
-      } catch {
-        throw Error('pCloudから正しい応答が返りませんでした（HTTP ' + response.status + '）。');
-      }
+  form.append(
+    'file',
+    file,
+    filename
+  );
 
-      if (!response.ok || data.result !== 0) {
-        throw Error('pCloudエラー: ' + (data.error || data.result || response.status));
-      }
 
-      return data;
-    }
+  return pcall(
+    'uploadfile',
+    {},
+    form
+  );
 
-    async function root() {
-      const data = await pcall('createfolderifnotexists', {
-        folderid: 0,
-        name: ROOT_FOLDER
-      });
+}
 
-      return data.metadata.folderid;
-    }
 
-    async function upload(folderid, file, filename) {
-      const form = new FormData();
+/* =========================================================
+   Geminiプロンプト
+   ========================================================= */
 
-      form.append('folderid', folderid);
-      form.append('nopartial', '1');
-      form.append('renameifexists', '0');
-      form.append('file', file, filename);
+function prompt(){
 
-      return pcall('uploadfile', {}, form);
-    }
+  return `あなたは日本のコレクション品を画像から判定するアシスタントです。
 
-    function prompt() {
-      return `あなたは日本のコレクション品を画像から判定するアシスタントです。
-画像を確認し、Google検索も必要に応じて利用してください。
-次のJSONだけを返してください。Markdownや説明文は不要です。
+画像を確認し、必要に応じてGoogle検索も利用してください。
 
-種類は必ず「シール」「トレカ」「食玩」のいずれかにしてください。
+次のJSONだけを返してください。
+Markdownや説明文は不要です。
+
+種類は必ず
+「シール」
+「トレカ」
+「食玩」
+のいずれかにしてください。
 
 レア度ランクは、画像から判断できる範囲で
-「N」「R」「SR」「SSR」「SC」「UR」「SEC」「PR」「不明」
+
+「N」
+「R」
+「SR」
+「SSR」
+「SC」
+「UR」
+「SEC」
+「PR」
+「不明」
+
 のいずれか1つを返してください。
-画像にレア表記が見当たらない場合でも、見た目・ホログラム・作品内の一般的な分類から最も近いランクを推定してください。
 
-価格は、Google検索で見つかるメルカリの公開掲載・販売済み掲載を優先して参考にし、
-日本円の推定相場を「約○○円」の形式で記載してください。
-十分な情報がない場合は、画像からの推定価格を
-「約○○円（推定）」と記載してください。
+画像にレア表記が見当たらない場合でも、
+見た目・ホログラム・作品内の一般的な分類から
+最も近いランクを推定してください。
 
-{"name":"","series":"","kind":"シール","rarity":"N","price":"","memo":""}`;
+価格はGoogle検索で見つかる
+メルカリ等の公開掲載価格を参考にして、
+日本円の推定相場を
+「約○○円」
+の形式で記載してください。
+
+十分な情報がない場合は、
+「約○○円（推定）」
+と記載してください。
+
+JSON形式：
+
+{
+  "name":"",
+  "series":"",
+  "kind":"シール",
+  "rarity":"N",
+  "price":"",
+  "memo":""
+}`;
+
+}
+
+
+/* =========================================================
+   Base64
+   ========================================================= */
+
+async function b64(file){
+
+  return new Promise(
+    (resolve,reject) => {
+
+      const reader =
+        new FileReader();
+
+
+      reader.onload = () => {
+
+        resolve(
+          String(
+            reader.result
+          ).split(',')[1]
+        );
+
+      };
+
+
+      reader.onerror =
+        reject;
+
+
+      reader.readAsDataURL(
+        file
+      );
+
     }
+  );
 
-    async function b64(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
+}
 
-        reader.onload = () => {
-          resolve(String(reader.result).split(',')[1]);
-        };
 
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    }
+/* =========================================================
+   JSON解析
+   ========================================================= */
 
-    function jsonFromText(text) {
-      return JSON.parse(text.replace(/^```(?:json)?|```$/gm, '').trim());
-    }
+function jsonFromText(text){
 
-    async function scan() {
-      clearMessage();
+  const cleaned =
+    text
+      .replace(
+        /^```(?:json)?/gm,
+        ''
+      )
+      .replace(
+        /```$/gm,
+        ''
+      )
+      .trim();
 
-      const key = $('apiKey').value.trim();
-      const front = $('front').files[0];
-      const back = $('back').files[0];
 
-      if (!key) throw Error('Gemini API Keyを入力してください。');
-      if (!front) throw Error('表面の画像を選択してください。');
+  return JSON.parse(
+    cleaned
+  );
 
-      saveKey();
-      $('scanBtn').disabled = true;
+}
 
-      try {
-        setStatus('画像と公開情報をAIで解析しています…');
 
-        const parts = [
-          { text: prompt() },
-          {
-            inline_data: {
-              mime_type: mime(front),
-              data: await b64(front)
-            }
-          }
-        ];
+/* =========================================================
+   AI判定
+   ========================================================= */
 
-        if (back) {
-          parts.push({
-            inline_data: {
-              mime_type: mime(back),
-              data: await b64(back)
-            }
-          });
+async function scan(){
+
+  clearMessage();
+
+
+  const key =
+    $('apiKey')
+      .value
+      .trim();
+
+
+  const front =
+    $('front')
+      .files[0];
+
+
+  const back =
+    $('back')
+      .files[0];
+
+
+  if(!key){
+
+    throw Error(
+      'Gemini API Keyを入力してください。'
+    );
+
+  }
+
+
+  if(!front){
+
+    throw Error(
+      '表面の画像を選択してください。'
+    );
+
+  }
+
+
+  saveKey();
+
+
+  $('scanBtn')
+    .disabled = true;
+
+
+  try{
+
+    setStatus(
+      '画像と公開情報をAIで解析しています…'
+    );
+
+
+    const parts = [
+
+      {
+        text:prompt()
+      },
+
+      {
+        inline_data:{
+          mime_type:
+            mime(front),
+
+          data:
+            await b64(front)
+        }
+      }
+
+    ];
+
+
+    if(back){
+
+      parts.push({
+
+        inline_data:{
+
+          mime_type:
+            mime(back),
+
+          data:
+            await b64(back)
+
         }
 
-        const response = await fetch(
-          'https://generativelanguage.googleapis.com/v1beta/models/' +
-          GEMINI_MODEL +
-          ':generateContent',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-goog-api-key': key
-            },
-            body: JSON.stringify({
-              contents: [
+      });
+
+    }
+
+
+    const response =
+      await fetch(
+
+        'https://generativelanguage.googleapis.com/v1beta/models/'
+        +
+        GEMINI_MODEL
+        +
+        ':generateContent',
+
+        {
+
+          method:'POST',
+
+          headers:{
+
+            'Content-Type':
+              'application/json',
+
+            'x-goog-api-key':
+              key
+
+          },
+
+          body:
+            JSON.stringify({
+
+              contents:[
+
                 {
-                  role: 'user',
+
+                  role:'user',
+
                   parts
+
                 }
+
               ],
-              tools: [
+
+
+              tools:[
+
                 {
-                  google_search: {}
+
+                  google_search:{}
+
                 }
+
               ],
-              generationConfig: {
-                maxOutputTokens: 800,
-                responseFormat: {
-                  text: {
-                    mimeType: 'application/json',
-                    schema: {
-                      type: 'object',
-                      properties: {
-                        name: {
-                          type: 'string',
-                          description: 'シール名'
+
+
+              generationConfig:{
+
+                maxOutputTokens:
+                  800,
+
+                /*
+                 * ここが今回の修正箇所です。
+                 *
+                 * mimeType:
+                 *   'application/json'
+                 *
+                 * を削除しています。
+                 */
+
+                responseFormat:{
+
+                  text:{
+
+                    schema:{
+
+                      type:'object',
+
+                      properties:{
+
+                        name:{
+
+                          type:'string',
+
+                          description:
+                            'シール名'
+
                         },
-                        series: {
-                          type: 'string',
-                          description: 'シリーズ・作品名'
+
+
+                        series:{
+
+                          type:'string',
+
+                          description:
+                            'シリーズ・作品名'
+
                         },
-                        kind: {
-                          type: 'string',
-                          enum: ['シール', 'トレカ', '食玩']
+
+
+                        kind:{
+
+                          type:'string',
+
+                          enum:[
+                            'シール',
+                            'トレカ',
+                            '食玩'
+                          ]
+
                         },
-                        rarity: {
-                          type: 'string',
-                          enum: ['N', 'R', 'SR', 'SSR', 'SC', 'UR', 'SEC', 'PR', '不明']
+
+
+                        rarity:{
+
+                          type:'string',
+
+                          enum:[
+                            'N',
+                            'R',
+                            'SR',
+                            'SSR',
+                            'SC',
+                            'UR',
+                            'SEC',
+                            'PR',
+                            '不明'
+                          ]
+
                         },
-                        price: {
-                          type: 'string',
-                          description: '日本円の推定価格。約○○円の形式'
+
+
+                        price:{
+
+                          type:'string',
+
+                          description:
+                            '日本円の推定価格。約○○円の形式'
+
                         },
-                        memo: {
-                          type: 'string',
-                          description: '判定根拠や状態のメモ'
+
+
+                        memo:{
+
+                          type:'string',
+
+                          description:
+                            '判定根拠や状態のメモ'
+
                         }
+
                       },
-                      required: [
+
+
+                      required:[
+
                         'name',
                         'series',
                         'kind',
                         'rarity',
                         'price',
                         'memo'
+
                       ]
+
                     }
+
                   }
+
                 }
+
               }
+
             })
-          }
-        );
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw Error('Geminiエラー: ' + (data.error?.message || response.status));
         }
 
-        const text = data.candidates?.[0]?.content?.parts
-          ?.map(part => part.text || '')
-          .join('') || '';
+      );
 
-        analysis = jsonFromText(text);
 
-        $('name').value = analysis.name || '';
-        $('series').value = analysis.series || '';
+    const data =
+      await response.json();
 
-        $('kind').value = ['シール', 'トレカ', '食玩'].includes(analysis.kind)
-          ? analysis.kind
-          : 'シール';
 
-        const validRarity = ['N', 'R', 'SR', 'SSR', 'SC', 'UR', 'SEC', 'PR', '不明'];
+    if(!response.ok){
 
-        $('rarity').value = validRarity.includes(analysis.rarity)
-          ? analysis.rarity
-          : '不明';
+      throw Error(
+        'Geminiエラー: '
+        +
+        (
+          data.error?.message
+          ||
+          response.status
+        )
+      );
 
-        $('price').value = analysis.price || '';
-        $('memo').value = analysis.memo || '';
-
-        $('resultCard').style.display = 'block';
-        setStatus('判定できました。内容を確認して保存してください。');
-      } finally {
-        $('scanBtn').disabled = false;
-      }
     }
 
-    function current() {
-      return {
-        id: uid(),
-        name: $('name').value.trim() || '名称未設定',
-        series: $('series').value.trim(),
-        kind: $('kind').value,
-        rarity: $('rarity').value,
-        price: $('price').value.trim(),
-        memo: $('memo').value.trim(),
-        savedAt: new Date().toISOString()
+
+    const text =
+      data
+        .candidates?.[0]
+        ?.content
+        ?.parts
+        ?.map(
+          part =>
+            part.text || ''
+        )
+        .join('')
+        ||
+        '';
+
+
+    if(!text){
+
+      throw Error(
+        'Geminiから解析結果が返ってきませんでした。'
+      );
+
+    }
+
+
+    analysis =
+      jsonFromText(text);
+
+
+    $('name').value =
+      analysis.name || '';
+
+
+    $('series').value =
+      analysis.series || '';
+
+
+    $('kind').value =
+      [
+        'シール',
+        'トレカ',
+        '食玩'
+      ].includes(
+        analysis.kind
+      )
+      ?
+      analysis.kind
+      :
+      'シール';
+
+
+    const validRarity = [
+
+      'N',
+      'R',
+      'SR',
+      'SSR',
+      'SC',
+      'UR',
+      'SEC',
+      'PR',
+      '不明'
+
+    ];
+
+
+    $('rarity').value =
+      validRarity.includes(
+        analysis.rarity
+      )
+      ?
+      analysis.rarity
+      :
+      '不明';
+
+
+    $('price').value =
+      analysis.price || '';
+
+
+    $('memo').value =
+      analysis.memo || '';
+
+
+    $('resultCard')
+      .style.display =
+      'block';
+
+
+    setStatus(
+      '判定できました。内容を確認して保存してください。'
+    );
+
+  }
+
+
+  finally{
+
+    $('scanBtn')
+      .disabled = false;
+
+  }
+
+}
+
+
+/* =========================================================
+   現在のデータ
+   ========================================================= */
+
+function current(){
+
+  return {
+
+    id:uid(),
+
+    name:
+      $('name')
+        .value
+        .trim()
+      ||
+      '名称未設定',
+
+    series:
+      $('series')
+        .value
+        .trim(),
+
+    kind:
+      $('kind').value,
+
+    rarity:
+      $('rarity').value,
+
+    price:
+      $('price')
+        .value
+        .trim(),
+
+    memo:
+      $('memo')
+        .value
+        .trim(),
+
+    savedAt:
+      new Date()
+        .toISOString()
+
+  };
+
+}
+
+
+/* =========================================================
+   pCloudへ保存
+   ========================================================= */
+
+async function save(){
+
+  clearMessage();
+
+
+  if(!analysis){
+
+    throw Error(
+      '先にAIで判定してください。'
+    );
+
+  }
+
+
+  const front =
+    $('front')
+      .files[0];
+
+
+  const back =
+    $('back')
+      .files[0];
+
+
+  if(!front){
+
+    throw Error(
+      '表面の画像がありません。'
+    );
+
+  }
+
+
+  if(!token()){
+
+    throw Error(
+      '先にpCloudに接続してください。'
+    );
+
+  }
+
+
+  $('saveBtn')
+    .disabled = true;
+
+
+  try{
+
+    setStatus(
+      'pCloudに保存しています（フォルダ作成 → 画像 → データ）…'
+    );
+
+
+    const rootFolderId =
+      await root();
+
+
+    const item =
+      current();
+
+
+    const folder =
+      await pcall(
+        'createfolderifnotexists',
+        {
+
+          folderid:
+            rootFolderId,
+
+          name:
+            'item-' + item.id
+
+        }
+      );
+
+
+    const folderid =
+      folder.metadata.folderid;
+
+
+    const ext =
+      file => {
+
+        return (
+          file.name
+            .split('.')
+            .pop()
+          ||
+          'jpg'
+        )
+        .replace(
+          /[^a-z0-9]/gi,
+          ''
+        )
+        .toLowerCase();
+
       };
+
+
+    await upload(
+      folderid,
+      front,
+      'front.' + ext(front)
+    );
+
+
+    if(back){
+
+      await upload(
+        folderid,
+        back,
+        'back.' + ext(back)
+      );
+
     }
 
-    async function save() {
-      clearMessage();
 
-      if (!analysis) throw Error('先にAIで判定してください。');
+    const dataFile =
+      new File(
 
-      const front = $('front').files[0];
-      const back = $('back').files[0];
+        [
+          JSON.stringify(
+            item,
+            null,
+            2
+          )
+        ],
 
-      if (!front) throw Error('表面の画像がありません。');
+        'data.json',
 
-      $('saveBtn').disabled = true;
-
-      try {
-        setStatus('pCloudに保存しています（フォルダ作成 → 画像 → データ）…');
-
-        const rootFolderId = await root();
-        const item = current();
-
-        const folder = await pcall('createfolderifnotexists', {
-          folderid: rootFolderId,
-          name: 'item-' + item.id
-        });
-
-        const folderid = folder.metadata.folderid;
-
-        const ext = file => {
-          return (file.name.split('.').pop() || 'jpg')
-            .replace(/[^a-z0-9]/gi, '')
-            .toLowerCase();
-        };
-
-        await upload(folderid, front, 'front.' + ext(front));
-
-        if (back) {
-          await upload(folderid, back, 'back.' + ext(back));
+        {
+          type:
+            'application/json'
         }
 
-        const dataFile = new File(
-          [JSON.stringify(item, null, 2)],
-          'data.json',
-          { type: 'application/json' }
-        );
+      );
 
-        await upload(folderid, dataFile, 'data.json');
 
-        item.folderid = folderid;
-        item.preview = $('frontPreview').src;
+    await upload(
+      folderid,
+      dataFile,
+      'data.json'
+    );
 
-        records.unshift(item);
-        render();
 
-        setStatus('pCloudに保存しました。');
-      } finally {
-        $('saveBtn').disabled = false;
+    item.folderid =
+      folderid;
+
+
+    item.preview =
+      $('frontPreview').src;
+
+
+    records.unshift(
+      item
+    );
+
+
+    render();
+
+
+    setStatus(
+      'pCloudに保存しました。'
+    );
+
+  }
+
+
+  finally{
+
+    $('saveBtn')
+      .disabled = false;
+
+  }
+
+}
+
+
+/* =========================================================
+   一覧更新
+   ========================================================= */
+
+async function refresh(){
+
+  clearMessage();
+
+
+  if(!token()){
+
+    throw Error(
+      '先にpCloudに接続してください。'
+    );
+
+  }
+
+
+  setStatus(
+    'pCloudのフォルダ一覧を取得しています…'
+  );
+
+
+  const rootFolderId =
+    await root();
+
+
+  const data =
+    await pcall(
+      'listfolder',
+      {
+
+        folderid:
+          rootFolderId,
+
+        recursive:0
+
       }
-    }
+    );
 
-    async function refresh() {
-      clearMessage();
 
-      if (!token()) throw Error('先に pCloud に接続してください。');
+  const folders =
+    (
+      data
+        .metadata
+        .contents
+      ||
+      []
+    )
+    .filter(
+      item =>
+        item.isfolder
+        &&
+        item.name.startsWith(
+          'item-'
+        )
+    );
 
-      setStatus('pCloudのフォルダ一覧を取得しています…');
 
-      const rootFolderId = await root();
+  records =
+    folders.map(
+      folder => ({
 
-      const data = await pcall('listfolder', {
-        folderid: rootFolderId,
-        recursive: 0
-      });
+        id:
+          folder.name.slice(5),
 
-      const folders = (data.metadata.contents || []).filter(item => {
-        return item.isfolder && item.name.startsWith('item-');
-      });
+        folderid:
+          folder.folderid,
 
-      records = folders.map(folder => ({
-        id: folder.name.slice(5),
-        folderid: folder.folderid,
-        name: '保存済みアイテム',
-        series: '',
-        kind: '',
-        rarity: '',
-        price: '',
-        memo: '',
-        savedAt: folder.modified
-      }));
+        name:
+          '保存済みアイテム',
 
-      render();
-      setStatus('一覧を更新しました。');
-    }
+        series:'',
 
-    async function del(id) {
-      const record = records.find(item => item.id === id);
+        kind:'',
 
-      if (!record) return;
+        rarity:'',
 
-      if (!confirm('このアイテムをpCloudから削除します。よろしいですか？')) {
-        return;
+        price:'',
+
+        memo:'',
+
+        savedAt:
+          folder.modified
+
+      })
+    );
+
+
+  render();
+
+
+  setStatus(
+    '一覧を更新しました。'
+  );
+
+}
+
+
+/* =========================================================
+   削除
+   ========================================================= */
+
+async function del(id){
+
+  const record =
+    records.find(
+      item =>
+        item.id === id
+    );
+
+
+  if(!record)
+    return;
+
+
+  if(
+    !confirm(
+      'このアイテムをpCloudから削除します。よろしいですか？'
+    )
+  ){
+
+    return;
+
+  }
+
+
+  clearMessage();
+
+
+  try{
+
+    setStatus(
+      'pCloudから削除しています…'
+    );
+
+
+    await pcall(
+      'deletefolderrecursive',
+      {
+
+        folderid:
+          record.folderid
+
       }
+    );
 
-      clearMessage();
 
-      try {
-        setStatus('pCloudから削除しています…');
+    records =
+      records.filter(
+        item =>
+          item.id !== id
+      );
 
-        await pcall('deletefolderrecursive', {
-          folderid: record.folderid
-        });
 
-        records = records.filter(item => item.id !== id);
-        render();
+    render();
 
-        setStatus('削除しました。');
-      } catch (error) {
-        fail(error);
-      }
-    }
 
-    function render() {
-      if (!records.length) {
-        $('list').innerHTML = '<p class="muted">まだ保存されていません。</p>';
-        return;
-      }
+    setStatus(
+      '削除しました。'
+    );
 
-      $('list').innerHTML = records.map(record => `
-        <div class="item">
-          <img
-            class="thumb"
-            src="${record.preview || ''}"
-            alt=""
-            onerror="this.style.visibility='hidden'"
-          >
-          <div class="grow">
-            <h3>${esc(record.name)}</h3>
-            <p>${esc(record.series)}　${esc(record.kind)}　${esc(record.rarity)}</p>
-            <p>${esc(record.price)}　${new Date(record.savedAt).toLocaleDateString('ja-JP')}</p>
+  }
+
+
+  catch(error){
+
+    fail(error);
+
+  }
+
+}
+
+
+/* =========================================================
+   一覧表示
+   ========================================================= */
+
+function render(){
+
+  if(!records.length){
+
+    $('list').innerHTML =
+      '<p class="muted">まだ保存されていません。</p>';
+
+    return;
+
+  }
+
+
+  $('list').innerHTML =
+    records
+      .map(
+        record => `
+
+          <div class="item">
+
+            <img
+              class="thumb"
+              src="${record.preview || ''}"
+              alt=""
+              onerror="this.style.visibility='hidden'"
+            >
+
+            <div class="grow">
+
+              <h3>
+                ${esc(record.name)}
+              </h3>
+
+              <p>
+                ${esc(record.series)}
+                　
+                ${esc(record.kind)}
+                　
+                ${esc(record.rarity)}
+              </p>
+
+              <p>
+                ${esc(record.price)}
+                　
+                ${new Date(
+                  record.savedAt
+                ).toLocaleDateString(
+                  'ja-JP'
+                )}
+              </p>
+
+            </div>
+
+
+            <button
+              class="btn small red"
+              onclick="del('${record.id}')">
+              削除
+            </button>
+
           </div>
-          <button class="btn small red" onclick="del('${record.id}')">削除</button>
-        </div>
-      `).join('');
+
+        `
+      )
+      .join('');
+
+}
+
+
+/* =========================================================
+   ボタン
+   ========================================================= */
+
+$('loginBtn').onclick =
+  () => {
+
+    try{
+
+      connect();
+
     }
 
-    $('loginBtn').onclick = () => {
-      try {
-        connect();
-      } catch (error) {
-        fail(error);
-      }
-    };
+    catch(error){
 
-    $('logoutBtn').onclick = () => {
-      store.removeItem('pcloudToken');
-      store.removeItem('pcloudHost');
-      updateCloud();
-      records = [];
-      render();
-    };
-
-    $('scanBtn').onclick = () => scan().catch(fail);
-    $('saveBtn').onclick = () => save().catch(fail);
-    $('refreshBtn').onclick = () => refresh().catch(fail);
-
-    try {
-      readOAuth();
-    } catch (error) {
       fail(error);
+
     }
 
-    $('apiKey').value = store.getItem('stickerGeminiKey') || '';
+  };
+
+
+$('logoutBtn').onclick =
+  () => {
+
+    store.removeItem(
+      'pcloudToken'
+    );
+
+    store.removeItem(
+      'pcloudHost'
+    );
 
     updateCloud();
+
+    records = [];
+
     render();
-  </script>
+
+  };
+
+
+$('scanBtn').onclick =
+  () =>
+    scan().catch(fail);
+
+
+$('saveBtn').onclick =
+  () =>
+    save().catch(fail);
+
+
+$('refreshBtn').onclick =
+  () =>
+    refresh().catch(fail);
+
+
+/* =========================================================
+   初期化
+   ========================================================= */
+
+try{
+
+  readOAuth();
+
+}
+
+catch(error){
+
+  fail(error);
+
+}
+
+
+$('apiKey').value =
+  store.getItem(
+    'stickerGeminiKey'
+  )
+  ||
+  '';
+
+
+updateCloud();
+
+render();
+
+</script>
+
 </body>
 </html>
-```
