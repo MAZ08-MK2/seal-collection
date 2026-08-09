@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>コレクトAI v7.0</title>
+  <title>コレクトAI v8.1</title>
   
   <style>
     :root { --primary: #007AFF; --bg: #f2f2f7; --card: #ffffff; }
@@ -15,6 +15,8 @@
     .ver-badge { text-align: center; font-size: 0.8rem; color: #34c759; font-weight: bold; margin-bottom: 16px; }
     .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
     label { font-size: 0.85rem; font-weight: bold; color: #6c6c70; display: block; margin-bottom: 6px; }
+    input[type="password"], input[type="text"] { width: 100%; padding: 12px; border: 1px solid #c6c6c8; border-radius: 8px; box-sizing: border-box; margin-bottom: 8px; font-size: 0.9rem; }
+    .key-hint { font-size: 0.75rem; color: #8e8e93; margin-bottom: 4px; }
     .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
     .upload-box { border: 2px dashed #c6c6c8; border-radius: 8px; padding: 12px; text-align: center; background: #fafafa; position: relative; cursor: pointer; }
     .upload-box img { width: 100%; height: 100px; object-fit: contain; display: none; margin-top: 8px; }
@@ -29,7 +31,13 @@
 <body>
 
   <h1>✨ コレクションAIスキャン</h1>
-  <div class="ver-badge">App Version: 7.0.0 (Bearer Auth Supported)</div>
+  <div class="ver-badge">App Version: 8.1.0 (Final Secure Edition)</div>
+
+  <div class="card">
+    <label for="apiKey">Gemini API Key / Access Token</label>
+    <input type="password" id="apiKey" placeholder="AQ... または AIzaSy... を貼り付け" onchange="saveApiKey(this.value)">
+    <div class="key-hint">※キーはお使いの端末（ブラウザ）内にのみ安全に保存されます。</div>
+  </div>
 
   <div class="card">
     <div class="upload-grid">
@@ -59,14 +67,19 @@
   </div>
 
   <script>
-    // AQから始まる新しいトークン認証形式に対応したキー
-    const TOKEN_KEY = "AQ.Ab8RN6Jv0ZeQCyCCJiLISPpHHPQMNHuYEYuvx_AAPU5yFPfZ2Q";
-
     let currentAnalysis = null;
 
     window.onload = function() {
+      const savedKey = localStorage.getItem('gemini_api_key');
+      if (savedKey) {
+        document.getElementById('apiKey').value = savedKey;
+      }
       renderCollection();
     };
+
+    function saveApiKey(val) {
+      localStorage.setItem('gemini_api_key', val.trim());
+    }
 
     function previewImage(input, previewId) {
       if (input.files && input.files[0]) {
@@ -90,10 +103,14 @@
     }
 
     async function analyzeImages() {
+      const apiKeyInput = document.getElementById('apiKey').value.trim();
       const frontFile = document.getElementById('imgFront').files[0];
       const backFile = document.getElementById('imgBack').files[0];
 
+      if (!apiKeyInput) return alert('APIキー（またはトークン）を入力してください');
       if (!frontFile) return alert('表面の画像を選択してください');
+
+      saveApiKey(apiKeyInput);
 
       const btn = document.getElementById('scanBtn');
       btn.disabled = true;
@@ -108,27 +125,28 @@
           parts.push({ inline_data: { mime_type: backFile.type, data: backBase64 } });
         }
 
-        // 新認証（Bearer Token）と従来認証（API Key）の自動切り替え判定
-        let res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${TOKEN_KEY}`
-          },
-          body: JSON.stringify({ contents: [{ parts: parts }] })
-        });
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`;
 
-        let data = await res.json();
-
-        // もしBearerで失敗した場合は従来のKeyクエリで再試行
-        if (data.error && data.error.code === 401) {
-          res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${TOKEN_KEY}`, {
+        // AQ... 形式（Bearer認証）と AIzaSy... 形式（API Key認証）の双方に対応
+        let res;
+        if (apiKeyInput.startsWith('AQ.')) {
+          res = await fetch(url, {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKeyInput}`
+            },
+            body: JSON.stringify({ contents: [{ parts: parts }] })
+          });
+        } else {
+          res = await fetch(`${url}?key=${apiKeyInput}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents: [{ parts: parts }] })
           });
-          data = await res.json();
         }
+
+        const data = await res.json();
 
         if (data.error) {
           alert('APIエラー: ' + data.error.message);
