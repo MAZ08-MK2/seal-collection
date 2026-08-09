@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>コレクトAI v8.2</title>
+  <title>コレクトAI v8.3</title>
   
   <style>
     :root { --primary: #007AFF; --bg: #f2f2f7; --card: #ffffff; }
@@ -31,7 +31,7 @@
 <body>
 
   <h1>✨ コレクションAIスキャン</h1>
-  <div class="ver-badge">App Version: 8.2.0 (AQ Key Support)</div>
+  <div class="ver-badge">App Version: 8.3.0 (Stable Model)</div>
 
   <div class="card">
     <label for="apiKey">Gemini API Key</label>
@@ -125,9 +125,9 @@
           parts.push({ inline_data: { mime_type: backFile.type, data: backBase64 } });
         }
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`;
+        // 無料枠の安定性が高い gemini-1.5-flash に切り替え
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
 
-        // AQ.キーと従来のAIzaSyキーの両方に対応する送信用ヘッダー構造
         const res = await fetch(url, {
           method: 'POST',
           headers: { 
