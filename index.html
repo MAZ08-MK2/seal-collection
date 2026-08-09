@@ -31,13 +31,13 @@
 
   <h1>✨ コレクションAIスキャン</h1>
 
-  <!-- APIキー入力（自動保存） -->
+  <!-- APIキー入力 -->
   <div class="card">
     <label for="apiKey">Gemini API Key</label>
     <input type="text" id="apiKey" placeholder="APIキーを入力" onchange="saveApiKey(this.value)">
   </div>
 
-  <!-- 画像選択（撮影またはライブラリ選択） -->
+  <!-- 画像選択（撮影/ライブラリ選択） -->
   <div class="card">
     <div class="upload-grid">
       <div class="upload-box" onclick="document.getElementById('imgFront').click()">
@@ -126,8 +126,10 @@
           parts.push({ inline_data: { mime_type: backFile.type, data: backBase64 } });
         }
 
-        // v1beta & gemini-1.5-flash エンドポイント
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKeyInput}`, {
+        // gemini-1.5-flash / v1beta に完全固定
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKeyInput}`;
+
+        const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ contents: [{ parts: parts }] })
@@ -160,12 +162,12 @@
       return `あなたは大人気のシール・トレーディングカード専門の鑑定士です。
 提供された画像（1枚目:表面、2枚目:裏面※ある場合）を元に、以下の項目を簡潔に出力してください。
 
-【1. タイトル】（例: 旧ビックリマン 第9弾 ヘッドロココ）
-【2. 種別・シリーズ】（例: 食玩シール / 旧ビックリマン チョコ版）
-【3. 裏面・素材の特徴】（例: 裏面黄色、ホログラム仕様、アイス版の可能性など）
+【1. タイトル】（例: ドラゴンボールヒーローズ 孫悟空＆ベジータ）
+【2. 種別・シリーズ】（例: トレーディングカード / ドラゴンボール関連）
+【3. 裏面・素材の特徴】（例: 箔押し、ホログラム仕様、裏面デザインの特徴など）
 【4. 推定コンディション】（画像から見える傷や状態の簡易判定）
 【5. 参考相場価格帯】（一般的な市場での取引目安価格帯）
-【6. 鑑定ポイント】（価値を高めるポイントや初期版/復刻版の見分けポイント）`;
+【6. 鑑定ポイント】（価値を高めるポイントやプロモ・レアリティの見分けポイント）`;
     }
 
     function saveToCollection() {
