@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <!-- キャッシュ無効化メタタグ -->
+  <!-- キャッシュ無効化 -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>コレクトAI v1.0.4</title>
+  <title>コレクトAI v2.0</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="コレクトAI">
@@ -35,8 +35,7 @@
 <body>
 
   <h1>✨ コレクションAIスキャン</h1>
-  <!-- バージョン表示を追加し、最新版が読み込まれたか確認可能に -->
-  <div class="ver-badge">App Version: 1.0.4 (Model: gemini-1.5-flash)</div>
+  <div class="ver-badge">App Version: 2.0.0 (Model: gemini-2.0-flash)</div>
 
   <!-- APIキー入力 -->
   <div class="card">
@@ -44,7 +43,7 @@
     <input type="text" id="apiKey" placeholder="APIキーを入力" onchange="saveApiKey(this.value)">
   </div>
 
-  <!-- 画像選択（撮影またはライブラリ選択） -->
+  <!-- 画像選択 -->
   <div class="card">
     <div class="upload-grid">
       <div class="upload-box" onclick="document.getElementById('imgFront').click()">
@@ -133,8 +132,10 @@
           parts.push({ inline_data: { mime_type: backFile.type, data: backBase64 } });
         }
 
-        // gemini-1.5-flash / v1beta
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKeyInput}`, {
+        // AQ.キー対応の正式モデル名 gemini-2.0-flash
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKeyInput}`;
+
+        const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ contents: [{ parts: parts }] })
