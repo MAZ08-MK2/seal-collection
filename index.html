@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>コレクトAI v8.1</title>
+  <title>コレクトAI v8.2</title>
   
   <style>
     :root { --primary: #007AFF; --bg: #f2f2f7; --card: #ffffff; }
@@ -31,10 +31,10 @@
 <body>
 
   <h1>✨ コレクションAIスキャン</h1>
-  <div class="ver-badge">App Version: 8.1.0 (Final Secure Edition)</div>
+  <div class="ver-badge">App Version: 8.2.0 (AQ Key Support)</div>
 
   <div class="card">
-    <label for="apiKey">Gemini API Key / Access Token</label>
+    <label for="apiKey">Gemini API Key</label>
     <input type="password" id="apiKey" placeholder="AQ... または AIzaSy... を貼り付け" onchange="saveApiKey(this.value)">
     <div class="key-hint">※キーはお使いの端末（ブラウザ）内にのみ安全に保存されます。</div>
   </div>
@@ -107,7 +107,7 @@
       const frontFile = document.getElementById('imgFront').files[0];
       const backFile = document.getElementById('imgBack').files[0];
 
-      if (!apiKeyInput) return alert('APIキー（またはトークン）を入力してください');
+      if (!apiKeyInput) return alert('APIキーを入力してください');
       if (!frontFile) return alert('表面の画像を選択してください');
 
       saveApiKey(apiKeyInput);
@@ -127,24 +127,15 @@
 
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`;
 
-        // AQ... 形式（Bearer認証）と AIzaSy... 形式（API Key認証）の双方に対応
-        let res;
-        if (apiKeyInput.startsWith('AQ.')) {
-          res = await fetch(url, {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${apiKeyInput}`
-            },
-            body: JSON.stringify({ contents: [{ parts: parts }] })
-          });
-        } else {
-          res = await fetch(`${url}?key=${apiKeyInput}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: parts }] })
-          });
-        }
+        // AQ.キーと従来のAIzaSyキーの両方に対応する送信用ヘッダー構造
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKeyInput
+          },
+          body: JSON.stringify({ contents: [{ parts: parts }] })
+        });
 
         const data = await res.json();
 
