@@ -3,21 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <!-- 強力なキャッシュ無効化 -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>コレクトAI v2.0.1</title>
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="コレクトAI">
-  <link rel="apple-touch-icon" href="https://via.placeholder.com/192/007AFF/ffffff?text=COLLECT">
+  <title>コレクトAI v3.0</title>
   
   <style>
     :root { --primary: #007AFF; --bg: #f2f2f7; --card: #ffffff; }
     body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); margin: 0; padding: 16px; color: #1c1c1e; }
     h1 { font-size: 1.3rem; text-align: center; margin-bottom: 4px; }
-    .ver-badge { text-align: center; font-size: 0.75rem; color: #007AFF; font-weight: bold; margin-bottom: 16px; }
+    .ver-badge { text-align: center; font-size: 0.8rem; color: #ff3b30; font-weight: bold; margin-bottom: 16px; }
     .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
     label { font-size: 0.85rem; font-weight: bold; color: #6c6c70; display: block; margin-bottom: 6px; }
     input[type="text"] { width: 100%; padding: 10px; border: 1px solid #c6c6c8; border-radius: 8px; box-sizing: border-box; margin-bottom: 12px; }
@@ -35,16 +30,13 @@
 <body>
 
   <h1>✨ コレクションAIスキャン</h1>
-  <!-- バージョン表示を青文字で明確化 -->
-  <div class="ver-badge">App Version: 2.0.1 (Model: gemini-2.0-flash)</div>
+  <div class="ver-badge">App Version: 3.0.0 (Model: gemini-2.0-flash)</div>
 
-  <!-- APIキー入力 -->
   <div class="card">
     <label for="apiKey">Gemini API Key</label>
     <input type="text" id="apiKey" placeholder="APIキーを入力" onchange="saveApiKey(this.value)">
   </div>
 
-  <!-- 画像選択 -->
   <div class="card">
     <div class="upload-grid">
       <div class="upload-box" onclick="document.getElementById('imgFront').click()">
@@ -61,14 +53,12 @@
     <button class="btn" id="scanBtn" onclick="analyzeImages()">AIで判定 & 相場分析</button>
   </div>
 
-  <!-- 判定結果 -->
   <div class="card" id="resultCard" style="display:none;">
     <label>解析結果</label>
     <div id="result"></div>
     <button class="btn" style="margin-top: 12px; background: #34c759;" onclick="saveToCollection()">保存する</button>
   </div>
 
-  <!-- マイコレクション -->
   <div class="card">
     <label>マイコレクション</label>
     <div id="collectionList"></div>
@@ -133,7 +123,7 @@
           parts.push({ inline_data: { mime_type: backFile.type, data: backBase64 } });
         }
 
-        // AQ.キー対応モデル gemini-2.0-flash に完全指定
+        // AQ.認証キー対応のモデル名
         const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKeyInput}`;
 
         const response = await fetch(endpoint, {
