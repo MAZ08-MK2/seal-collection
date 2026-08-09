@@ -6,13 +6,13 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>コレクトAI v3.0</title>
+  <title>コレクトAI v4.0</title>
   
   <style>
     :root { --primary: #007AFF; --bg: #f2f2f7; --card: #ffffff; }
     body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); margin: 0; padding: 16px; color: #1c1c1e; }
     h1 { font-size: 1.3rem; text-align: center; margin-bottom: 4px; }
-    .ver-badge { text-align: center; font-size: 0.8rem; color: #ff3b30; font-weight: bold; margin-bottom: 16px; }
+    .ver-badge { text-align: center; font-size: 0.8rem; color: #34c759; font-weight: bold; margin-bottom: 16px; }
     .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
     label { font-size: 0.85rem; font-weight: bold; color: #6c6c70; display: block; margin-bottom: 6px; }
     input[type="text"] { width: 100%; padding: 10px; border: 1px solid #c6c6c8; border-radius: 8px; box-sizing: border-box; margin-bottom: 12px; }
@@ -30,7 +30,7 @@
 <body>
 
   <h1>✨ コレクションAIスキャン</h1>
-  <div class="ver-badge">App Version: 3.0.0 (Model: gemini-2.0-flash)</div>
+  <div class="ver-badge">App Version: 4.0.0 (Model: gemini-2.5-flash)</div>
 
   <div class="card">
     <label for="apiKey">Gemini API Key</label>
@@ -123,8 +123,8 @@
           parts.push({ inline_data: { mime_type: backFile.type, data: backBase64 } });
         }
 
-        // AQ.認証キー対応のモデル名
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKeyInput}`;
+        // 無料枠が全ユーザーに開放されている最新モデルEndpoint
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKeyInput}`;
 
         const response = await fetch(endpoint, {
           method: 'POST',
