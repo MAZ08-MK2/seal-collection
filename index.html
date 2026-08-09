@@ -260,22 +260,40 @@
 <main>
 
   <h1>✨ シールコレクション AI</h1>
-  <p class="lead">表面・裏面を選んで、シンプルに記録</p>
+
+  <p class="lead">
+    表面・裏面を選んで、シンプルに記録
+  </p>
+
 
   <!-- pCloud -->
   <section class="card">
 
     <div class="row">
+
       <strong>pCloud 保存先</strong>
-      <span id="cloudState" class="badge">未接続</span>
+
+      <span
+        id="cloudState"
+        class="badge">
+        未接続
+      </span>
+
     </div>
 
+
     <p class="hint">
+
       pCloud承認後に
       <code>PCLOUD_CLIENT_ID</code>
-      を入力してください。<br>
+      を入力してください。
+
+      <br>
+
       Client Secret は入力しません。
+
     </p>
+
 
     <button
       id="loginBtn"
@@ -283,6 +301,7 @@
       type="button">
       pCloud に接続
     </button>
+
 
     <button
       id="logoutBtn"
@@ -301,11 +320,13 @@
       Gemini API Key
     </label>
 
+
     <input
       id="apiKey"
       type="password"
       autocomplete="off"
       placeholder="Gemini APIキーを貼り付け">
+
 
     <p class="hint">
       キーはこの端末・このブラウザ内にのみ保存されます。
@@ -319,6 +340,7 @@
 
     <div class="grid">
 
+
       <label class="photo">
 
         🖼 表面の画像
@@ -327,6 +349,7 @@
           id="front"
           type="file"
           accept="image/*">
+
 
         <img
           id="frontPreview"
@@ -344,6 +367,7 @@
           type="file"
           accept="image/*">
 
+
         <img
           id="backPreview"
           alt="裏面のプレビュー">
@@ -357,7 +381,9 @@
       id="scanBtn"
       class="btn full"
       type="button">
+
       AIで判定する
+
     </button>
 
 
@@ -387,15 +413,22 @@
 
     <div class="fields">
 
+
       <div>
+
         <label>シール名</label>
+
         <input id="name">
+
       </div>
 
 
       <div>
+
         <label>シリーズ・作品名</label>
+
         <input id="series">
+
       </div>
 
 
@@ -459,7 +492,9 @@
       id="saveBtn"
       class="btn green full"
       type="button">
+
       💾 pCloudに保存
+
     </button>
 
   </section>
@@ -474,11 +509,14 @@
         マイコレクション
       </label>
 
+
       <button
         id="refreshBtn"
         class="btn small secondary"
         type="button">
+
         一覧を更新
+
       </button>
 
     </div>
@@ -487,7 +525,9 @@
     <div id="list">
 
       <p class="muted">
+
         pCloudに接続すると保存済みの一覧を読み込みます。
+
       </p>
 
     </div>
@@ -508,7 +548,7 @@ const PCLOUD_CLIENT_ID =
 
 
 /* =========================================================
-   設定
+   Gemini設定
    ========================================================= */
 
 const GEMINI_MODEL =
@@ -522,8 +562,8 @@ const ROOT_FOLDER =
    共通
    ========================================================= */
 
-const $ = id =>
-  document.getElementById(id);
+const $ =
+  id => document.getElementById(id);
 
 const store =
   localStorage;
@@ -539,10 +579,14 @@ let records = [];
 
 function setStatus(text){
 
-  $('status').textContent = text;
+  $('status').textContent =
+    text;
 
   $('status').style.display =
-    text ? 'block' : 'none';
+    text
+    ? 'block'
+    : 'none';
+
 }
 
 
@@ -551,10 +595,12 @@ function fail(error){
   console.error(error);
 
   $('error').textContent =
-    error.message || String(error);
+    error.message ||
+    String(error);
 
   $('error').style.display =
     'block';
+
 }
 
 
@@ -564,6 +610,7 @@ function clearMessage(){
     'none';
 
   setStatus('');
+
 }
 
 
@@ -574,13 +621,18 @@ function clearMessage(){
 function esc(text){
 
   return String(text ?? '')
-    .replace(/[&<>"']/g, c => ({
-      '&':'&amp;',
-      '<':'&lt;',
-      '>':'&gt;',
-      '"':'&quot;',
-      "'":'&#39;'
-    }[c]));
+    .replace(
+      /[&<>"']/g,
+      c => ({
+
+        '&':'&amp;',
+        '<':'&lt;',
+        '>':'&gt;',
+        '"':'&quot;',
+        "'":'&#39;'
+
+      }[c])
+    );
 
 }
 
@@ -613,18 +665,24 @@ function mime(file){
 
 
 /* =========================================================
-   プレビュー
+   画像プレビュー
    ========================================================= */
 
-function preview(input,image){
+function preview(
+  input,
+  image
+){
 
   const file =
     input.files[0];
 
-  if(!file) return;
+  if(!file)
+    return;
+
 
   const reader =
     new FileReader();
+
 
   reader.onload = () => {
 
@@ -636,23 +694,28 @@ function preview(input,image){
 
   };
 
-  reader.readAsDataURL(file);
+
+  reader.readAsDataURL(
+    file
+  );
 
 }
 
 
-$('front').onchange = () =>
-  preview(
-    $('front'),
-    $('frontPreview')
-  );
+$('front').onchange =
+  () =>
+    preview(
+      $('front'),
+      $('frontPreview')
+    );
 
 
-$('back').onchange = () =>
-  preview(
-    $('back'),
-    $('backPreview')
-  );
+$('back').onchange =
+  () =>
+    preview(
+      $('back'),
+      $('backPreview')
+    );
 
 
 /* =========================================================
@@ -663,7 +726,9 @@ function saveKey(){
 
   store.setItem(
     'stickerGeminiKey',
-    $('apiKey').value.trim()
+    $('apiKey')
+      .value
+      .trim()
   );
 
 }
@@ -675,9 +740,11 @@ function saveKey(){
 
 function apiHost(){
 
-  return store.getItem('pcloudHost')
-    ||
-    'api.pcloud.com';
+  return store.getItem(
+    'pcloudHost'
+  )
+  ||
+  'api.pcloud.com';
 
 }
 
@@ -696,10 +763,12 @@ function updateCloud(){
   const connected =
     !!token();
 
+
   $('cloudState').textContent =
     connected
-      ? '接続済み'
-      : '未接続';
+    ? '接続済み'
+    : '未接続';
+
 
   $('loginBtn')
     .classList
@@ -707,6 +776,7 @@ function updateCloud(){
       'hidden',
       connected
     );
+
 
   $('logoutBtn')
     .classList
@@ -754,6 +824,7 @@ function connect(){
 
   const state =
     uid();
+
 
   store.setItem(
     'pcloudState',
@@ -845,7 +916,6 @@ function readOAuth(){
 
   }
 
-
   else if(
     params.get('error')
   ){
@@ -911,7 +981,6 @@ async function pcall(
 
   }
 
-
   else{
 
     options = {
@@ -919,8 +988,10 @@ async function pcall(
       method:'POST',
 
       headers:{
+
         'Content-Type':
           'application/x-www-form-urlencoded'
+
       },
 
       body:
@@ -1010,7 +1081,7 @@ async function pcall(
 
 
 /* =========================================================
-   pCloud ルート
+   pCloudルート
    ========================================================= */
 
 async function root(){
@@ -1019,8 +1090,12 @@ async function root(){
     await pcall(
       'createfolderifnotexists',
       {
+
         folderid:0,
-        name:ROOT_FOLDER
+
+        name:
+          ROOT_FOLDER
+
       }
     );
 
@@ -1031,7 +1106,7 @@ async function root(){
 
 
 /* =========================================================
-   pCloud Upload
+   Upload
    ========================================================= */
 
 async function upload(
@@ -1086,7 +1161,11 @@ function prompt(){
 
   return `あなたは日本のコレクション品を画像から判定するアシスタントです。
 
-画像を確認し、必要に応じてGoogle検索も利用してください。
+表面・裏面の画像を確認してください。
+
+必要に応じてGoogle検索を利用してください。
+
+特に商品名、シリーズ名、レア度、相場について公開情報を確認してください。
 
 次のJSONだけを返してください。
 Markdownや説明文は不要です。
@@ -1097,43 +1176,38 @@ Markdownや説明文は不要です。
 「食玩」
 のいずれかにしてください。
 
-レア度ランクは、画像から判断できる範囲で
+レア度ランクは次のいずれか1つにしてください。
 
-「N」
-「R」
-「SR」
-「SSR」
-「SC」
-「UR」
-「SEC」
-「PR」
-「不明」
+N
+R
+SR
+SSR
+SC
+UR
+SEC
+PR
+不明
 
-のいずれか1つを返してください。
+画像にレア度表記がない場合は、
+作品内での一般的な分類や見た目を参考に、
+最も近いものを推定してください。
 
-画像にレア表記が見当たらない場合でも、
-見た目・ホログラム・作品内の一般的な分類から
-最も近いランクを推定してください。
-
-価格はGoogle検索で見つかる
-メルカリ等の公開掲載価格を参考にして、
-日本円の推定相場を
-「約○○円」
-の形式で記載してください。
+価格は日本円で、
+公開されている販売価格・掲載価格を参考にしてください。
 
 十分な情報がない場合は、
 「約○○円（推定）」
-と記載してください。
+としてください。
 
-JSON形式：
+必ず以下のJSON構造で返してください。
 
 {
-  "name":"",
-  "series":"",
-  "kind":"シール",
-  "rarity":"N",
-  "price":"",
-  "memo":""
+  "name": "",
+  "series": "",
+  "kind": "シール",
+  "rarity": "不明",
+  "price": "",
+  "memo": ""
 }`;
 
 }
@@ -1157,7 +1231,8 @@ async function b64(file){
         resolve(
           String(
             reader.result
-          ).split(',')[1]
+          )
+          .split(',')[1]
         );
 
       };
@@ -1249,8 +1324,8 @@ async function scan(){
   saveKey();
 
 
-  $('scanBtn')
-    .disabled = true;
+  $('scanBtn').disabled =
+    true;
 
 
   try{
@@ -1263,17 +1338,22 @@ async function scan(){
     const parts = [
 
       {
-        text:prompt()
+        text:
+          prompt()
       },
 
       {
+
         inline_data:{
+
           mime_type:
             mime(front),
 
           data:
             await b64(front)
+
         }
+
       }
 
     ];
@@ -1296,6 +1376,167 @@ async function scan(){
       });
 
     }
+
+
+    /*
+     * Gemini Generate Content API
+     *
+     * Gemini 3.6 Flash
+     * Google Search
+     * Structured Output
+     */
+
+    const requestBody = {
+
+      contents:[
+
+        {
+
+          role:'user',
+
+          parts:parts
+
+        }
+
+      ],
+
+
+      tools:[
+
+        {
+
+          googleSearch:{}
+
+        }
+
+      ],
+
+
+      generationConfig:{
+
+        maxOutputTokens:
+          800,
+
+
+        responseFormat:{
+
+          text:{
+
+            mimeType:
+              'application/json',
+
+
+            schema:{
+
+              type:'object',
+
+
+              properties:{
+
+                name:{
+
+                  type:'string',
+
+                  description:
+                    'シール名'
+
+                },
+
+
+                series:{
+
+                  type:'string',
+
+                  description:
+                    'シリーズ・作品名'
+
+                },
+
+
+                kind:{
+
+                  type:'string',
+
+                  enum:[
+
+                    'シール',
+                    'トレカ',
+                    '食玩'
+
+                  ]
+
+                },
+
+
+                rarity:{
+
+                  type:'string',
+
+                  enum:[
+
+                    'N',
+                    'R',
+                    'SR',
+                    'SSR',
+                    'SC',
+                    'UR',
+                    'SEC',
+                    'PR',
+                    '不明'
+
+                  ]
+
+                },
+
+
+                price:{
+
+                  type:'string',
+
+                  description:
+                    '日本円の推定価格。約○○円の形式'
+
+                },
+
+
+                memo:{
+
+                  type:'string',
+
+                  description:
+                    '判定根拠や状態のメモ'
+
+                }
+
+              },
+
+
+              required:[
+
+                'name',
+                'series',
+                'kind',
+                'rarity',
+                'price',
+                'memo'
+
+              ]
+
+            }
+
+          }
+
+        }
+
+      }
+
+    };
+
+
+    console.log(
+      'Gemini request:',
+      requestBody
+    );
 
 
     const response =
@@ -1322,150 +1563,9 @@ async function scan(){
           },
 
           body:
-            JSON.stringify({
-
-              contents:[
-
-                {
-
-                  role:'user',
-
-                  parts
-
-                }
-
-              ],
-
-
-              tools:[
-
-                {
-
-                  google_search:{}
-
-                }
-
-              ],
-
-
-              generationConfig:{
-
-                maxOutputTokens:
-                  800,
-
-                /*
-                 * ここが今回の修正箇所です。
-                 *
-                 * mimeType:
-                 *   'application/json'
-                 *
-                 * を削除しています。
-                 */
-
-                responseFormat:{
-
-                  text:{
-
-                    schema:{
-
-                      type:'object',
-
-                      properties:{
-
-                        name:{
-
-                          type:'string',
-
-                          description:
-                            'シール名'
-
-                        },
-
-
-                        series:{
-
-                          type:'string',
-
-                          description:
-                            'シリーズ・作品名'
-
-                        },
-
-
-                        kind:{
-
-                          type:'string',
-
-                          enum:[
-                            'シール',
-                            'トレカ',
-                            '食玩'
-                          ]
-
-                        },
-
-
-                        rarity:{
-
-                          type:'string',
-
-                          enum:[
-                            'N',
-                            'R',
-                            'SR',
-                            'SSR',
-                            'SC',
-                            'UR',
-                            'SEC',
-                            'PR',
-                            '不明'
-                          ]
-
-                        },
-
-
-                        price:{
-
-                          type:'string',
-
-                          description:
-                            '日本円の推定価格。約○○円の形式'
-
-                        },
-
-
-                        memo:{
-
-                          type:'string',
-
-                          description:
-                            '判定根拠や状態のメモ'
-
-                        }
-
-                      },
-
-
-                      required:[
-
-                        'name',
-                        'series',
-                        'kind',
-                        'rarity',
-                        'price',
-                        'memo'
-
-                      ]
-
-                    }
-
-                  }
-
-                }
-
-              }
-
-            })
+            JSON.stringify(
+              requestBody
+            )
 
         }
 
@@ -1476,6 +1576,12 @@ async function scan(){
       await response.json();
 
 
+    console.log(
+      'Gemini response:',
+      data
+    );
+
+
     if(!response.ok){
 
       throw Error(
@@ -1484,7 +1590,7 @@ async function scan(){
         (
           data.error?.message
           ||
-          response.status
+          JSON.stringify(data)
         )
       );
 
@@ -1515,7 +1621,9 @@ async function scan(){
 
 
     analysis =
-      jsonFromText(text);
+      jsonFromText(
+        text
+      );
 
 
     $('name').value =
@@ -1526,12 +1634,17 @@ async function scan(){
       analysis.series || '';
 
 
+    const validKinds = [
+
+      'シール',
+      'トレカ',
+      '食玩'
+
+    ];
+
+
     $('kind').value =
-      [
-        'シール',
-        'トレカ',
-        '食玩'
-      ].includes(
+      validKinds.includes(
         analysis.kind
       )
       ?
@@ -1587,8 +1700,8 @@ async function scan(){
 
   finally{
 
-    $('scanBtn')
-      .disabled = false;
+    $('scanBtn').disabled =
+      false;
 
   }
 
@@ -1603,7 +1716,8 @@ function current(){
 
   return {
 
-    id:uid(),
+    id:
+      uid(),
 
     name:
       $('name')
@@ -1643,7 +1757,7 @@ function current(){
 
 
 /* =========================================================
-   pCloudへ保存
+   pCloud保存
    ========================================================= */
 
 async function save(){
@@ -1688,8 +1802,8 @@ async function save(){
   }
 
 
-  $('saveBtn')
-    .disabled = true;
+  $('saveBtn').disabled =
+    true;
 
 
   try{
@@ -1716,7 +1830,8 @@ async function save(){
             rootFolderId,
 
           name:
-            'item-' + item.id
+            'item-' +
+            item.id
 
         }
       );
@@ -1730,11 +1845,13 @@ async function save(){
       file => {
 
         return (
+
           file.name
             .split('.')
             .pop()
           ||
           'jpg'
+
         )
         .replace(
           /[^a-z0-9]/gi,
@@ -1748,7 +1865,8 @@ async function save(){
     await upload(
       folderid,
       front,
-      'front.' + ext(front)
+      'front.' +
+      ext(front)
     );
 
 
@@ -1757,7 +1875,8 @@ async function save(){
       await upload(
         folderid,
         back,
-        'back.' + ext(back)
+        'back.' +
+        ext(back)
       );
 
     }
@@ -1816,8 +1935,8 @@ async function save(){
 
   finally{
 
-    $('saveBtn')
-      .disabled = false;
+    $('saveBtn').disabled =
+      false;
 
   }
 
@@ -2028,11 +2147,13 @@ function render(){
               onerror="this.style.visibility='hidden'"
             >
 
+
             <div class="grow">
 
               <h3>
                 ${esc(record.name)}
               </h3>
+
 
               <p>
                 ${esc(record.series)}
@@ -2042,14 +2163,18 @@ function render(){
                 ${esc(record.rarity)}
               </p>
 
+
               <p>
                 ${esc(record.price)}
                 　
-                ${new Date(
-                  record.savedAt
-                ).toLocaleDateString(
-                  'ja-JP'
-                )}
+                ${
+                  new Date(
+                    record.savedAt
+                  )
+                  .toLocaleDateString(
+                    'ja-JP'
+                  )
+                }
               </p>
 
             </div>
@@ -2058,7 +2183,9 @@ function render(){
             <button
               class="btn small red"
               onclick="del('${record.id}')">
+
               削除
+
             </button>
 
           </div>
