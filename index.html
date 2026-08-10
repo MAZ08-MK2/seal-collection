@@ -282,7 +282,7 @@
 
     .priceRow{
       display:grid;
-      grid-template-columns:110px 1fr;
+      grid-template-columns:120px 1fr;
       gap:8px;
       align-items:center;
       margin-top:8px;
@@ -324,6 +324,9 @@
         grid-template-columns:1fr;
       }
 
+      .priceRow{
+        grid-template-columns:1fr;
+      }
     }
   </style>
 </head>
@@ -339,13 +342,14 @@
   </p>
 
 
-  <!-- ==============================
+  <!-- =================================================
        pCloud
-  =============================== -->
+  ================================================== -->
 
   <section class="card">
 
     <div class="row">
+
       <strong>pCloud 保存先</strong>
 
       <span
@@ -353,6 +357,7 @@
         class="badge">
         未接続
       </span>
+
     </div>
 
     <p class="hint">
@@ -379,9 +384,9 @@
   </section>
 
 
-  <!-- ==============================
-       Gemini
-  =============================== -->
+  <!-- =================================================
+       Gemini API Key
+  ================================================== -->
 
   <section class="card">
 
@@ -402,9 +407,9 @@
   </section>
 
 
-  <!-- ==============================
+  <!-- =================================================
        画像
-  =============================== -->
+  ================================================== -->
 
   <section class="card">
 
@@ -478,9 +483,9 @@
   </section>
 
 
-  <!-- ==============================
+  <!-- =================================================
        AI結果
-  =============================== -->
+  ================================================== -->
 
   <section
     id="resultCard"
@@ -493,21 +498,34 @@
 
     <div class="fields">
 
+
       <div>
-        <label>シール名</label>
+
+        <label>
+          シール名
+        </label>
+
         <input id="name">
+
       </div>
 
 
       <div>
-        <label>シリーズ・作品名</label>
+
+        <label>
+          シリーズ・作品名
+        </label>
+
         <input id="series">
+
       </div>
 
 
       <div>
 
-        <label>種類</label>
+        <label>
+          種類
+        </label>
 
         <select id="kind">
 
@@ -522,7 +540,9 @@
 
       <div>
 
-        <label>レア度ランク</label>
+        <label>
+          レア度ランク
+        </label>
 
         <select id="rarity">
 
@@ -541,15 +561,16 @@
       </div>
 
 
-      <!-- ==========================
-           相場検索
-      =========================== -->
+      <!-- =================================================
+           価格
+      ================================================== -->
 
       <div class="marketBox">
 
         <div class="marketTitle">
-          📊 販売価格を確認
+          📊 相場確認
         </div>
+
 
         <div class="marketButtons">
 
@@ -559,6 +580,7 @@
             type="button">
             🛒 メルカリを検索
           </button>
+
 
           <button
             id="mandarakeBtn"
@@ -610,8 +632,10 @@
 
 
         <div class="source">
-          ※実際の掲載価格・販売価格を確認して入力してください。
-          確認できない場合は「確認できません」と入力してください。
+
+          ※メルカリ・まんだらけの実際の掲載価格を確認して入力してください。<br>
+          ※確認できない場合は「確認できません」としてください。
+
         </div>
 
       </div>
@@ -619,10 +643,11 @@
 
       <div>
 
-        <label>メモ</label>
+        <label>
+          メモ
+        </label>
 
-        <textarea
-          id="memo"></textarea>
+        <textarea id="memo"></textarea>
 
       </div>
 
@@ -639,9 +664,9 @@
   </section>
 
 
-  <!-- ==============================
+  <!-- =================================================
        コレクション
-  =============================== -->
+  ================================================== -->
 
   <section class="card">
 
@@ -676,38 +701,37 @@
 
 <script>
 
-/* =====================================================
+/* =========================================================
    基本設定
-===================================================== */
+========================================================= */
 
 
 /*
- * pCloud My Apps の Client ID
+ * pCloud My AppsのClient IDをここに入れる
  */
 const PCLOUD_CLIENT_ID =
   'PASTE_YOUR_PCLOUD_CLIENT_ID_HERE';
 
 
 /*
- * 現在の安定版Gemini
+ * Google公式のStableモデル
  *
- * Google公式:
- * Gemini 3.6 Flash
+ * 2026年7月21日更新
  */
 const GEMINI_MODEL =
   'gemini-3.6-flash';
 
 
 /*
- * pCloud保存フォルダ
+ * pCloudの保存先
  */
 const ROOT_FOLDER =
   'シールコレクション';
 
 
-/* =====================================================
+/* =========================================================
    DOM
-===================================================== */
+========================================================= */
 
 const $ =
   id => document.getElementById(id);
@@ -725,9 +749,9 @@ let records =
   [];
 
 
-/* =====================================================
+/* =========================================================
    メッセージ
-===================================================== */
+========================================================= */
 
 function setStatus(text){
 
@@ -778,7 +802,7 @@ function fail(error){
 
 
   /*
-   * Quotaエラー
+   * Gemini Quota
    */
 
   if(
@@ -791,7 +815,24 @@ function fail(error){
     message =
       'Gemini APIの利用上限に達しています。\n\n' +
       'Google AI StudioのUsage / Rate Limitを確認してください。\n\n' +
-      'これはHTMLのコードエラーではなく、Gemini API側のQuotaの問題です。';
+      'これはJSONエラーではなく、Gemini API側の利用上限です。';
+
+  }
+
+
+  /*
+   * JSON
+   */
+
+  if(
+    /JSON Parse/i.test(message) ||
+    /Unexpected token/i.test(message) ||
+    /Property name must be a string/i.test(message)
+  ){
+
+    message =
+      'Geminiから正しいJSON形式の判定結果を受け取れませんでした。\n\n' +
+      'もう一度「AIで判定する」を押してください。';
 
   }
 
@@ -818,9 +859,9 @@ function clearMessage(){
 }
 
 
-/* =====================================================
+/* =========================================================
    HTMLエスケープ
-===================================================== */
+========================================================= */
 
 function esc(text){
 
@@ -839,9 +880,9 @@ function esc(text){
 }
 
 
-/* =====================================================
+/* =========================================================
    ID
-===================================================== */
+========================================================= */
 
 function uid(){
 
@@ -855,9 +896,9 @@ function uid(){
 }
 
 
-/* =====================================================
+/* =========================================================
    MIME
-===================================================== */
+========================================================= */
 
 function mime(file){
 
@@ -867,9 +908,9 @@ function mime(file){
 }
 
 
-/* =====================================================
+/* =========================================================
    画像プレビュー
-===================================================== */
+========================================================= */
 
 function preview(
   input,
@@ -921,9 +962,9 @@ $('back').onchange =
     );
 
 
-/* =====================================================
-   API Key
-===================================================== */
+/* =========================================================
+   Gemini API Key
+========================================================= */
 
 function saveKey(){
 
@@ -935,9 +976,9 @@ function saveKey(){
 }
 
 
-/* =====================================================
+/* =========================================================
    pCloud
-===================================================== */
+========================================================= */
 
 function apiHost(){
 
@@ -998,9 +1039,9 @@ function redirectURI(){
 }
 
 
-/* =====================================================
+/* =========================================================
    pCloud OAuth
-===================================================== */
+========================================================= */
 
 function connect(){
 
@@ -1062,9 +1103,9 @@ function connect(){
 }
 
 
-/* =====================================================
+/* =========================================================
    OAuth戻り
-===================================================== */
+========================================================= */
 
 function readOAuth(){
 
@@ -1139,9 +1180,9 @@ function readOAuth(){
 }
 
 
-/* =====================================================
+/* =========================================================
    pCloud API
-===================================================== */
+========================================================= */
 
 async function pcall(
   method,
@@ -1272,9 +1313,9 @@ async function pcall(
 }
 
 
-/* =====================================================
-   pCloudルートフォルダ
-===================================================== */
+/* =========================================================
+   pCloudルート
+========================================================= */
 
 async function root(){
 
@@ -1282,8 +1323,12 @@ async function root(){
     await pcall(
       'createfolderifnotexists',
       {
+
         folderid:0,
-        name:ROOT_FOLDER
+
+        name:
+          ROOT_FOLDER
+
       }
     );
 
@@ -1293,9 +1338,9 @@ async function root(){
 }
 
 
-/* =====================================================
+/* =========================================================
    pCloudアップロード
-===================================================== */
+========================================================= */
 
 async function upload(
   folderid,
@@ -1341,40 +1386,40 @@ async function upload(
 }
 
 
-/* =====================================================
+/* =========================================================
    Geminiプロンプト
-===================================================== */
+========================================================= */
 
 function buildPrompt(){
 
   return `
 あなたは日本のコレクション品を判定する専門アシスタントです。
 
-添付画像の表面と裏面を確認してください。
+添付された画像の表面と裏面を確認してください。
 
-画像から確認できる情報を最優先してください。
+画像から実際に確認できる情報を最優先してください。
 
-次のJSONだけを返してください。
+商品名を推測で作らないでください。
 
-{
-  "name": "",
-  "series": "",
-  "kind": "シール",
-  "rarity": "不明",
-  "memo": ""
-}
+確認できない場合は必ず
+「確認できません」
+としてください。
 
-【kind】
+シリーズ名を確認できない場合も
+「確認できません」
+としてください。
 
-必ず次のいずれか:
+レア度が判断できない場合は
+「不明」
+としてください。
+
+種類は必ず次の3つのどれかです。
 
 シール
 トレカ
 食玩
 
-【rarity】
-
-必ず次のいずれか:
+レア度は必ず次のどれかです。
 
 N
 R
@@ -1386,32 +1431,19 @@ SEC
 PR
 不明
 
-【重要】
+memoには、画像から確認できた特徴を簡潔に書いてください。
 
-画像だけで確認できない商品名を勝手に作らないでください。
+架空の商品名、架空のシリーズ名、架空のレア度を作らないでください。
 
-商品名が確実に判断できない場合:
-「確認できません」
-
-シリーズが判断できない場合:
-「確認できません」
-
-レア度が判断できない場合:
-「不明」
-
-memoには画像から確認できた特徴を簡潔に書いてください。
-
-架空の商品名・架空のシリーズ名・架空の価格は作らないでください。
-
-JSON以外の文章は返さないでください。
+必ず指定されたJSON Schemaに従って回答してください。
 `.trim();
 
 }
 
 
-/* =====================================================
+/* =========================================================
    Base64
-===================================================== */
+========================================================= */
 
 async function b64(file){
 
@@ -1431,15 +1463,39 @@ async function b64(file){
             );
 
 
+          const comma =
+            result.indexOf(',');
+
+
+          if(comma < 0){
+
+            reject(
+              new Error(
+                '画像データを読み込めませんでした。'
+              )
+            );
+
+            return;
+
+          }
+
+
           resolve(
-            result.split(',')[1]
+            result.slice(
+              comma + 1
+            )
           );
 
         };
 
 
       reader.onerror =
-        reject;
+        () =>
+          reject(
+            new Error(
+              '画像の読み込みに失敗しました。'
+            )
+          );
 
 
       reader.readAsDataURL(file);
@@ -1450,66 +1506,246 @@ async function b64(file){
 }
 
 
-/* =====================================================
-   JSON解析
-===================================================== */
+/* =========================================================
+   Gemini JSON Schema
+========================================================= */
 
-function jsonFromText(text){
+const GEMINI_SCHEMA = {
 
-  let clean =
-    String(text || '')
-      .trim();
+  type:'object',
+
+  properties:{
+
+    name:{
+
+      type:'string',
+
+      description:
+        '画像から確認できる商品名。確認できなければ「確認できません」。'
+
+    },
+
+    series:{
+
+      type:'string',
+
+      description:
+        'シリーズまたは作品名。確認できなければ「確認できません」。'
+
+    },
+
+    kind:{
+
+      type:'string',
+
+      enum:[
+        'シール',
+        'トレカ',
+        '食玩'
+      ]
+
+    },
+
+    rarity:{
+
+      type:'string',
+
+      enum:[
+        'N',
+        'R',
+        'SR',
+        'SSR',
+        'SC',
+        'UR',
+        'SEC',
+        'PR',
+        '不明'
+      ]
+
+    },
+
+    memo:{
+
+      type:'string',
+
+      description:
+        '画像から確認できる特徴や判定根拠。'
+
+    }
+
+  },
+
+  required:[
+    'name',
+    'series',
+    'kind',
+    'rarity',
+    'memo'
+  ]
+
+};
 
 
-  clean =
-    clean
-      .replace(
-        /^```json\s*/i,
-        ''
-      )
-      .replace(
-        /^```\s*/i,
-        ''
-      )
-      .replace(
-        /\s*```$/i,
-        ''
-      )
-      .trim();
+/* =========================================================
+   JSON安全解析
+========================================================= */
 
-
-  const start =
-    clean.indexOf('{');
-
-
-  const end =
-    clean.lastIndexOf('}');
-
+function safeJsonParse(text){
 
   if(
-    start >= 0 &&
-    end > start
+    typeof text !== 'string'
   ){
 
-    clean =
-      clean.slice(
-        start,
-        end + 1
-      );
+    throw Error(
+      'GeminiからJSON文字列を取得できませんでした。'
+    );
 
   }
 
 
-  return JSON.parse(
-    clean
-  );
+  let s =
+    text
+      .trim();
+
+
+  /*
+   * 前後のMarkdownコードブロックを削除
+   */
+
+  s =
+    s.replace(
+      /^```(?:json)?\s*/i,
+      ''
+    );
+
+
+  s =
+    s.replace(
+      /\s*```$/i,
+      ''
+    );
+
+
+  s =
+    s.trim();
+
+
+  /*
+   * JSONの開始・終了位置を探す
+   */
+
+  const start =
+    s.indexOf('{');
+
+
+  const end =
+    s.lastIndexOf('}');
+
+
+  if(
+    start < 0 ||
+    end <= start
+  ){
+
+    throw Error(
+      'Geminiの回答にJSONオブジェクトがありません。'
+    );
+
+  }
+
+
+  s =
+    s.slice(
+      start,
+      end + 1
+    );
+
+
+  /*
+   * まず通常のJSON.parse
+   */
+
+  try{
+
+    return JSON.parse(s);
+
+  }
+
+  catch(firstError){
+
+    console.warn(
+      '通常のJSON.parseに失敗しました。',
+      firstError,
+      s
+    );
+
+  }
+
+
+  /*
+   * よくある問題を修正
+   *
+   * ・スマートクォート
+   * ・BOM
+   * ・制御文字
+   */
+
+  let repaired =
+    s
+      .replace(
+        /^\uFEFF/,
+        ''
+      )
+      .replace(
+        /[\u201C\u201D]/g,
+        '"'
+      )
+      .replace(
+        /[\u2018\u2019]/g,
+        "'"
+      );
+
+
+  /*
+   * 改行・タブなどの制御文字
+   */
+
+  repaired =
+    repaired.replace(
+      /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,
+      ' '
+    );
+
+
+  try{
+
+    return JSON.parse(
+      repaired
+    );
+
+  }
+
+  catch(secondError){
+
+    console.error(
+      'JSON修復後も解析できません。',
+      secondError,
+      repaired
+    );
+
+
+    throw Error(
+      'JSON Parse error: Geminiから返されたJSONを解析できませんでした。'
+    );
+
+  }
 
 }
 
 
-/* =====================================================
+/* =========================================================
    Gemini判定
-===================================================== */
+========================================================= */
 
 async function scan(){
 
@@ -1564,6 +1800,10 @@ async function scan(){
     );
 
 
+    /*
+     * Geminiへ送るparts
+     */
+
     const parts = [
 
       {
@@ -1586,6 +1826,10 @@ async function scan(){
 
     ];
 
+
+    /*
+     * 裏面がある場合
+     */
 
     if(back){
 
@@ -1620,7 +1864,8 @@ async function scan(){
 
           role:'user',
 
-          parts
+          parts:
+            parts
 
         }
 
@@ -1628,15 +1873,23 @@ async function scan(){
 
       generationConfig:{
 
-        maxOutputTokens:500,
-
         responseMimeType:
-          'application/json'
+          'application/json',
+
+        responseSchema:
+          GEMINI_SCHEMA,
+
+        maxOutputTokens:
+          600
 
       }
 
     };
 
+
+    /*
+     * API URL
+     */
 
     const url =
       'https://generativelanguage.googleapis.com/v1beta/models/' +
@@ -1649,25 +1902,41 @@ async function scan(){
       );
 
 
-    const response =
-      await fetch(
-        url,
-        {
+    let response;
 
-          method:'POST',
 
-          headers:{
-            'Content-Type':
-              'application/json'
-          },
+    try{
 
-          body:
-            JSON.stringify(
-              requestBody
-            )
+      response =
+        await fetch(
+          url,
+          {
 
-        }
+            method:'POST',
+
+            headers:{
+              'Content-Type':
+                'application/json'
+            },
+
+            body:
+              JSON.stringify(
+                requestBody
+              )
+
+          }
+        );
+
+    }
+
+    catch(error){
+
+      throw Error(
+        'Gemini APIへ接続できませんでした。\n\n' +
+        'ネットワーク接続とAPI Keyを確認してください。'
       );
+
+    }
 
 
     let data;
@@ -1683,19 +1952,29 @@ async function scan(){
     catch{
 
       throw Error(
-        'Geminiから正しい応答が返りませんでした。'
+        'Geminiから正しいJSON応答を受け取れませんでした。'
       );
 
     }
 
 
+    /*
+     * HTTPエラー
+     */
+
     if(!response.ok){
 
       const message =
         data?.error?.message ||
-        'HTTP ' +
-        response.status;
+        (
+          'HTTP ' +
+          response.status
+        );
 
+
+      /*
+       * Quota
+       */
 
       if(
         response.status === 429 ||
@@ -1706,7 +1985,7 @@ async function scan(){
         throw Error(
           'Gemini APIの利用上限に達しています。\n\n' +
           'Google AI StudioのUsage / Rate Limitを確認してください。\n\n' +
-          'Gemini API KeyのQuotaが0の場合、コードを変更しても判定できません。'
+          'これはHTMLのJSON処理エラーではありません。'
         );
 
       }
@@ -1720,20 +1999,16 @@ async function scan(){
     }
 
 
-    const text =
+    /*
+     * candidates
+     */
+
+    const candidate =
       data
-        ?.candidates?.[0]
-        ?.content
-        ?.parts
-        ?.map(
-          part =>
-            part.text || ''
-        )
-        .join('') ||
-        '';
+        ?.candidates?.[0];
 
 
-    if(!text){
+    if(!candidate){
 
       throw Error(
         'Geminiから判定結果が返ってきませんでした。'
@@ -1742,22 +2017,73 @@ async function scan(){
     }
 
 
+    /*
+     * finishReason確認
+     */
+
+    if(
+      candidate.finishReason &&
+      candidate.finishReason !== 'STOP'
+    ){
+
+      console.warn(
+        'Gemini finishReason:',
+        candidate.finishReason
+      );
+
+    }
+
+
+    /*
+     * text抽出
+     */
+
+    const text =
+      candidate
+        ?.content
+        ?.parts
+        ?.map(
+          part =>
+            part.text || ''
+        )
+        .join('')
+        .trim();
+
+
+    if(!text){
+
+      throw Error(
+        'Geminiの判定結果が空でした。\n\n' +
+        '画像をもう一度選択して再実行してください。'
+      );
+
+    }
+
+
+    /*
+     * 安全にJSON解析
+     */
+
     analysis =
-      jsonFromText(
+      safeJsonParse(
         text
       );
 
 
     /*
-     * フォーム反映
+     * デフォルト値
      */
 
-    $('name').value =
-      analysis.name || '';
+    const name =
+      typeof analysis.name === 'string'
+        ? analysis.name
+        : '確認できません';
 
 
-    $('series').value =
-      analysis.series || '';
+    const series =
+      typeof analysis.series === 'string'
+        ? analysis.series
+        : '確認できません';
 
 
     const kinds = [
@@ -1765,14 +2091,6 @@ async function scan(){
       'トレカ',
       '食玩'
     ];
-
-
-    $('kind').value =
-      kinds.includes(
-        analysis.kind
-      )
-        ? analysis.kind
-        : 'シール';
 
 
     const rarities = [
@@ -1788,7 +2106,15 @@ async function scan(){
     ];
 
 
-    $('rarity').value =
+    const kind =
+      kinds.includes(
+        analysis.kind
+      )
+        ? analysis.kind
+        : 'シール';
+
+
+    const rarity =
       rarities.includes(
         analysis.rarity
       )
@@ -1796,8 +2122,34 @@ async function scan(){
         : '不明';
 
 
+    const memo =
+      typeof analysis.memo === 'string'
+        ? analysis.memo
+        : '';
+
+
+    /*
+     * フォームへ反映
+     */
+
+    $('name').value =
+      name;
+
+
+    $('series').value =
+      series;
+
+
+    $('kind').value =
+      kind;
+
+
+    $('rarity').value =
+      rarity;
+
+
     $('memo').value =
-      analysis.memo || '';
+      memo;
 
 
     $('mercariPrice').value =
@@ -1812,16 +2164,28 @@ async function scan(){
       '';
 
 
+    /*
+     * 結果表示
+     */
+
     $('resultCard').style.display =
       'block';
 
 
+    setStatus('');
+
+
     setSuccess(
-      'AI判定が完了しました。商品名・シリーズ・レア度を確認してください。'
+      'AI判定が完了しました。\n' +
+      '商品名・シリーズ・レア度を確認してください。'
     );
 
 
-    setStatus('');
+  }
+
+  catch(error){
+
+    throw error;
 
   }
 
@@ -1835,9 +2199,9 @@ async function scan(){
 }
 
 
-/* =====================================================
+/* =========================================================
    検索キーワード
-===================================================== */
+========================================================= */
 
 function getSearchKeyword(){
 
@@ -1882,9 +2246,9 @@ function getSearchKeyword(){
 }
 
 
-/* =====================================================
+/* =========================================================
    Google検索
-===================================================== */
+========================================================= */
 
 function googleSearch(
   query
@@ -1905,9 +2269,9 @@ function googleSearch(
 }
 
 
-/* =====================================================
-   メルカリ検索
-===================================================== */
+/* =========================================================
+   メルカリ
+========================================================= */
 
 $('mercariBtn').onclick =
   () => {
@@ -1935,7 +2299,7 @@ $('mercariBtn').onclick =
 
       setWarning(
         'メルカリの検索結果を開きました。\n' +
-        '実際の販売価格・掲載価格を確認して「メルカリ相場」に入力してください。'
+        '実際の販売価格を確認して「メルカリ相場」に入力してください。'
       );
 
     }
@@ -1949,9 +2313,9 @@ $('mercariBtn').onclick =
   };
 
 
-/* =====================================================
-   まんだらけ検索
-===================================================== */
+/* =========================================================
+   まんだらけ
+========================================================= */
 
 $('mandarakeBtn').onclick =
   () => {
@@ -1993,9 +2357,9 @@ $('mandarakeBtn').onclick =
   };
 
 
-/* =====================================================
-   保存データ
-===================================================== */
+/* =========================================================
+   現在のデータ
+========================================================= */
 
 function current(){
 
@@ -2050,9 +2414,9 @@ function current(){
 }
 
 
-/* =====================================================
+/* =========================================================
    pCloud保存
-===================================================== */
+========================================================= */
 
 async function save(){
 
@@ -2115,6 +2479,10 @@ async function save(){
       current();
 
 
+    /*
+     * アイテムフォルダ
+     */
+
     const folder =
       await pcall(
         'createfolderifnotexists',
@@ -2134,6 +2502,10 @@ async function save(){
     const folderid =
       folder.metadata.folderid;
 
+
+    /*
+     * 拡張子
+     */
 
     function ext(file){
 
@@ -2181,7 +2553,7 @@ async function save(){
 
 
     /*
-     * data.json
+     * JSON
      */
 
     item.folderid =
@@ -2216,6 +2588,10 @@ async function save(){
     );
 
 
+    /*
+     * 一覧用プレビュー
+     */
+
     item.preview =
       $('frontPreview').src;
 
@@ -2228,12 +2604,12 @@ async function save(){
     render();
 
 
+    setStatus('');
+
+
     setSuccess(
       'pCloudに保存しました。'
     );
-
-
-    setStatus('');
 
   }
 
@@ -2247,9 +2623,9 @@ async function save(){
 }
 
 
-/* =====================================================
-   pCloud一覧更新
-===================================================== */
+/* =========================================================
+   pCloud一覧
+========================================================= */
 
 async function refresh(){
 
@@ -2305,6 +2681,10 @@ async function refresh(){
   records = [];
 
 
+  /*
+   * 各フォルダのdata.jsonを読む
+   */
+
   for(
     const folder of folders
   ){
@@ -2340,7 +2720,11 @@ async function refresh(){
 
       if(jsonFile){
 
-        const fileInfo =
+        /*
+         * ファイルリンク
+         */
+
+        const linkData =
           await pcall(
             'getfilelink',
             {
@@ -2356,21 +2740,25 @@ async function refresh(){
 
         const response =
           await fetch(
-            fileInfo.link
+            linkData.link
           );
 
 
-        const item =
-          await response.json();
+        if(response.ok){
+
+          const item =
+            await response.json();
 
 
-        item.folderid =
-          folder.folderid;
+          item.folderid =
+            folder.folderid;
 
 
-        records.push(
-          item
-        );
+          records.push(
+            item
+          );
+
+        }
 
       }
 
@@ -2407,7 +2795,7 @@ async function refresh(){
     catch(error){
 
       console.warn(
-        'data.json読み込み失敗',
+        '保存データの読み込み失敗:',
         error
       );
 
@@ -2441,6 +2829,10 @@ async function refresh(){
   }
 
 
+  /*
+   * 新しい順
+   */
+
   records.sort(
     (a,b) =>
       new Date(
@@ -2455,20 +2847,20 @@ async function refresh(){
   render();
 
 
+  setStatus('');
+
+
   setSuccess(
     records.length +
     '件読み込みました。'
   );
 
-
-  setStatus('');
-
 }
 
 
-/* =====================================================
+/* =========================================================
    削除
-===================================================== */
+========================================================= */
 
 async function del(id){
 
@@ -2486,7 +2878,7 @@ async function del(id){
 
   if(
     !confirm(
-      'このアイテムをpCloudから削除します。\nよろしいですか？'
+      'このアイテムをpCloudから削除します。\n\nよろしいですか？'
     )
   ){
 
@@ -2526,12 +2918,12 @@ async function del(id){
     render();
 
 
+    setStatus('');
+
+
     setSuccess(
       '削除しました。'
     );
-
-
-    setStatus('');
 
   }
 
@@ -2544,9 +2936,9 @@ async function del(id){
 }
 
 
-/* =====================================================
+/* =========================================================
    一覧表示
-===================================================== */
+========================================================= */
 
 function render(){
 
@@ -2575,9 +2967,9 @@ function render(){
 
               <p>
                 ${esc(record.series)}
-               　
+                　
                 ${esc(record.kind)}
-               　
+                　
                 ${esc(record.rarity)}
               </p>
 
@@ -2643,9 +3035,9 @@ function render(){
 }
 
 
-/* =====================================================
+/* =========================================================
    ボタン
-===================================================== */
+========================================================= */
 
 $('loginBtn').onclick =
   () => {
@@ -2703,9 +3095,9 @@ $('refreshBtn').onclick =
       .catch(fail);
 
 
-/* =====================================================
+/* =========================================================
    初期化
-===================================================== */
+========================================================= */
 
 try{
 
