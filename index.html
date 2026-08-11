@@ -1,3128 +1,439 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>シールコレクション AI</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#131019">
+<title>シール台帳</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Roboto+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#131019; --surface:#1E1A2B; --raise:#272138; --line:#38304F;
+  --text:#F0EDF7; --muted:#9A93B0;
+  --gold:#E8B33C; --red:#E4453C;
+  --prism:linear-gradient(115deg,#7DE2FF 0%,#B79CFF 38%,#FF9ECF 70%,#FFE9A8 100%);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--ink);color:var(--text)}
+body{
+  font-family:"Zen Kaku Gothic New",system-ui,sans-serif;
+  font-size:15px;line-height:1.7;
+  padding:0 18px calc(48px + env(safe-area-inset-bottom));
+  max-width:520px;margin:0 auto;
+  -webkit-text-size-adjust:100%;
+}
+header{padding:26px 0 20px}
+.wordmark{
+  font-family:"Dela Gothic One",sans-serif;font-size:29px;line-height:1.15;
+  letter-spacing:.01em;margin:0;
+  background:var(--prism);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.tagline{color:var(--muted);font-size:12.5px;margin:6px 0 0;letter-spacing:.06em}
 
-  <style>
-    :root{
-      --blue:#1677ff;
-      --green:#16a34a;
-      --red:#dc2626;
-      --orange:#ea580c;
-      --bg:#f5f7fb;
-      --line:#dde3ee;
-      --text:#172033;
-      --sub:#667085;
-    }
+.steps{display:flex;gap:6px;margin:0 0 22px;padding:0;list-style:none}
+.steps li{
+  flex:1;font-size:10.5px;letter-spacing:.08em;color:var(--muted);
+  border-top:2px solid var(--line);padding-top:7px;transition:color .3s,border-color .3s;
+}
+.steps li .n{font-family:"Roboto Mono",monospace;display:block;font-size:10px;opacity:.6}
+.steps li[data-on]{color:var(--text);border-top-color:var(--gold)}
 
-    *{
-      box-sizing:border-box;
-    }
+section{
+  background:var(--surface);border:1px solid var(--line);border-radius:16px;
+  padding:20px 18px;margin-bottom:16px;
+}
+section[hidden]{display:none}
+h2{
+  font-family:"Dela Gothic One",sans-serif;font-size:15px;font-weight:400;
+  margin:0 0 4px;letter-spacing:.02em;
+}
+.hint{color:var(--muted);font-size:12.5px;margin:0 0 16px}
 
-    body{
-      margin:0;
-      background:var(--bg);
-      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      color:var(--text);
-    }
+/* 撮影スロット — シールそのものの形 */
+.slots{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cell{display:flex;flex-direction:column;gap:9px}
+.slot{position:relative;aspect-ratio:1;border-radius:50%;overflow:hidden;cursor:pointer;display:block}
+.pick{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.pill{
+  margin-top:0;padding:9px 4px;font-size:12.5px;font-weight:500;border-radius:9px;
+  background:var(--raise);color:var(--text);border:1px solid var(--line);
+}
+.pill[data-used]{border-color:var(--gold);color:var(--gold)}
+.slot .face{
+  position:absolute;inset:0;border-radius:50%;
+  border:2px dashed var(--line);background:var(--raise);
+  display:grid;place-content:center;text-align:center;gap:4px;
+  transition:border-color .25s;
+}
+.slot[data-back] .face{border-style:dotted}
+.slot .face b{font-family:"Dela Gothic One",sans-serif;font-size:16px;font-weight:400}
+.slot .face span{font-size:11px;color:var(--muted);letter-spacing:.08em}
+.slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;display:none}
+.slot[data-filled] img{display:block}
+.slot[data-filled] .face{opacity:0;pointer-events:none}
+.slot[data-filled]::after{
+  content:"";position:absolute;inset:0;border-radius:50%;
+  border:2px solid transparent;background:var(--prism) border-box;
+  -webkit-mask:linear-gradient(#000 0 0) padding-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+}
+/* 判別中のスキャン */
+.slots[data-scanning] .slot[data-filled]::before{
+  content:"";position:absolute;left:0;right:0;height:36%;border-radius:50%;
+  background:var(--prism);opacity:.5;mix-blend-mode:screen;
+  animation:sweep 1.15s ease-in-out infinite;z-index:2;
+}
+@keyframes sweep{0%{top:-36%}100%{top:100%}}
 
-    main{
-      max-width:680px;
-      margin:auto;
-      padding:20px 14px 42px;
-    }
+button{
+  font-family:"Zen Kaku Gothic New",sans-serif;font-size:15px;font-weight:700;
+  width:100%;padding:14px;border-radius:11px;border:0;cursor:pointer;
+  background:var(--prism);color:#17131F;margin-top:16px;
+}
+button:disabled{background:var(--raise);color:var(--muted);cursor:not-allowed}
+button.ghost{background:transparent;border:1px solid var(--line);color:var(--text);font-weight:500}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
-    h1{
-      font-size:23px;
-      text-align:center;
-      margin:8px 0 4px;
-    }
+/* 判別結果 */
+.verdict{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.cat{
+  font-family:"Dela Gothic One",sans-serif;font-size:13px;padding:5px 12px;border-radius:99px;
+  background:var(--gold);color:#17131F;
+}
+.conf{font-family:"Roboto Mono",monospace;font-size:11px;color:var(--muted)}
+.stars{color:var(--gold);letter-spacing:3px;font-size:15px}
+.stars i{color:var(--line);font-style:normal}
+.why{
+  font-size:12.5px;color:var(--muted);border-left:2px solid var(--line);
+  padding-left:12px;margin:0 0 18px;
+}
 
-    .lead{
-      text-align:center;
-      color:var(--sub);
-      font-size:13px;
-      margin:0 0 18px;
-    }
+label{display:block;font-size:11px;letter-spacing:.1em;color:var(--muted);margin:12px 0 5px}
+input[type=text],input[type=number],select,textarea{
+  width:100%;padding:11px 12px;border-radius:9px;background:var(--ink);
+  border:1px solid var(--line);color:var(--text);font:inherit;font-size:14px;
+}
+textarea{resize:vertical;min-height:60px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
-    .card{
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:16px;
-      margin:12px 0;
-      box-shadow:0 2px 10px #16213a0a;
-    }
+.links{display:grid;gap:9px;margin:4px 0 2px}
+.links a{
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+  padding:13px 15px;border-radius:11px;border:1px solid var(--line);
+  background:var(--raise);color:var(--text);text-decoration:none;font-size:14px;font-weight:500;
+}
+.links a small{color:var(--muted);font-size:11px;font-weight:400}
+.links a::after{content:"↗";color:var(--gold)}
 
-    .row{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      justify-content:space-between;
-    }
+.note{font-size:11.5px;color:var(--muted);margin:14px 0 0;line-height:1.6}
+.status{margin-top:14px;font-size:13px;min-height:20px}
+.status[data-kind=error]{color:var(--red)}
+.status[data-kind=ok]{color:var(--gold)}
 
-    .muted,
-    .hint{
-      color:var(--sub);
-      font-size:12px;
-      line-height:1.5;
-    }
-
-    .hint{
-      margin-top:7px;
-    }
-
-    label{
-      display:block;
-      font-size:13px;
-      font-weight:700;
-      margin:0 0 6px;
-    }
-
-    input,
-    textarea,
-    select{
-      width:100%;
-      border:1px solid var(--line);
-      border-radius:10px;
-      padding:11px;
-      font:inherit;
-      background:#fff;
-    }
-
-    textarea{
-      min-height:90px;
-      resize:vertical;
-    }
-
-    .grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-    }
-
-    .photo{
-      border:2px dashed #b8c3d6;
-      border-radius:13px;
-      min-height:160px;
-      padding:10px;
-      text-align:center;
-      cursor:pointer;
-      color:var(--sub);
-      font-size:13px;
-    }
-
-    .photo img{
-      width:100%;
-      height:118px;
-      object-fit:contain;
-      display:none;
-      margin-top:8px;
-      border-radius:8px;
-    }
-
-    .photo input{
-      display:none;
-    }
-
-    .btn{
-      border:0;
-      border-radius:11px;
-      padding:12px 14px;
-      background:var(--blue);
-      color:#fff;
-      font-weight:700;
-      font-size:14px;
-      cursor:pointer;
-    }
-
-    .btn:disabled{
-      opacity:.55;
-      cursor:not-allowed;
-    }
-
-    .btn.secondary{
-      background:#eef4ff;
-      color:#125dc9;
-    }
-
-    .btn.green{
-      background:var(--green);
-    }
-
-    .btn.red{
-      background:var(--red);
-    }
-
-    .btn.orange{
-      background:var(--orange);
-    }
-
-    .btn.small{
-      padding:8px 10px;
-      font-size:12px;
-      width:auto;
-    }
-
-    .full{
-      width:100%;
-      margin-top:12px;
-    }
-
-    .status,
-    .error,
-    .warning,
-    .success{
-      margin-top:11px;
-      padding:10px;
-      border-radius:9px;
-      font-size:13px;
-      white-space:pre-wrap;
-      line-height:1.5;
-    }
-
-    .status{
-      display:none;
-      background:#eff6ff;
-      color:#1957a7;
-    }
-
-    .error{
-      display:none;
-      background:#fff1f2;
-      color:#a9162b;
-    }
-
-    .warning{
-      display:none;
-      background:#fff7ed;
-      color:#9a3412;
-    }
-
-    .success{
-      display:none;
-      background:#ecfdf3;
-      color:#166534;
-    }
-
-    .result{
-      display:none;
-    }
-
-    .fields{
-      display:grid;
-      gap:10px;
-    }
-
-    .item{
-      display:flex;
-      gap:12px;
-      padding:12px 0;
-      border-bottom:1px solid var(--line);
-    }
-
-    .item:last-child{
-      border:0;
-    }
-
-    .thumb{
-      width:64px;
-      height:64px;
-      object-fit:cover;
-      border-radius:10px;
-      background:#edf1f7;
-      flex:none;
-    }
-
-    .item h3{
-      font-size:15px;
-      margin:0 0 3px;
-    }
-
-    .item p{
-      font-size:12px;
-      color:var(--sub);
-      margin:2px 0;
-    }
-
-    .item .grow{
-      flex:1;
-      min-width:0;
-    }
-
-    .badge{
-      font-size:12px;
-      color:#17643b;
-      background:#e9f9ef;
-      padding:5px 8px;
-      border-radius:999px;
-      white-space:nowrap;
-    }
-
-    .marketBox{
-      background:#f8fafc;
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:12px;
-      margin-top:4px;
-    }
-
-    .marketTitle{
-      font-weight:700;
-      margin-bottom:8px;
-    }
-
-    .marketButtons{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:8px;
-    }
-
-    .priceRow{
-      display:grid;
-      grid-template-columns:120px 1fr;
-      gap:8px;
-      align-items:center;
-      margin-top:8px;
-    }
-
-    .priceRow span{
-      font-size:12px;
-      color:var(--sub);
-    }
-
-    .source{
-      font-size:11px;
-      color:var(--sub);
-      line-height:1.5;
-      margin-top:8px;
-    }
-
-    .hidden{
-      display:none !important;
-    }
-
-    code{
-      background:#f1f5f9;
-      padding:2px 4px;
-      border-radius:4px;
-    }
-
-    @media(max-width:390px){
-
-      .grid{
-        gap:7px;
-      }
-
-      .photo{
-        min-height:140px;
-      }
-
-      .marketButtons{
-        grid-template-columns:1fr;
-      }
-
-      .priceRow{
-        grid-template-columns:1fr;
-      }
-    }
-  </style>
+.ledger{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.tally{
+  flex:1;min-width:92px;background:var(--raise);border-radius:11px;padding:11px 13px;
+}
+.tally b{display:block;font-family:"Roboto Mono",monospace;font-size:21px;color:var(--gold)}
+.tally span{font-size:11px;color:var(--muted)}
+.log{list-style:none;padding:0;margin:0;font-size:13px}
+.log li{padding:10px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}
+.log li span{color:var(--muted);font-size:11px;font-family:"Roboto Mono",monospace;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
 </head>
-
 <body>
 
-<main>
+<header>
+  <h1 class="wordmark">シール台帳</h1>
+  <p class="tagline">表と裏を撮る。判別する。pCloudへ仕分ける。</p>
+</header>
 
-  <h1>✨ シールコレクション AI</h1>
+<ol class="steps" id="steps">
+  <li data-step="1" data-on><span class="n">01</span>撮る</li>
+  <li data-step="2"><span class="n">02</span>判別</li>
+  <li data-step="3"><span class="n">03</span>相場</li>
+  <li data-step="4"><span class="n">04</span>保存</li>
+</ol>
 
-  <p class="lead">
-    表面・裏面を撮影して、AIで判定・相場確認・pCloud保存
-  </p>
-
-
-  <!-- =================================================
-       pCloud
-  ================================================== -->
-
-  <section class="card">
-
-    <div class="row">
-
-      <strong>pCloud 保存先</strong>
-
-      <span
-        id="cloudState"
-        class="badge">
-        未接続
-      </span>
-
-    </div>
-
-    <p class="hint">
-      pCloud承認後に
-      <code>PCLOUD_CLIENT_ID</code>
-      を入力してください。<br>
-      Client Secret は入力しません。
-    </p>
-
-    <button
-      id="loginBtn"
-      class="btn secondary full"
-      type="button">
-      pCloud に接続
-    </button>
-
-    <button
-      id="logoutBtn"
-      class="btn small hidden"
-      type="button">
-      接続を解除
-    </button>
-
-  </section>
-
-
-  <!-- =================================================
-       Gemini API Key
-  ================================================== -->
-
-  <section class="card">
-
-    <label for="apiKey">
-      Gemini API Key
-    </label>
-
-    <input
-      id="apiKey"
-      type="password"
-      autocomplete="off"
-      placeholder="Gemini APIキーを貼り付け">
-
-    <p class="hint">
-      APIキーはこの端末・このブラウザ内に保存されます。
-    </p>
-
-  </section>
-
-
-  <!-- =================================================
-       画像
-  ================================================== -->
-
-  <section class="card">
-
-    <div class="grid">
-
-      <label class="photo">
-
-        🖼 表面の画像
-
-        <input
-          id="front"
-          type="file"
-          accept="image/*">
-
-        <img
-          id="frontPreview"
-          alt="表面のプレビュー">
-
-      </label>
-
-
-      <label class="photo">
-
-        🖼 裏面の画像（任意）
-
-        <input
-          id="back"
-          type="file"
-          accept="image/*">
-
-        <img
-          id="backPreview"
-          alt="裏面のプレビュー">
-
-      </label>
-
-    </div>
-
-
-    <button
-      id="scanBtn"
-      class="btn full"
-      type="button">
-      🔎 AIで判定する
-    </button>
-
-
-    <div
-      id="status"
-      class="status">
-    </div>
-
-
-    <div
-      id="warning"
-      class="warning">
-    </div>
-
-
-    <div
-      id="success"
-      class="success">
-    </div>
-
-
-    <div
-      id="error"
-      class="error">
-    </div>
-
-  </section>
-
-
-  <!-- =================================================
-       AI結果
-  ================================================== -->
-
-  <section
-    id="resultCard"
-    class="card result">
-
-    <label>
-      解析結果（必要なら修正してください）
-    </label>
-
-
-    <div class="fields">
-
-
-      <div>
-
-        <label>
-          シール名
-        </label>
-
-        <input id="name">
-
+<section id="capture">
+  <h2>表と裏を撮る</h2>
+  <p class="hint">その場で撮っても、アルバムの写真を選んでも構いません。裏面の番号や印刷が読めるほど判別が当たります。</p>
+  <div class="slots" id="slots">
+    <div class="cell">
+      <div class="slot" data-side="front">
+        <img alt="表面のプレビュー" id="frontPreview">
+        <span class="face"><b>表</b><span>キャラ面</span></span>
       </div>
-
-
-      <div>
-
-        <label>
-          シリーズ・作品名
-        </label>
-
-        <input id="series">
-
+      <input type="file" accept="image/*" capture="environment" id="frontCamera" hidden>
+      <input type="file" accept="image/*" id="frontLibrary" hidden>
+      <div class="pick">
+        <button type="button" class="pill" data-open="frontCamera">撮る</button>
+        <button type="button" class="pill" data-open="frontLibrary">選ぶ</button>
       </div>
-
-
-      <div>
-
-        <label>
-          種類
-        </label>
-
-        <select id="kind">
-
-          <option>シール</option>
-          <option>トレカ</option>
-          <option>食玩</option>
-
-        </select>
-
-      </div>
-
-
-      <div>
-
-        <label>
-          レア度ランク
-        </label>
-
-        <select id="rarity">
-
-          <option>N</option>
-          <option>R</option>
-          <option>SR</option>
-          <option>SSR</option>
-          <option>SC</option>
-          <option>UR</option>
-          <option>SEC</option>
-          <option>PR</option>
-          <option>不明</option>
-
-        </select>
-
-      </div>
-
-
-      <!-- =================================================
-           価格
-      ================================================== -->
-
-      <div class="marketBox">
-
-        <div class="marketTitle">
-          📊 相場確認
-        </div>
-
-
-        <div class="marketButtons">
-
-          <button
-            id="mercariBtn"
-            class="btn orange"
-            type="button">
-            🛒 メルカリを検索
-          </button>
-
-
-          <button
-            id="mandarakeBtn"
-            class="btn secondary"
-            type="button">
-            🏬 まんだらけを検索
-          </button>
-
-        </div>
-
-
-        <div class="priceRow">
-
-          <span>
-            メルカリ相場
-          </span>
-
-          <input
-            id="mercariPrice"
-            placeholder="例：約3,000円">
-
-        </div>
-
-
-        <div class="priceRow">
-
-          <span>
-            まんだらけ価格
-          </span>
-
-          <input
-            id="mandarakePrice"
-            placeholder="例：約4,500円">
-
-        </div>
-
-
-        <div class="priceRow">
-
-          <span>
-            総合価格
-          </span>
-
-          <input
-            id="price"
-            placeholder="例：約3,500円">
-
-        </div>
-
-
-        <div class="source">
-
-          ※メルカリ・まんだらけの実際の掲載価格を確認して入力してください。<br>
-          ※確認できない場合は「確認できません」としてください。
-
-        </div>
-
-      </div>
-
-
-      <div>
-
-        <label>
-          メモ
-        </label>
-
-        <textarea id="memo"></textarea>
-
-      </div>
-
     </div>
-
-
-    <button
-      id="saveBtn"
-      class="btn green full"
-      type="button">
-      💾 pCloudに保存
-    </button>
-
-  </section>
-
-
-  <!-- =================================================
-       コレクション
-  ================================================== -->
-
-  <section class="card">
-
-    <div class="row">
-
-      <label style="margin:0">
-        マイコレクション
-      </label>
-
-      <button
-        id="refreshBtn"
-        class="btn small secondary"
-        type="button">
-        一覧を更新
-      </button>
-
+    <div class="cell">
+      <div class="slot" data-side="back" data-back>
+        <img alt="裏面のプレビュー" id="backPreview">
+        <span class="face"><b>裏</b><span>印刷面</span></span>
+      </div>
+      <input type="file" accept="image/*" capture="environment" id="backCamera" hidden>
+      <input type="file" accept="image/*" id="backLibrary" hidden>
+      <div class="pick">
+        <button type="button" class="pill" data-open="backCamera">撮る</button>
+        <button type="button" class="pill" data-open="backLibrary">選ぶ</button>
+      </div>
     </div>
+  </div>
+  <button id="identifyBtn" disabled>判別する</button>
+  <p class="status" id="captureStatus"></p>
+</section>
 
+<section id="result" hidden>
+  <h2>判別結果</h2>
+  <div class="verdict">
+    <span class="cat" id="catBadge">—</span>
+    <span class="stars" id="stars"></span>
+    <span class="conf" id="conf"></span>
+  </div>
+  <p class="why" id="why"></p>
 
-    <div id="list">
+  <label for="fCategory">種類</label>
+  <select id="fCategory">
+    <option>ビックリマン</option><option>食玩</option><option>トレカ</option>
+  </select>
 
-      <p class="muted">
-        pCloudに接続すると保存済みの一覧を読み込みます。
-      </p>
+  <label for="fSeries">シリーズ</label>
+  <input type="text" id="fSeries" placeholder="悪魔VS天使 第1弾">
 
+  <div class="row">
+    <div>
+      <label for="fName">名前</label>
+      <input type="text" id="fName">
     </div>
+    <div>
+      <label for="fNumber">番号</label>
+      <input type="text" id="fNumber">
+    </div>
+  </div>
 
-  </section>
+  <div class="row">
+    <div>
+      <label for="fRank">格付け</label>
+      <input type="text" id="fRank" placeholder="ヘッド / 天使 / 通常">
+    </div>
+    <div>
+      <label for="fRarity">レア度 1–5</label>
+      <input type="number" id="fRarity" min="1" max="5">
+    </div>
+  </div>
 
-</main>
+  <label for="fCondition">状態メモ</label>
+  <textarea id="fCondition"></textarea>
 
+  <button id="toMarketBtn">相場を調べる</button>
+</section>
+
+<section id="market" hidden>
+  <h2>相場を確認する</h2>
+  <p class="hint">両サイトとも自動取得は規約で禁止されています。リンクを開いて、実際の売れた価格を自分の目で入れてください。</p>
+
+  <label for="fKeyword">検索キーワード</label>
+  <input type="text" id="fKeyword">
+
+  <div class="links" id="links"></div>
+
+  <div class="row">
+    <div>
+      <label for="fMin">相場 下限 ¥</label>
+      <input type="number" id="fMin" inputmode="numeric">
+    </div>
+    <div>
+      <label for="fMax">相場 上限 ¥</label>
+      <input type="number" id="fMax" inputmode="numeric">
+    </div>
+  </div>
+
+  <label for="fPriceNote">価格メモ</label>
+  <textarea id="fPriceNote" placeholder="メルカリ売切れ 3件 / まんだらけ 在庫なし"></textarea>
+
+  <button id="saveBtn">pCloudに保存</button>
+  <button class="ghost" id="backBtn">判別結果に戻る</button>
+  <p class="status" id="saveStatus"></p>
+  <p class="note" id="destNote"></p>
+</section>
+
+<section id="ledger">
+  <h2>台帳</h2>
+  <div class="ledger" id="tallies"></div>
+  <ul class="log" id="log"></ul>
+</section>
 
 <script>
+const $ = id => document.getElementById(id);
+const files = { front:null, back:null };
+let result = null;
 
-/* =========================================================
-   基本設定
-========================================================= */
-
-
-/*
- * pCloud My AppsのClient IDをここに入れる
- */
-const PCLOUD_CLIENT_ID =
-  'PASTE_YOUR_PCLOUD_CLIENT_ID_HERE';
-
-
-/*
- * Google公式のStableモデル
- *
- * 2026年7月21日更新
- */
-const GEMINI_MODEL =
-  'gemini-3.6-flash';
-
-
-/*
- * pCloudの保存先
- */
-const ROOT_FOLDER =
-  'シールコレクション';
-
-
-/* =========================================================
-   DOM
-========================================================= */
-
-const $ =
-  id => document.getElementById(id);
-
-
-const store =
-  localStorage;
-
-
-let analysis =
-  null;
-
-
-let records =
-  [];
-
-
-/* =========================================================
-   メッセージ
-========================================================= */
-
-function setStatus(text){
-
-  $('status').textContent =
-    text;
-
-  $('status').style.display =
-    text ? 'block' : 'none';
-
+function step(n){
+  document.querySelectorAll('#steps li').forEach(li=>{
+    li.toggleAttribute('data-on', Number(li.dataset.step) <= n);
+  });
 }
-
-
-function setWarning(text){
-
-  $('warning').textContent =
-    text;
-
-  $('warning').style.display =
-    text ? 'block' : 'none';
-
-}
-
-
-function setSuccess(text){
-
-  $('success').textContent =
-    text;
-
-  $('success').style.display =
-    text ? 'block' : 'none';
-
-}
-
-
-function fail(error){
-
-  console.error(error);
-
-
-  setStatus('');
-  setWarning('');
-  setSuccess('');
-
-
-  let message =
-    error?.message ||
-    String(error);
-
-
-  /*
-   * Gemini Quota
-   */
-
-  if(
-    /quota/i.test(message) ||
-    /rate limit/i.test(message) ||
-    /exceeded/i.test(message) ||
-    /429/.test(message)
-  ){
-
-    message =
-      'Gemini APIの利用上限に達しています。\n\n' +
-      'Google AI StudioのUsage / Rate Limitを確認してください。\n\n' +
-      'これはJSONエラーではなく、Gemini API側の利用上限です。';
-
-  }
-
-
-  /*
-   * JSON
-   */
-
-  if(
-    /JSON Parse/i.test(message) ||
-    /Unexpected token/i.test(message) ||
-    /Property name must be a string/i.test(message)
-  ){
-
-    message =
-      'Geminiから正しいJSON形式の判定結果を受け取れませんでした。\n\n' +
-      'もう一度「AIで判定する」を押してください。';
-
-  }
-
-
-  $('error').textContent =
-    message;
-
-
-  $('error').style.display =
-    'block';
-
-}
-
-
-function clearMessage(){
-
-  $('error').style.display =
-    'none';
-
-  setWarning('');
-  setSuccess('');
-  setStatus('');
-
-}
-
-
-/* =========================================================
-   HTMLエスケープ
-========================================================= */
-
-function esc(text){
-
-  return String(text ?? '')
-    .replace(
-      /[&<>"']/g,
-      c => ({
-        '&':'&amp;',
-        '<':'&lt;',
-        '>':'&gt;',
-        '"':'&quot;',
-        "'":'&#39;'
-      }[c])
-    );
-
-}
-
-
-/* =========================================================
-   ID
-========================================================= */
-
-function uid(){
-
-  return (
-    Date.now().toString(36) +
-    Math.random()
-      .toString(36)
-      .slice(2,8)
-  );
-
-}
-
-
-/* =========================================================
-   MIME
-========================================================= */
-
-function mime(file){
-
-  return file.type ||
-    'image/jpeg';
-
-}
-
-
-/* =========================================================
-   画像プレビュー
-========================================================= */
-
-function preview(
-  input,
-  image
-){
-
-  const file =
-    input.files[0];
-
-  if(!file){
-    return;
-  }
-
-
-  const reader =
-    new FileReader();
-
-
-  reader.onload =
-    () => {
-
-      image.src =
-        reader.result;
-
-      image.style.display =
-        'block';
-
-    };
-
-
-  reader.readAsDataURL(file);
-
-}
-
-
-$('front').onchange =
-  () =>
-    preview(
-      $('front'),
-      $('frontPreview')
-    );
-
-
-$('back').onchange =
-  () =>
-    preview(
-      $('back'),
-      $('backPreview')
-    );
-
-
-/* =========================================================
-   Gemini API Key
-========================================================= */
-
-function saveKey(){
-
-  store.setItem(
-    'stickerGeminiKey',
-    $('apiKey').value.trim()
-  );
-
-}
-
-
-/* =========================================================
-   pCloud
-========================================================= */
-
-function apiHost(){
-
-  return (
-    store.getItem(
-      'pcloudHost'
-    ) ||
-    'api.pcloud.com'
-  );
-
-}
-
-
-function token(){
-
-  return store.getItem(
-    'pcloudToken'
-  );
-
-}
-
-
-function updateCloud(){
-
-  const connected =
-    !!token();
-
-
-  $('cloudState').textContent =
-    connected
-      ? '接続済み'
-      : '未接続';
-
-
-  $('loginBtn')
-    .classList
-    .toggle(
-      'hidden',
-      connected
-    );
-
-
-  $('logoutBtn')
-    .classList
-    .toggle(
-      'hidden',
-      !connected
-    );
-
-}
-
-
-function redirectURI(){
-
-  return location.href
-    .split('#')[0];
-
-}
-
-
-/* =========================================================
-   pCloud OAuth
-========================================================= */
-
-function connect(){
-
-  if(
-    PCLOUD_CLIENT_ID.includes(
-      'PASTE_'
-    )
-  ){
-
-    throw Error(
-      'PCLOUD_CLIENT_IDにpCloudのClient IDを入力してください。'
-    );
-
-  }
-
-
-  if(
-    location.protocol === 'file:'
-  ){
-
-    throw Error(
-      'このHTMLはHTTPSで公開してから使用してください。'
-    );
-
-  }
-
-
-  const state =
-    uid();
-
-
-  store.setItem(
-    'pcloudState',
-    state
-  );
-
-
-  const params =
-    new URLSearchParams({
-
-      client_id:
-        PCLOUD_CLIENT_ID,
-
-      response_type:
-        'token',
-
-      redirect_uri:
-        redirectURI(),
-
-      state
-
+function say(el, msg, kind){ el.textContent = msg; el.dataset.kind = kind || ''; }
+
+function bindSlot(side){
+  const preview = $(side + 'Preview');
+  const slot = document.querySelector(`.slot[data-side="${side}"]`);
+  const cell = slot.closest('.cell');
+
+  const accept = (file, source) => {
+    if(!file) return;
+    if(files[side]) URL.revokeObjectURL(preview.src);
+    files[side] = file;
+    preview.src = URL.createObjectURL(file);
+    slot.setAttribute('data-filled','');
+    cell.querySelectorAll('.pill').forEach(p => {
+      p.toggleAttribute('data-used', p.dataset.open === source);
     });
-
-
-  location.href =
-    'https://my.pcloud.com/oauth2/authorize?' +
-    params.toString();
-
-}
-
-
-/* =========================================================
-   OAuth戻り
-========================================================= */
-
-function readOAuth(){
-
-  if(!location.hash){
-    return;
-  }
-
-
-  const params =
-    new URLSearchParams(
-      location.hash.slice(1)
-    );
-
-
-  if(
-    params.get(
-      'access_token'
-    )
-  ){
-
-    if(
-      params.get('state') !==
-      store.getItem(
-        'pcloudState'
-      )
-    ){
-
-      throw Error(
-        'pCloud認証の確認値が一致しません。もう一度接続してください。'
-      );
-
-    }
-
-
-    store.setItem(
-      'pcloudToken',
-      params.get(
-        'access_token'
-      )
-    );
-
-
-    store.setItem(
-      'pcloudHost',
-      params.get(
-        'hostname'
-      ) ||
-      'api.pcloud.com'
-    );
-
-
-    history.replaceState(
-      null,
-      '',
-      redirectURI()
-    );
-
-  }
-
-
-  else if(
-    params.get('error')
-  ){
-
-    throw Error(
-      'pCloud認証が完了しませんでした: ' +
-      params.get('error')
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   pCloud API
-========================================================= */
-
-async function pcall(
-  method,
-  params = {},
-  form = null
-){
-
-  if(!token()){
-
-    throw Error(
-      '先にpCloudへ接続してください。'
-    );
-
-  }
-
-
-  const url =
-    'https://' +
-    apiHost() +
-    '/' +
-    method;
-
-
-  let options;
-
-
-  if(form){
-
-    form.append(
-      'access_token',
-      token()
-    );
-
-
-    options = {
-
-      method:'POST',
-
-      body:form
-
-    };
-
-  }
-
-  else{
-
-    options = {
-
-      method:'POST',
-
-      headers:{
-        'Content-Type':
-          'application/x-www-form-urlencoded'
-      },
-
-      body:
-        new URLSearchParams({
-          ...params,
-          access_token:
-            token()
-        })
-
-    };
-
-  }
-
-
-  let response;
-
-
-  try{
-
-    response =
-      await fetch(
-        url,
-        options
-      );
-
-  }
-
-  catch{
-
-    throw Error(
-      'pCloudへ接続できませんでした。公開URL・通信環境・pCloud設定を確認してください。'
-    );
-
-  }
-
-
-  let data;
-
-
-  try{
-
-    data =
-      await response.json();
-
-  }
-
-  catch{
-
-    throw Error(
-      'pCloudから正しい応答が返りませんでした。'
-    );
-
-  }
-
-
-  if(
-    !response.ok ||
-    data.result !== 0
-  ){
-
-    throw Error(
-      'pCloudエラー: ' +
-      (
-        data.error ||
-        data.result ||
-        response.status
-      )
-    );
-
-  }
-
-
-  return data;
-
-}
-
-
-/* =========================================================
-   pCloudルート
-========================================================= */
-
-async function root(){
-
-  const data =
-    await pcall(
-      'createfolderifnotexists',
-      {
-
-        folderid:0,
-
-        name:
-          ROOT_FOLDER
-
-      }
-    );
-
-
-  return data.metadata.folderid;
-
-}
-
-
-/* =========================================================
-   pCloudアップロード
-========================================================= */
-
-async function upload(
-  folderid,
-  file,
-  filename
-){
-
-  const form =
-    new FormData();
-
-
-  form.append(
-    'folderid',
-    folderid
-  );
-
-
-  form.append(
-    'nopartial',
-    '1'
-  );
-
-
-  form.append(
-    'renameifexists',
-    '0'
-  );
-
-
-  form.append(
-    'file',
-    file,
-    filename
-  );
-
-
-  return pcall(
-    'uploadfile',
-    {},
-    form
-  );
-
-}
-
-
-/* =========================================================
-   Geminiプロンプト
-========================================================= */
-
-function buildPrompt(){
-
-  return `
-あなたは日本のコレクション品を判定する専門アシスタントです。
-
-添付された画像の表面と裏面を確認してください。
-
-画像から実際に確認できる情報を最優先してください。
-
-商品名を推測で作らないでください。
-
-確認できない場合は必ず
-「確認できません」
-としてください。
-
-シリーズ名を確認できない場合も
-「確認できません」
-としてください。
-
-レア度が判断できない場合は
-「不明」
-としてください。
-
-種類は必ず次の3つのどれかです。
-
-シール
-トレカ
-食玩
-
-レア度は必ず次のどれかです。
-
-N
-R
-SR
-SSR
-SC
-UR
-SEC
-PR
-不明
-
-memoには、画像から確認できた特徴を簡潔に書いてください。
-
-架空の商品名、架空のシリーズ名、架空のレア度を作らないでください。
-
-必ず指定されたJSON Schemaに従って回答してください。
-`.trim();
-
-}
-
-
-/* =========================================================
-   Base64
-========================================================= */
-
-async function b64(file){
-
-  return new Promise(
-    (resolve,reject) => {
-
-      const reader =
-        new FileReader();
-
-
-      reader.onload =
-        () => {
-
-          const result =
-            String(
-              reader.result
-            );
-
-
-          const comma =
-            result.indexOf(',');
-
-
-          if(comma < 0){
-
-            reject(
-              new Error(
-                '画像データを読み込めませんでした。'
-              )
-            );
-
-            return;
-
-          }
-
-
-          resolve(
-            result.slice(
-              comma + 1
-            )
-          );
-
-        };
-
-
-      reader.onerror =
-        () =>
-          reject(
-            new Error(
-              '画像の読み込みに失敗しました。'
-            )
-          );
-
-
-      reader.readAsDataURL(file);
-
-    }
-  );
-
-}
-
-
-/* =========================================================
-   Gemini JSON Schema
-========================================================= */
-
-const GEMINI_SCHEMA = {
-
-  type:'object',
-
-  properties:{
-
-    name:{
-
-      type:'string',
-
-      description:
-        '画像から確認できる商品名。確認できなければ「確認できません」。'
-
-    },
-
-    series:{
-
-      type:'string',
-
-      description:
-        'シリーズまたは作品名。確認できなければ「確認できません」。'
-
-    },
-
-    kind:{
-
-      type:'string',
-
-      enum:[
-        'シール',
-        'トレカ',
-        '食玩'
-      ]
-
-    },
-
-    rarity:{
-
-      type:'string',
-
-      enum:[
-        'N',
-        'R',
-        'SR',
-        'SSR',
-        'SC',
-        'UR',
-        'SEC',
-        'PR',
-        '不明'
-      ]
-
-    },
-
-    memo:{
-
-      type:'string',
-
-      description:
-        '画像から確認できる特徴や判定根拠。'
-
-    }
-
-  },
-
-  required:[
-    'name',
-    'series',
-    'kind',
-    'rarity',
-    'memo'
-  ]
-
-};
-
-
-/* =========================================================
-   JSON安全解析
-========================================================= */
-
-function safeJsonParse(text){
-
-  if(
-    typeof text !== 'string'
-  ){
-
-    throw Error(
-      'GeminiからJSON文字列を取得できませんでした。'
-    );
-
-  }
-
-
-  let s =
-    text
-      .trim();
-
-
-  /*
-   * 前後のMarkdownコードブロックを削除
-   */
-
-  s =
-    s.replace(
-      /^```(?:json)?\s*/i,
-      ''
-    );
-
-
-  s =
-    s.replace(
-      /\s*```$/i,
-      ''
-    );
-
-
-  s =
-    s.trim();
-
-
-  /*
-   * JSONの開始・終了位置を探す
-   */
-
-  const start =
-    s.indexOf('{');
-
-
-  const end =
-    s.lastIndexOf('}');
-
-
-  if(
-    start < 0 ||
-    end <= start
-  ){
-
-    throw Error(
-      'Geminiの回答にJSONオブジェクトがありません。'
-    );
-
-  }
-
-
-  s =
-    s.slice(
-      start,
-      end + 1
-    );
-
-
-  /*
-   * まず通常のJSON.parse
-   */
-
-  try{
-
-    return JSON.parse(s);
-
-  }
-
-  catch(firstError){
-
-    console.warn(
-      '通常のJSON.parseに失敗しました。',
-      firstError,
-      s
-    );
-
-  }
-
-
-  /*
-   * よくある問題を修正
-   *
-   * ・スマートクォート
-   * ・BOM
-   * ・制御文字
-   */
-
-  let repaired =
-    s
-      .replace(
-        /^\uFEFF/,
-        ''
-      )
-      .replace(
-        /[\u201C\u201D]/g,
-        '"'
-      )
-      .replace(
-        /[\u2018\u2019]/g,
-        "'"
-      );
-
-
-  /*
-   * 改行・タブなどの制御文字
-   */
-
-  repaired =
-    repaired.replace(
-      /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,
-      ' '
-    );
-
-
-  try{
-
-    return JSON.parse(
-      repaired
-    );
-
-  }
-
-  catch(secondError){
-
-    console.error(
-      'JSON修復後も解析できません。',
-      secondError,
-      repaired
-    );
-
-
-    throw Error(
-      'JSON Parse error: Geminiから返されたJSONを解析できませんでした。'
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   Gemini判定
-========================================================= */
-
-async function scan(){
-
-  clearMessage();
-
-
-  const key =
-    $('apiKey')
-      .value
-      .trim();
-
-
-  const front =
-    $('front')
-      .files[0];
-
-
-  const back =
-    $('back')
-      .files[0];
-
-
-  if(!key){
-
-    throw Error(
-      'Gemini API Keyを入力してください。'
-    );
-
-  }
-
-
-  if(!front){
-
-    throw Error(
-      '表面の画像を選択してください。'
-    );
-
-  }
-
-
-  saveKey();
-
-
-  $('scanBtn').disabled =
-    true;
-
-
-  try{
-
-    setStatus(
-      'Gemini 3.6 Flashで画像を解析しています…'
-    );
-
-
-    /*
-     * Geminiへ送るparts
-     */
-
-    const parts = [
-
-      {
-        text:
-          buildPrompt()
-      },
-
-      {
-        inline_data:{
-
-          mime_type:
-            mime(front),
-
-          data:
-            await b64(front)
-
-        }
-
-      }
-
-    ];
-
-
-    /*
-     * 裏面がある場合
-     */
-
-    if(back){
-
-      parts.push({
-
-        inline_data:{
-
-          mime_type:
-            mime(back),
-
-          data:
-            await b64(back)
-
-        }
-
-      });
-
-    }
-
-
-    /*
-     * Gemini 3.6 Flash
-     *
-     * temperature等は使用しない。
-     */
-
-    const requestBody = {
-
-      contents:[
-
-        {
-
-          role:'user',
-
-          parts:
-            parts
-
-        }
-
-      ],
-
-      generationConfig:{
-
-        responseMimeType:
-          'application/json',
-
-        responseSchema:
-          GEMINI_SCHEMA,
-
-        maxOutputTokens:
-          600
-
-      }
-
-    };
-
-
-    /*
-     * API URL
-     */
-
-    const url =
-      'https://generativelanguage.googleapis.com/v1beta/models/' +
-      encodeURIComponent(
-        GEMINI_MODEL
-      ) +
-      ':generateContent?key=' +
-      encodeURIComponent(
-        key
-      );
-
-
-    let response;
-
-
-    try{
-
-      response =
-        await fetch(
-          url,
-          {
-
-            method:'POST',
-
-            headers:{
-              'Content-Type':
-                'application/json'
-            },
-
-            body:
-              JSON.stringify(
-                requestBody
-              )
-
-          }
-        );
-
-    }
-
-    catch(error){
-
-      throw Error(
-        'Gemini APIへ接続できませんでした。\n\n' +
-        'ネットワーク接続とAPI Keyを確認してください。'
-      );
-
-    }
-
-
-    let data;
-
-
-    try{
-
-      data =
-        await response.json();
-
-    }
-
-    catch{
-
-      throw Error(
-        'Geminiから正しいJSON応答を受け取れませんでした。'
-      );
-
-    }
-
-
-    /*
-     * HTTPエラー
-     */
-
-    if(!response.ok){
-
-      const message =
-        data?.error?.message ||
-        (
-          'HTTP ' +
-          response.status
-        );
-
-
-      /*
-       * Quota
-       */
-
-      if(
-        response.status === 429 ||
-        /quota/i.test(message) ||
-        /rate limit/i.test(message)
-      ){
-
-        throw Error(
-          'Gemini APIの利用上限に達しています。\n\n' +
-          'Google AI StudioのUsage / Rate Limitを確認してください。\n\n' +
-          'これはHTMLのJSON処理エラーではありません。'
-        );
-
-      }
-
-
-      throw Error(
-        'Geminiエラー: ' +
-        message
-      );
-
-    }
-
-
-    /*
-     * candidates
-     */
-
-    const candidate =
-      data
-        ?.candidates?.[0];
-
-
-    if(!candidate){
-
-      throw Error(
-        'Geminiから判定結果が返ってきませんでした。'
-      );
-
-    }
-
-
-    /*
-     * finishReason確認
-     */
-
-    if(
-      candidate.finishReason &&
-      candidate.finishReason !== 'STOP'
-    ){
-
-      console.warn(
-        'Gemini finishReason:',
-        candidate.finishReason
-      );
-
-    }
-
-
-    /*
-     * text抽出
-     */
-
-    const text =
-      candidate
-        ?.content
-        ?.parts
-        ?.map(
-          part =>
-            part.text || ''
-        )
-        .join('')
-        .trim();
-
-
-    if(!text){
-
-      throw Error(
-        'Geminiの判定結果が空でした。\n\n' +
-        '画像をもう一度選択して再実行してください。'
-      );
-
-    }
-
-
-    /*
-     * 安全にJSON解析
-     */
-
-    analysis =
-      safeJsonParse(
-        text
-      );
-
-
-    /*
-     * デフォルト値
-     */
-
-    const name =
-      typeof analysis.name === 'string'
-        ? analysis.name
-        : '確認できません';
-
-
-    const series =
-      typeof analysis.series === 'string'
-        ? analysis.series
-        : '確認できません';
-
-
-    const kinds = [
-      'シール',
-      'トレカ',
-      '食玩'
-    ];
-
-
-    const rarities = [
-      'N',
-      'R',
-      'SR',
-      'SSR',
-      'SC',
-      'UR',
-      'SEC',
-      'PR',
-      '不明'
-    ];
-
-
-    const kind =
-      kinds.includes(
-        analysis.kind
-      )
-        ? analysis.kind
-        : 'シール';
-
-
-    const rarity =
-      rarities.includes(
-        analysis.rarity
-      )
-        ? analysis.rarity
-        : '不明';
-
-
-    const memo =
-      typeof analysis.memo === 'string'
-        ? analysis.memo
-        : '';
-
-
-    /*
-     * フォームへ反映
-     */
-
-    $('name').value =
-      name;
-
-
-    $('series').value =
-      series;
-
-
-    $('kind').value =
-      kind;
-
-
-    $('rarity').value =
-      rarity;
-
-
-    $('memo').value =
-      memo;
-
-
-    $('mercariPrice').value =
-      '';
-
-
-    $('mandarakePrice').value =
-      '';
-
-
-    $('price').value =
-      '';
-
-
-    /*
-     * 結果表示
-     */
-
-    $('resultCard').style.display =
-      'block';
-
-
-    setStatus('');
-
-
-    setSuccess(
-      'AI判定が完了しました。\n' +
-      '商品名・シリーズ・レア度を確認してください。'
-    );
-
-
-  }
-
-  catch(error){
-
-    throw error;
-
-  }
-
-  finally{
-
-    $('scanBtn').disabled =
-      false;
-
-  }
-
-}
-
-
-/* =========================================================
-   検索キーワード
-========================================================= */
-
-function getSearchKeyword(){
-
-  const name =
-    $('name')
-      .value
-      .trim();
-
-
-  const series =
-    $('series')
-      .value
-      .trim();
-
-
-  if(
-    !name ||
-    name === '確認できません'
-  ){
-
-    return '';
-
-  }
-
-
-  if(
-    series &&
-    series !== '確認できません'
-  ){
-
-    return (
-      series +
-      ' ' +
-      name
-    );
-
-  }
-
-
-  return name;
-
-}
-
-
-/* =========================================================
-   Google検索
-========================================================= */
-
-function googleSearch(
-  query
-){
-
-  const url =
-    'https://www.google.com/search?q=' +
-    encodeURIComponent(
-      query
-    );
-
-
-  window.open(
-    url,
-    '_blank'
-  );
-
-}
-
-
-/* =========================================================
-   メルカリ
-========================================================= */
-
-$('mercariBtn').onclick =
-  () => {
-
-    try{
-
-      const keyword =
-        getSearchKeyword();
-
-
-      if(!keyword){
-
-        throw Error(
-          '商品名が確認できないため検索できません。'
-        );
-
-      }
-
-
-      googleSearch(
-        'site:jp.mercari.com ' +
-        keyword
-      );
-
-
-      setWarning(
-        'メルカリの検索結果を開きました。\n' +
-        '実際の販売価格を確認して「メルカリ相場」に入力してください。'
-      );
-
-    }
-
-    catch(error){
-
-      fail(error);
-
-    }
-
+    $('identifyBtn').disabled = !(files.front && files.back);
+    say($('captureStatus'), '');
   };
 
+  ['Camera','Library'].forEach(kind => {
+    const input = $(side + kind);
+    input.addEventListener('change', () => {
+      accept(input.files[0], side + kind);
+      input.value = '';   // 同じ写真をもう一度選べるように
+    });
+  });
 
-/* =========================================================
-   まんだらけ
-========================================================= */
-
-$('mandarakeBtn').onclick =
-  () => {
-
-    try{
-
-      const keyword =
-        getSearchKeyword();
-
-
-      if(!keyword){
-
-        throw Error(
-          '商品名が確認できないため検索できません。'
-        );
-
-      }
-
-
-      googleSearch(
-        'site:mandarake.co.jp ' +
-        keyword
-      );
-
-
-      setWarning(
-        'まんだらけの検索結果を開きました。\n' +
-        '実際の販売価格を確認して「まんだらけ価格」に入力してください。'
-      );
-
-    }
-
-    catch(error){
-
-      fail(error);
-
-    }
-
-  };
-
-
-/* =========================================================
-   現在のデータ
-========================================================= */
-
-function current(){
-
-  return {
-
-    id:
-      uid(),
-
-    name:
-      $('name')
-        .value
-        .trim() ||
-      '名称未設定',
-
-    series:
-      $('series')
-        .value
-        .trim(),
-
-    kind:
-      $('kind').value,
-
-    rarity:
-      $('rarity').value,
-
-    price:
-      $('price')
-        .value
-        .trim(),
-
-    mercariPrice:
-      $('mercariPrice')
-        .value
-        .trim(),
-
-    mandarakePrice:
-      $('mandarakePrice')
-        .value
-        .trim(),
-
-    memo:
-      $('memo')
-        .value
-        .trim(),
-
-    savedAt:
-      new Date()
-        .toISOString()
-
-  };
-
+  // 空の丸をタップしたらカメラ。アルバムは下のボタンから。
+  slot.addEventListener('click', () => $(side + 'Camera').click());
 }
+bindSlot('front'); bindSlot('back');
 
+document.querySelectorAll('.pill').forEach(btn => {
+  btn.addEventListener('click', () => $(btn.dataset.open).click());
+});
 
-/* =========================================================
-   pCloud保存
-========================================================= */
-
-async function save(){
-
-  clearMessage();
-
-
-  if(!analysis){
-
-    throw Error(
-      '先にAIで判定してください。'
-    );
-
-  }
-
-
-  if(!token()){
-
-    throw Error(
-      '先にpCloudへ接続してください。'
-    );
-
-  }
-
-
-  const front =
-    $('front')
-      .files[0];
-
-
-  const back =
-    $('back')
-      .files[0];
-
-
-  if(!front){
-
-    throw Error(
-      '表面の画像がありません。'
-    );
-
-  }
-
-
-  $('saveBtn').disabled =
-    true;
-
-
+$('identifyBtn').addEventListener('click', async () => {
+  const btn = $('identifyBtn');
+  btn.disabled = true;
+  $('slots').setAttribute('data-scanning','');
+  say($('captureStatus'), '判別中…', '');
   try{
-
-    setStatus(
-      'pCloudへ保存しています…'
-    );
-
-
-    const rootFolderId =
-      await root();
-
-
-    const item =
-      current();
-
-
-    /*
-     * アイテムフォルダ
-     */
-
-    const folder =
-      await pcall(
-        'createfolderifnotexists',
-        {
-
-          folderid:
-            rootFolderId,
-
-          name:
-            'item-' +
-            item.id
-
-        }
-      );
-
-
-    const folderid =
-      folder.metadata.folderid;
-
-
-    /*
-     * 拡張子
-     */
-
-    function ext(file){
-
-      return (
-        file.name
-          .split('.')
-          .pop() ||
-        'jpg'
-      )
-      .replace(
-        /[^a-z0-9]/gi,
-        ''
-      )
-      .toLowerCase();
-
-    }
-
-
-    /*
-     * 表面
-     */
-
-    await upload(
-      folderid,
-      front,
-      'front.' +
-      ext(front)
-    );
-
-
-    /*
-     * 裏面
-     */
-
-    if(back){
-
-      await upload(
-        folderid,
-        back,
-        'back.' +
-        ext(back)
-      );
-
-    }
-
-
-    /*
-     * JSON
-     */
-
-    item.folderid =
-      folderid;
-
-
-    const dataFile =
-      new File(
-
-        [
-          JSON.stringify(
-            item,
-            null,
-            2
-          )
-        ],
-
-        'data.json',
-
-        {
-          type:
-            'application/json'
-        }
-
-      );
-
-
-    await upload(
-      folderid,
-      dataFile,
-      'data.json'
-    );
-
-
-    /*
-     * 一覧用プレビュー
-     */
-
-    item.preview =
-      $('frontPreview').src;
-
-
-    records.unshift(
-      item
-    );
-
-
-    render();
-
-
-    setStatus('');
-
-
-    setSuccess(
-      'pCloudに保存しました。'
-    );
-
+    const body = new FormData();
+    body.append('front', files.front);
+    body.append('back', files.back);
+    const res = await fetch('/api/identify', { method:'POST', body });
+    if(!res.ok) throw new Error((await res.json()).detail || res.statusText);
+    result = await res.json();
+    fillResult(result);
+    say($('captureStatus'), '');
+    step(2);
+    $('result').scrollIntoView({behavior:'smooth', block:'start'});
+  }catch(err){
+    say($('captureStatus'), '判別できませんでした。' + err.message, 'error');
+  }finally{
+    $('slots').removeAttribute('data-scanning');
+    btn.disabled = false;
   }
+});
 
-  finally{
-
-    $('saveBtn').disabled =
-      false;
-
-  }
-
+function fillResult(r){
+  $('result').hidden = false;
+  $('catBadge').textContent = r.category || '—';
+  const rarity = r.rarity || 1;
+  $('stars').innerHTML = '★'.repeat(rarity) + '<i>' + '★'.repeat(5-rarity) + '</i>';
+  $('conf').textContent = '確度 ' + Math.round((r.confidence||0)*100) + '%';
+  $('why').textContent = r.reasoning || '';
+  $('fCategory').value = r.category || '食玩';
+  $('fSeries').value = r.series || '';
+  $('fName').value = r.name || '';
+  $('fNumber').value = r.number || '';
+  $('fRank').value = r.rank || '';
+  $('fRarity').value = rarity;
+  $('fCondition').value = r.condition_notes || '';
+  $('fKeyword').value = r.search_keyword || '';
 }
 
-
-/* =========================================================
-   pCloud一覧
-========================================================= */
-
-async function refresh(){
-
-  clearMessage();
-
-
-  if(!token()){
-
-    throw Error(
-      '先にpCloudへ接続してください。'
-    );
-
-  }
-
-
-  setStatus(
-    'pCloudの保存データを確認しています…'
-  );
-
-
-  const rootFolderId =
-    await root();
-
-
-  const data =
-    await pcall(
-      'listfolder',
-      {
-
-        folderid:
-          rootFolderId,
-
-        recursive:0
-
-      }
-    );
-
-
-  const folders =
-    (
-      data.metadata.contents ||
-      []
-    )
-    .filter(
-      item =>
-        item.isfolder &&
-        item.name.startsWith(
-          'item-'
-        )
-    );
-
-
-  records = [];
-
-
-  /*
-   * 各フォルダのdata.jsonを読む
-   */
-
-  for(
-    const folder of folders
-  ){
-
-    try{
-
-      const files =
-        await pcall(
-          'listfolder',
-          {
-
-            folderid:
-              folder.folderid,
-
-            recursive:0
-
-          }
-        );
-
-
-      const jsonFile =
-        (
-          files.metadata.contents ||
-          []
-        )
-        .find(
-          item =>
-            !item.isfolder &&
-            item.name ===
-              'data.json'
-        );
-
-
-      if(jsonFile){
-
-        /*
-         * ファイルリンク
-         */
-
-        const linkData =
-          await pcall(
-            'getfilelink',
-            {
-
-              fileid:
-                jsonFile.fileid,
-
-              forcedownload:1
-
-            }
-          );
-
-
-        const response =
-          await fetch(
-            linkData.link
-          );
-
-
-        if(response.ok){
-
-          const item =
-            await response.json();
-
-
-          item.folderid =
-            folder.folderid;
-
-
-          records.push(
-            item
-          );
-
-        }
-
-      }
-
-      else{
-
-        records.push({
-
-          id:
-            folder.name.slice(5),
-
-          folderid:
-            folder.folderid,
-
-          name:
-            '保存済みアイテム',
-
-          series:'',
-          kind:'',
-          rarity:'',
-          price:'',
-          mercariPrice:'',
-          mandarakePrice:'',
-          memo:'',
-
-          savedAt:
-            folder.modified
-
-        });
-
-      }
-
-    }
-
-    catch(error){
-
-      console.warn(
-        '保存データの読み込み失敗:',
-        error
-      );
-
-
-      records.push({
-
-        id:
-          folder.name.slice(5),
-
-        folderid:
-          folder.folderid,
-
-        name:
-          '保存済みアイテム',
-
-        series:'',
-        kind:'',
-        rarity:'',
-        price:'',
-        mercariPrice:'',
-        mandarakePrice:'',
-        memo:'',
-
-        savedAt:
-          folder.modified
-
-      });
-
-    }
-
-  }
-
-
-  /*
-   * 新しい順
-   */
-
-  records.sort(
-    (a,b) =>
-      new Date(
-        b.savedAt || 0
-      ) -
-      new Date(
-        a.savedAt || 0
-      )
-  );
-
-
-  render();
-
-
-  setStatus('');
-
-
-  setSuccess(
-    records.length +
-    '件読み込みました。'
-  );
-
+$('toMarketBtn').addEventListener('click', async () => {
+  const keyword = $('fKeyword').value || `${$('fSeries').value} ${$('fName').value}`.trim();
+  $('fKeyword').value = keyword;
+  await renderLinks(keyword);
+  $('market').hidden = false;
+  step(3);
+  $('market').scrollIntoView({behavior:'smooth', block:'start'});
+});
+
+$('fKeyword').addEventListener('change', e => renderLinks(e.target.value));
+
+async function renderLinks(keyword){
+  const res = await fetch('/api/market?keyword=' + encodeURIComponent(keyword));
+  const m = await res.json();
+  $('links').innerHTML = `
+    <a href="${m.mercari_sold}" target="_blank" rel="noopener">メルカリ 売り切れ<small>実際に売れた値段</small></a>
+    <a href="${m.mercari_onsale}" target="_blank" rel="noopener">メルカリ 出品中<small>いまの売り希望値</small></a>
+    <a href="${m.mandarake}" target="_blank" rel="noopener">まんだらけ<small>店頭の買い取り基準</small></a>`;
 }
 
+$('backBtn').addEventListener('click', () => $('result').scrollIntoView({behavior:'smooth'}));
 
-/* =========================================================
-   削除
-========================================================= */
-
-async function del(id){
-
-  const record =
-    records.find(
-      item =>
-        item.id === id
-    );
-
-
-  if(!record){
-    return;
-  }
-
-
-  if(
-    !confirm(
-      'このアイテムをpCloudから削除します。\n\nよろしいですか？'
-    )
-  ){
-
-    return;
-
-  }
-
-
-  clearMessage();
-
-
+$('saveBtn').addEventListener('click', async () => {
+  const btn = $('saveBtn');
+  btn.disabled = true;
+  say($('saveStatus'), 'pCloudへ送信中…', '');
+  const record = {
+    ...result,
+    category: $('fCategory').value,
+    series: $('fSeries').value,
+    name: $('fName').value,
+    number: $('fNumber').value,
+    rank: $('fRank').value,
+    rarity: Number($('fRarity').value) || 1,
+    condition_notes: $('fCondition').value,
+    search_keyword: $('fKeyword').value,
+    price_min: Number($('fMin').value) || null,
+    price_max: Number($('fMax').value) || null,
+    price_note: $('fPriceNote').value,
+    saved_at: new Date().toISOString()
+  };
   try{
-
-    setStatus(
-      'pCloudから削除しています…'
-    );
-
-
-    await pcall(
-      'deletefolderrecursive',
-      {
-
-        folderid:
-          record.folderid
-
-      }
-    );
-
-
-    records =
-      records.filter(
-        item =>
-          item.id !== id
-      );
-
-
-    render();
-
-
-    setStatus('');
-
-
-    setSuccess(
-      '削除しました。'
-    );
-
+    const body = new FormData();
+    body.append('record', JSON.stringify(record));
+    body.append('front', files.front);
+    body.append('back', files.back);
+    const res = await fetch('/api/save', { method:'POST', body });
+    if(!res.ok) throw new Error((await res.json()).detail || res.statusText);
+    const saved = await res.json();
+    say($('saveStatus'), '保存しました。', 'ok');
+    $('destNote').textContent = saved.path + ' に ' + saved.files.join(' / ');
+    step(4);
+    loadLedger();
+  }catch(err){
+    say($('saveStatus'), '保存できませんでした。' + err.message, 'error');
+  }finally{
+    btn.disabled = false;
   }
+});
 
-  catch(error){
-
-    fail(error);
-
-  }
-
+async function loadLedger(){
+  try{
+    const res = await fetch('/api/records?limit=20');
+    const data = await res.json();
+    const order = ['ビックリマン','食玩','トレカ'];
+    $('tallies').innerHTML = order.map(c => {
+      const hit = data.summary.find(s => s.category === c);
+      return `<div class="tally"><b>${hit ? hit.count : 0}</b><span>${c}</span></div>`;
+    }).join('');
+    $('log').innerHTML = data.items.length
+      ? data.items.map(i => `<li><span style="color:var(--text)">${i.name || '名称不明'}</span><span>${i.category} ★${i.rarity||1}</span></li>`).join('')
+      : '<li style="color:var(--muted);border:0">まだ1枚も登録されていません。上で撮ってください。</li>';
+  }catch(e){ /* 台帳は取れなくても撮影は続けられる */ }
 }
-
-
-/* =========================================================
-   一覧表示
-========================================================= */
-
-function render(){
-
-  if(!records.length){
-
-    $('list').innerHTML =
-      '<p class="muted">まだ保存されていません。</p>';
-
-    return;
-
-  }
-
-
-  $('list').innerHTML =
-    records
-      .map(
-        record => `
-
-          <div class="item">
-
-            <div class="grow">
-
-              <h3>
-                ${esc(record.name)}
-              </h3>
-
-              <p>
-                ${esc(record.series)}
-                　
-                ${esc(record.kind)}
-                　
-                ${esc(record.rarity)}
-              </p>
-
-              <p>
-                総合価格：
-                ${esc(record.price)}
-              </p>
-
-              ${
-                record.mercariPrice
-                  ? `
-                    <p>
-                      メルカリ：
-                      ${esc(
-                        record.mercariPrice
-                      )}
-                    </p>
-                  `
-                  : ''
-              }
-
-              ${
-                record.mandarakePrice
-                  ? `
-                    <p>
-                      まんだらけ：
-                      ${esc(
-                        record.mandarakePrice
-                      )}
-                    </p>
-                  `
-                  : ''
-              }
-
-              <p>
-                ${
-                  record.savedAt
-                    ? new Date(
-                        record.savedAt
-                      )
-                      .toLocaleDateString(
-                        'ja-JP'
-                      )
-                    : ''
-                }
-              </p>
-
-            </div>
-
-
-            <button
-              class="btn small red"
-              onclick="del('${esc(record.id)}')">
-              削除
-            </button>
-
-          </div>
-
-        `
-      )
-      .join('');
-
-}
-
-
-/* =========================================================
-   ボタン
-========================================================= */
-
-$('loginBtn').onclick =
-  () => {
-
-    try{
-
-      connect();
-
-    }
-
-    catch(error){
-
-      fail(error);
-
-    }
-
-  };
-
-
-$('logoutBtn').onclick =
-  () => {
-
-    store.removeItem(
-      'pcloudToken'
-    );
-
-    store.removeItem(
-      'pcloudHost'
-    );
-
-    updateCloud();
-
-    records = [];
-
-    render();
-
-  };
-
-
-$('scanBtn').onclick =
-  () =>
-    scan()
-      .catch(fail);
-
-
-$('saveBtn').onclick =
-  () =>
-    save()
-      .catch(fail);
-
-
-$('refreshBtn').onclick =
-  () =>
-    refresh()
-      .catch(fail);
-
-
-/* =========================================================
-   初期化
-========================================================= */
-
-try{
-
-  readOAuth();
-
-}
-
-catch(error){
-
-  fail(error);
-
-}
-
-
-$('apiKey').value =
-  store.getItem(
-    'stickerGeminiKey'
-  ) || '';
-
-
-updateCloud();
-
-render();
-
+loadLedger();
 </script>
-
 </body>
 </html>
