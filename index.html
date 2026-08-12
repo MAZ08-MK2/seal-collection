@@ -11,7 +11,6 @@
       --green:#16a34a;
       --red:#dc2626;
       --orange:#ea580c;
-      --purple:#7c3aed;
       --bg:#f5f7fb;
       --line:#dde3ee;
       --text:#172033;
@@ -161,8 +160,9 @@
       background:var(--orange);
     }
 
-    .btn.purple{
-      background:var(--purple);
+    .btn.chatgpt{
+      background:#111827;
+      color:#fff;
     }
 
     .btn.small{
@@ -270,56 +270,31 @@
       margin-bottom:8px;
     }
 
-    .marketButtons{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:8px;
-    }
-
-    .chatBox{
-      background:#faf5ff;
-      border:1px solid #ddd6fe;
-      border-radius:12px;
-      padding:12px;
-      margin-top:4px;
-    }
-
-    .chatTitle{
-      font-weight:700;
-      margin-bottom:6px;
-    }
-
-    .chatPrompt{
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:9px;
-      padding:10px;
-      font-size:12px;
-      line-height:1.5;
-      white-space:pre-wrap;
-      max-height:180px;
-      overflow:auto;
-      margin-top:8px;
-    }
-
-    .priceRow{
-      display:grid;
-      grid-template-columns:120px 1fr;
-      gap:8px;
-      align-items:center;
-      margin-top:8px;
-    }
-
-    .priceRow span{
-      font-size:12px;
-      color:var(--sub);
-    }
-
     .source{
       font-size:11px;
       color:var(--sub);
       line-height:1.5;
       margin-top:8px;
+    }
+
+    .chatgptBox{
+      background:#f8fafc;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px;
+      margin-top:4px;
+    }
+
+    .chatgptTitle{
+      font-weight:700;
+      margin-bottom:6px;
+    }
+
+    .chatgptText{
+      font-size:12px;
+      color:var(--sub);
+      line-height:1.5;
+      margin-bottom:10px;
     }
 
     .hidden{
@@ -341,14 +316,6 @@
       .photo{
         min-height:140px;
       }
-
-      .marketButtons{
-        grid-template-columns:1fr;
-      }
-
-      .priceRow{
-        grid-template-columns:1fr;
-      }
     }
   </style>
 </head>
@@ -360,8 +327,9 @@
   <h1>✨ シールコレクション AI</h1>
 
   <p class="lead">
-    表面・裏面を撮影して、AIで判定・ChatGPTでレア度と相場を調査・pCloud保存
+    表面・裏面を撮影して、AIで判定・ChatGPTでレア度と相場を確認・pCloud保存
   </p>
+
 
   <!-- =================================================
        pCloud
@@ -522,6 +490,7 @@
 
       </div>
 
+
       <div>
 
         <label>
@@ -531,6 +500,7 @@
         <input id="series">
 
       </div>
+
 
       <div>
 
@@ -546,84 +516,55 @@
 
       </div>
 
+
+      <!-- =================================================
+           レア度
+      ================================================== -->
+
       <div>
 
         <label>
           レア度ランク
         </label>
 
-        <select id="rarity">
-          <option>N</option>
-          <option>R</option>
-          <option>SR</option>
-          <option>SSR</option>
-          <option>SC</option>
-          <option>UR</option>
-          <option>SEC</option>
-          <option>PR</option>
-          <option>不明</option>
-        </select>
+        <input
+          id="rarity"
+          placeholder="例：ホロPP、天使、ヘッド、復刻など">
 
         <p class="hint">
-          ※公式のレアリティ体系が分からない場合は「不明」のままにしてください。
+          レア度は自由入力できます。「ホロPP」なども入力できます。
         </p>
 
       </div>
 
 
       <!-- =================================================
-           ChatGPT調査
+           ChatGPT
       ================================================== -->
 
-      <div class="chatBox">
+      <div class="chatgptBox">
 
-        <div class="chatTitle">
+        <div class="chatgptTitle">
           🤖 ChatGPTでレア度・相場を調べる
         </div>
 
-        <p class="hint">
-          Geminiが判定した「シール名・シリーズ名」などの文字情報だけをChatGPTへ渡します。
+        <div class="chatgptText">
+          商品名・シリーズ名だけをChatGPTに渡して調べます。<br>
           画像は送信しません。
-        </p>
+        </div>
 
         <button
           id="chatgptBtn"
-          class="btn purple full"
+          class="btn chatgpt full"
           type="button">
           🤖 ChatGPTで調べる
         </button>
 
-        <div
-          id="chatPrompt"
-          class="chatPrompt hidden">
-        </div>
-
-        <p class="hint">
-          ChatGPTで調査後、下の項目へ結果を入力してください。
-        </p>
-
       </div>
 
 
       <!-- =================================================
-           コレクター評価
-      ================================================== -->
-
-      <div>
-
-        <label>
-          コレクター評価・希少性
-        </label>
-
-        <input
-          id="collectorRarity"
-          placeholder="例：★★★★☆（高レア）">
-
-      </div>
-
-
-      <!-- =================================================
-           価格
+           相場
       ================================================== -->
 
       <div class="marketBox">
@@ -632,105 +573,26 @@
           📊 相場
         </div>
 
-        <div class="marketButtons">
+        <input
+          id="price"
+          placeholder="例：2,500円～3,500円">
 
-          <button
-            id="mercariBtn"
-            class="btn orange"
-            type="button">
-            🛒 メルカリを検索
-          </button>
-
-          <button
-            id="mandarakeBtn"
-            class="btn secondary"
-            type="button">
-            🏬 まんだらけを検索
-          </button>
-
-        </div>
-
-        <div class="priceRow">
-
-          <span>
-            メルカリ相場
-          </span>
-
-          <input
-            id="mercariPrice"
-            placeholder="例：約3,000円">
-
-        </div>
-
-        <div class="priceRow">
-
-          <span>
-            まんだらけ価格
-          </span>
-
-          <input
-            id="mandarakePrice"
-            placeholder="例：約4,500円">
-
-        </div>
-
-        <div class="priceRow">
-
-          <span>
-            総合価格
-          </span>
-
-          <input
-            id="price"
-            placeholder="例：約3,500円">
-
-        </div>
-
-        <div class="priceRow">
-
-          <span>
-            確認日
-          </span>
-
-          <input
-            id="priceCheckedAt"
-            type="date">
-
-        </div>
+        <p class="hint">
+          例：2,500円～3,500円<br>
+          分からない場合は「確認できません」と入力してください。
+        </p>
 
         <div class="source">
-
-          ※ChatGPTでWeb検索した結果を確認して入力してください。<br>
-          ※実際の掲載価格・商品の状態・版違い等によって価格は変動します。<br>
-          ※確認できない価格は「確認できません」としてください。
-
+          ※相場は状態・版・印刷違いなどによって変動します。<br>
+          ※ChatGPTで確認した価格は参考値として使用してください。
         </div>
 
       </div>
 
 
       <!-- =================================================
-           調査メモ・出典
+           メモ
       ================================================== -->
-
-      <div>
-
-        <label>
-          調査メモ・出典
-        </label>
-
-        <textarea
-          id="research"
-          placeholder="例：
-旧ビックリマン 第○弾。
-メルカリで○○円前後を確認。
-まんだらけで○○円を確認。
-旧版と復刻版で価格差あり。
-出典：メルカリ、まんだらけ
-確認日：2026/8/12"></textarea>
-
-      </div>
-
 
       <div>
 
@@ -1447,7 +1309,23 @@ function buildPrompt(){
 「確認できません」
 としてください。
 
-レア度が判断できない場合は
+レア度は、画像から確認できる具体的な名称をそのまま返してください。
+
+例えば、
+
+ホロPP
+プリズム
+角プリズム
+天使
+悪魔
+お守り
+ヘッド
+復刻
+など、
+
+画像から判断できる名称があれば、その名称を返してください。
+
+画像だけではレア度が分からない場合は
 「不明」
 としてください。
 
@@ -1456,18 +1334,6 @@ function buildPrompt(){
 シール
 トレカ
 食玩
-
-レア度は必ず次のどれかです。
-
-N
-R
-SR
-SSR
-SC
-UR
-SEC
-PR
-不明
 
 memoには、画像から確認できた特徴を簡潔に書いてください。
 
@@ -1481,7 +1347,7 @@ JSON以外の説明文は不要です。
   "name": "商品名または確認できません",
   "series": "シリーズ名または確認できません",
   "kind": "シール",
-  "rarity": "不明",
+  "rarity": "確認できたレア度または不明",
   "memo": "画像から確認できた特徴"
 }
 `.trim();
@@ -1581,17 +1447,8 @@ const GEMINI_SCHEMA = {
 
     rarity:{
       type:'string',
-      enum:[
-        'N',
-        'R',
-        'SR',
-        'SSR',
-        'SC',
-        'UR',
-        'SEC',
-        'PR',
-        '不明'
-      ]
+      description:
+        '画像から確認できるレア度名称。ホロPPなど具体的な名称も許可する。分からなければ「不明」。'
     },
 
     memo:{
@@ -1661,6 +1518,7 @@ function extractJsonText(text){
   const end =
     s.lastIndexOf('}');
 
+
   if(
     start < 0 ||
     end <= start
@@ -1671,6 +1529,7 @@ function extractJsonText(text){
     );
 
   }
+
 
   s =
     s.slice(
@@ -1699,6 +1558,7 @@ function extractJsonText(text){
       ' '
     );
 
+
   return s;
 
 }
@@ -1708,6 +1568,7 @@ function safeJsonParse(text){
 
   const jsonText =
     extractJsonText(text);
+
 
   try{
 
@@ -1726,12 +1587,14 @@ function safeJsonParse(text){
 
   }
 
+
   const repaired =
     jsonText
       .replace(
         /,\s*([}\]])/g,
         '$1'
       );
+
 
   try{
 
@@ -1792,7 +1655,7 @@ function extractGeminiText(data){
 
 
 /* =========================================================
-   リトライ可能HTTP
+   リトライ可能なHTTPエラー
 ========================================================= */
 
 function isRetryableStatus(status){
@@ -1810,7 +1673,7 @@ function isRetryableStatus(status){
 
 
 /* =========================================================
-   Gemini API
+   Gemini 1回分
 ========================================================= */
 
 async function callGeminiOnce({
@@ -1825,6 +1688,7 @@ async function callGeminiOnce({
   const promptParts =
     [...parts];
 
+
   if(retryInstruction){
 
     promptParts.push({
@@ -1837,6 +1701,7 @@ async function callGeminiOnce({
     });
 
   }
+
 
   const requestBody = {
 
@@ -1877,6 +1742,7 @@ async function callGeminiOnce({
 
   let response;
 
+
   try{
 
     response =
@@ -1910,6 +1776,7 @@ async function callGeminiOnce({
 
   let data;
 
+
   try{
 
     data =
@@ -1935,6 +1802,7 @@ async function callGeminiOnce({
         response.status
       );
 
+
     const error =
       new Error(
         'HTTP_' +
@@ -1943,13 +1811,16 @@ async function callGeminiOnce({
         message
       );
 
+
     error.status =
       response.status;
+
 
     error.retryable =
       isRetryableStatus(
         response.status
       );
+
 
     throw error;
 
@@ -1958,6 +1829,7 @@ async function callGeminiOnce({
 
   const candidate =
     data?.candidates?.[0];
+
 
   if(!candidate){
 
@@ -1986,6 +1858,7 @@ async function callGeminiOnce({
       data
     );
 
+
   if(!text){
 
     throw new Error(
@@ -2011,14 +1884,17 @@ async function callGeminiOnce({
       text
     );
 
+
     const jsonError =
       new Error(
         'JSON_ERROR: ' +
         error.message
       );
 
+
     jsonError.rawText =
       text;
+
 
     throw jsonError;
 
@@ -2142,6 +2018,12 @@ async function runGeminiWithFallback(parts){
 
     try{
 
+      console.log(
+        'Gemini試行:',
+        attempt.label
+      );
+
+
       const result =
         await callGeminiOnce({
 
@@ -2263,14 +2145,17 @@ async function scan(){
 
   clearMessage();
 
+
   const key =
     $('apiKey')
       .value
       .trim();
 
+
   const front =
     $('front')
       .files[0];
+
 
   const back =
     $('back')
@@ -2296,6 +2181,7 @@ async function scan(){
 
 
   saveKey();
+
 
   $('scanBtn').disabled =
     true;
@@ -2376,19 +2262,6 @@ async function scan(){
     ];
 
 
-    const rarities = [
-      'N',
-      'R',
-      'SR',
-      'SSR',
-      'SC',
-      'UR',
-      'SEC',
-      'PR',
-      '不明'
-    ];
-
-
     const kind =
       kinds.includes(
         analysis.kind
@@ -2397,11 +2270,15 @@ async function scan(){
         : 'シール';
 
 
+    /*
+     * レア度は自由入力
+     * ホロPPなどもそのまま保持
+     */
+
     const rarity =
-      rarities.includes(
-        analysis.rarity
-      )
-        ? analysis.rarity
+      typeof analysis.rarity === 'string' &&
+      analysis.rarity.trim()
+        ? analysis.rarity.trim()
         : '不明';
 
 
@@ -2414,37 +2291,24 @@ async function scan(){
     $('name').value =
       name;
 
+
     $('series').value =
       series;
+
 
     $('kind').value =
       kind;
 
+
     $('rarity').value =
       rarity;
+
 
     $('memo').value =
       memo;
 
 
-    $('collectorRarity').value =
-      '';
-
-    $('mercariPrice').value =
-      '';
-
-    $('mandarakePrice').value =
-      '';
-
     $('price').value =
-      '';
-
-    $('priceCheckedAt').value =
-      new Date()
-        .toISOString()
-        .slice(0,10);
-
-    $('research').value =
       '';
 
 
@@ -2454,12 +2318,13 @@ async function scan(){
 
     setStatus('');
 
+
     setSuccess(
       'AI判定が完了しました。\n' +
       '使用方式：' +
       result.method +
       '\n\n' +
-      '必要なら「ChatGPTで調べる」を押してください。'
+      '必要に応じて「ChatGPTで調べる」を押して、レア度と相場を確認してください。'
     );
 
   }
@@ -2475,194 +2340,16 @@ async function scan(){
 
 
 /* =========================================================
-   ChatGPT調査プロンプト
+   ChatGPT検索キーワード
 ========================================================= */
 
-function buildChatGPTPrompt(){
+function getChatGPTKeyword(){
 
   const name =
     $('name')
       .value
       .trim();
 
-  const series =
-    $('series')
-      .value
-      .trim();
-
-  const kind =
-    $('kind')
-      .value;
-
-  const rarity =
-    $('rarity')
-      .value;
-
-  const memo =
-    $('memo')
-      .value
-      .trim();
-
-
-  return `
-このコレクション品について調査してください。
-
-【商品情報】
-商品名：${name || '確認できません'}
-シリーズ・作品名：${series || '確認できません'}
-種類：${kind || '確認できません'}
-画像AI判定レア度：${rarity || '不明'}
-
-画像から確認された特徴：
-${memo || 'なし'}
-
-【調査してほしい内容】
-
-1. 正式な商品名
-2. シリーズ名
-3. 何弾・何シリーズ・何年代の商品か
-4. レア度
-5. コレクター市場での希少性
-6. メルカリで確認できる現在の価格帯
-7. まんだらけで確認できる販売価格
-8. その他、信頼できる販売・相場情報
-9. 総合的な相場の目安
-10. 価格に影響する要素
-
-特に以下を確認してください。
-
-・旧版と復刻版
-・通常版と特殊版
-・印刷違い
-・裏面違い
-・台紙違い
-・エラー品
-・美品、完品、並品など状態による価格差
-・同じキャラクターでも別商品ではないか
-
-【重要】
-
-推測で商品名、レア度、価格を作らないでください。
-
-確認できない情報は
-「確認できません」
-としてください。
-
-現在のWeb情報を検索して確認してください。
-
-メルカリやまんだらけについては、実際に確認できた掲載情報と、単なる検索結果の推測を区別してください。
-
-価格は「確定価格」ではなく、確認時点での相場として扱ってください。
-
-調査結果には必ず
-・確認日
-・情報源
-を記載してください。
-
-可能なら各情報源のURLも示してください。
-
-最後に、以下の形式でまとめてください。
-
-【調査結果】
-
-正式名称：
-シリーズ：
-弾・年代：
-レア度：
-コレクター評価：
-メルカリ相場：
-まんだらけ価格：
-その他の相場：
-総合相場：
-確認日：
-
-【価格に影響する注意点】
-・
-
-【出典】
-・
-`.trim();
-
-}
-
-
-/* =========================================================
-   ChatGPTを開く
-   ※画像は一切送信しない
-========================================================= */
-
-function openChatGPTResearch(){
-
-  clearMessage();
-
-
-  const name =
-    $('name')
-      .value
-      .trim();
-
-
-  if(
-    !name ||
-    name === '確認できません'
-  ){
-
-    throw Error(
-      '商品名が確認できないため、ChatGPTで調査できません。'
-    );
-
-  }
-
-
-  const prompt =
-    buildChatGPTPrompt();
-
-
-  /*
-   * ChatGPTへ送るのは文字情報だけ。
-   * 画像データは一切使用しません。
-   */
-
-  $('chatPrompt').textContent =
-    prompt;
-
-  $('chatPrompt')
-    .classList
-    .remove('hidden');
-
-
-  const url =
-    'https://chatgpt.com/?q=' +
-    encodeURIComponent(
-      prompt
-    );
-
-
-  window.open(
-    url,
-    '_blank'
-  );
-
-
-  setSuccess(
-    'ChatGPTを開きました。\n\n' +
-    'Web検索でレア度・相場・出典を確認してください。\n' +
-    '調査結果をこの画面の各項目へ入力してから保存してください。'
-  );
-
-}
-
-
-/* =========================================================
-   検索キーワード
-========================================================= */
-
-function getSearchKeyword(){
-
-  const name =
-    $('name')
-      .value
-      .trim();
 
   const series =
     $('series')
@@ -2700,17 +2387,59 @@ function getSearchKeyword(){
 
 
 /* =========================================================
-   Google検索
+   ChatGPTで調べる
 ========================================================= */
 
-function googleSearch(
-  query
-){
+function openChatGPT(){
+
+  clearMessage();
+
+
+  const keyword =
+    getChatGPTKeyword();
+
+
+  if(!keyword){
+
+    throw Error(
+      '商品名が確認できないため、ChatGPTで調べることができません。'
+    );
+
+  }
+
+
+  /*
+   * 画像は送らない。
+   * 商品名とシリーズ名だけをChatGPTへ渡す。
+   */
+
+  const prompt =
+    `次の商品について調べてください。
+
+商品名：${$('name').value.trim()}
+シリーズ：${$('series').value.trim()}
+
+知りたいのは次の2点だけです。
+
+1. レア度
+2. 現在のおおよその相場
+
+以下の形式で簡潔に回答してください。
+
+レア度：〇〇
+相場：〇〇円～〇〇円
+
+判断できない場合は「確認できません」としてください。
+
+旧版・復刻版・印刷違いなどで価格差がある場合は、その点を短く補足してください。
+
+確認日：2026年8月12日`;
+
 
   const url =
-    'https://www.google.com/search?q=' +
+    'https://chatgpt.com/?q=' +
     encodeURIComponent(
-      query
+      prompt
     );
 
 
@@ -2719,95 +2448,14 @@ function googleSearch(
     '_blank'
   );
 
+
+  setWarning(
+    'ChatGPTを開きました。\n\n' +
+    '回答を確認して、この画面の「レア度」と「相場」に入力してください。\n\n' +
+    '※画像はChatGPTには送信していません。'
+  );
+
 }
-
-
-/* =========================================================
-   メルカリ
-========================================================= */
-
-$('mercariBtn').onclick =
-  () => {
-
-    try{
-
-      const keyword =
-        getSearchKeyword();
-
-
-      if(!keyword){
-
-        throw Error(
-          '商品名が確認できないため検索できません。'
-        );
-
-      }
-
-
-      googleSearch(
-        'site:jp.mercari.com ' +
-        keyword
-      );
-
-
-      setWarning(
-        'メルカリの検索結果を開きました。\n' +
-        '実際の掲載価格・商品の状態・版違いを確認してください。'
-      );
-
-    }
-
-    catch(error){
-
-      fail(error);
-
-    }
-
-  };
-
-
-/* =========================================================
-   まんだらけ
-========================================================= */
-
-$('mandarakeBtn').onclick =
-  () => {
-
-    try{
-
-      const keyword =
-        getSearchKeyword();
-
-
-      if(!keyword){
-
-        throw Error(
-          '商品名が確認できないため検索できません。'
-        );
-
-      }
-
-
-      googleSearch(
-        'site:mandarake.co.jp ' +
-        keyword
-      );
-
-
-      setWarning(
-        'まんだらけの検索結果を開きました。\n' +
-        '実際の掲載価格・商品の状態・版違いを確認してください。'
-      );
-
-    }
-
-    catch(error){
-
-      fail(error);
-
-    }
-
-  };
 
 
 /* =========================================================
@@ -2833,40 +2481,16 @@ function current(){
         .trim(),
 
     kind:
-      $('kind')
-        .value,
+      $('kind').value,
 
     rarity:
       $('rarity')
-        .value,
-
-    collectorRarity:
-      $('collectorRarity')
         .value
-        .trim(),
+        .trim() ||
+      '不明',
 
     price:
       $('price')
-        .value
-        .trim(),
-
-    mercariPrice:
-      $('mercariPrice')
-        .value
-        .trim(),
-
-    mandarakePrice:
-      $('mandarakePrice')
-        .value
-        .trim(),
-
-    priceCheckedAt:
-      $('priceCheckedAt')
-        .value
-        .trim(),
-
-    research:
-      $('research')
         .value
         .trim(),
 
@@ -2914,6 +2538,7 @@ async function save(){
   const front =
     $('front')
       .files[0];
+
 
   const back =
     $('back')
@@ -3037,10 +2662,6 @@ async function save(){
     );
 
 
-    item.preview =
-      $('frontPreview').src;
-
-
     records.unshift(
       item
     );
@@ -3050,6 +2671,7 @@ async function save(){
 
 
     setStatus('');
+
 
     setSuccess(
       'pCloudに保存しました。'
@@ -3213,13 +2835,8 @@ async function refresh(){
 
           series:'',
           kind:'',
-          rarity:'',
-          collectorRarity:'',
+          rarity:'不明',
           price:'',
-          mercariPrice:'',
-          mandarakePrice:'',
-          priceCheckedAt:'',
-          research:'',
           memo:'',
 
           savedAt:
@@ -3252,13 +2869,8 @@ async function refresh(){
 
         series:'',
         kind:'',
-        rarity:'',
-        collectorRarity:'',
+        rarity:'不明',
         price:'',
-        mercariPrice:'',
-        mandarakePrice:'',
-        priceCheckedAt:'',
-        research:'',
         memo:'',
 
         savedAt:
@@ -3286,6 +2898,7 @@ async function refresh(){
 
 
   setStatus('');
+
 
   setSuccess(
     records.length +
@@ -3357,6 +2970,7 @@ async function del(id){
 
     setStatus('');
 
+
     setSuccess(
       '削除しました。'
     );
@@ -3405,64 +3019,17 @@ function render(){
                 ${esc(record.series)}
                 　
                 ${esc(record.kind)}
-                　
-                ${esc(record.rarity)}
               </p>
-
-              ${
-                record.collectorRarity
-                  ? `
-                    <p>
-                      コレクター評価：
-                      ${esc(record.collectorRarity)}
-                    </p>
-                  `
-                  : ''
-              }
 
               <p>
-                総合価格：
-                ${esc(record.price)}
+                レア度：
+                ${esc(record.rarity || '不明')}
               </p>
 
-              ${
-                record.mercariPrice
-                  ? `
-                    <p>
-                      メルカリ：
-                      ${esc(
-                        record.mercariPrice
-                      )}
-                    </p>
-                  `
-                  : ''
-              }
-
-              ${
-                record.mandarakePrice
-                  ? `
-                    <p>
-                      まんだらけ：
-                      ${esc(
-                        record.mandarakePrice
-                      )}
-                    </p>
-                  `
-                  : ''
-              }
-
-              ${
-                record.priceCheckedAt
-                  ? `
-                    <p>
-                      相場確認日：
-                      ${esc(
-                        record.priceCheckedAt
-                      )}
-                    </p>
-                  `
-                  : ''
-              }
+              <p>
+                相場：
+                ${esc(record.price || '未入力')}
+              </p>
 
               <p>
                 ${
@@ -3547,7 +3114,7 @@ $('chatgptBtn').onclick =
 
     try{
 
-      openChatGPTResearch();
+      openChatGPT();
 
     }
 
