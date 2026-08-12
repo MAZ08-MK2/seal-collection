@@ -341,7 +341,6 @@
     表面・裏面を撮影して、AIで判定・相場確認・pCloud保存
   </p>
 
-
   <!-- =================================================
        pCloud
   ================================================== -->
@@ -383,7 +382,6 @@
 
   </section>
 
-
   <!-- =================================================
        Gemini API Key
   ================================================== -->
@@ -405,7 +403,6 @@
     </p>
 
   </section>
-
 
   <!-- =================================================
        画像
@@ -430,7 +427,6 @@
 
       </label>
 
-
       <label class="photo">
 
         🖼 裏面の画像（任意）
@@ -448,7 +444,6 @@
 
     </div>
 
-
     <button
       id="scanBtn"
       class="btn full"
@@ -456,24 +451,20 @@
       🔎 AIで判定する
     </button>
 
-
     <div
       id="status"
       class="status">
     </div>
-
 
     <div
       id="warning"
       class="warning">
     </div>
 
-
     <div
       id="success"
       class="success">
     </div>
-
 
     <div
       id="error"
@@ -481,7 +472,6 @@
     </div>
 
   </section>
-
 
   <!-- =================================================
        AI結果
@@ -495,9 +485,7 @@
       解析結果（必要なら修正してください）
     </label>
 
-
     <div class="fields">
-
 
       <div>
 
@@ -509,7 +497,6 @@
 
       </div>
 
-
       <div>
 
         <label>
@@ -520,7 +507,6 @@
 
       </div>
 
-
       <div>
 
         <label>
@@ -528,15 +514,12 @@
         </label>
 
         <select id="kind">
-
           <option>シール</option>
           <option>トレカ</option>
           <option>食玩</option>
-
         </select>
 
       </div>
-
 
       <div>
 
@@ -545,7 +528,6 @@
         </label>
 
         <select id="rarity">
-
           <option>N</option>
           <option>R</option>
           <option>SR</option>
@@ -555,11 +537,9 @@
           <option>SEC</option>
           <option>PR</option>
           <option>不明</option>
-
         </select>
 
       </div>
-
 
       <!-- =================================================
            価格
@@ -571,7 +551,6 @@
           📊 相場確認
         </div>
 
-
         <div class="marketButtons">
 
           <button
@@ -581,7 +560,6 @@
             🛒 メルカリを検索
           </button>
 
-
           <button
             id="mandarakeBtn"
             class="btn secondary"
@@ -590,7 +568,6 @@
           </button>
 
         </div>
-
 
         <div class="priceRow">
 
@@ -604,7 +581,6 @@
 
         </div>
 
-
         <div class="priceRow">
 
           <span>
@@ -616,7 +592,6 @@
             placeholder="例：約4,500円">
 
         </div>
-
 
         <div class="priceRow">
 
@@ -630,7 +605,6 @@
 
         </div>
 
-
         <div class="source">
 
           ※メルカリ・まんだらけの実際の掲載価格を確認して入力してください。<br>
@@ -639,7 +613,6 @@
         </div>
 
       </div>
-
 
       <div>
 
@@ -653,7 +626,6 @@
 
     </div>
 
-
     <button
       id="saveBtn"
       class="btn green full"
@@ -662,7 +634,6 @@
     </button>
 
   </section>
-
 
   <!-- =================================================
        コレクション
@@ -685,7 +656,6 @@
 
     </div>
 
-
     <div id="list">
 
       <p class="muted">
@@ -698,28 +668,35 @@
 
 </main>
 
-
 <script>
 
 /* =========================================================
    基本設定
 ========================================================= */
 
-
 /*
- * pCloud My AppsのClient IDをここに入れる
+ * pCloud My AppsのClient ID
  */
 const PCLOUD_CLIENT_ID =
   'VvTvHaowOR0';
 
 
 /*
- * Google公式のStableモデル
+ * Geminiの第1候補
  *
- * 2026年7月21日更新
+ * ここが失敗した場合は自動的に
+ * 下のGEMINI_FALLBACK_MODELSへ進みます。
  */
 const GEMINI_MODEL =
-  'gemini-3-flash-preview';
+  'gemini-3.6-flash';
+
+
+/*
+ * Geminiフォールバックモデル
+ */
+const GEMINI_FALLBACK_MODELS = [
+  'gemini-3.1-flash-lite'
+];
 
 
 /*
@@ -790,20 +767,14 @@ function fail(error){
 
   console.error(error);
 
-
   setStatus('');
   setWarning('');
   setSuccess('');
-
 
   let message =
     error?.message ||
     String(error);
 
-
-  /*
-   * Gemini Quota
-   */
 
   if(
     /quota/i.test(message) ||
@@ -814,32 +785,14 @@ function fail(error){
 
     message =
       'Gemini APIの利用上限に達しています。\n\n' +
-      'Google AI StudioのUsage / Rate Limitを確認してください。\n\n' +
-      'これはJSONエラーではなく、Gemini API側の利用上限です。';
-
-  }
-
-
-  /*
-   * JSON
-   */
-
-  if(
-    /JSON Parse/i.test(message) ||
-    /Unexpected token/i.test(message) ||
-    /Property name must be a string/i.test(message)
-  ){
-
-    message =
-      'Geminiから正しいJSON形式の判定結果を受け取れませんでした。\n\n' +
-      'もう一度「AIで判定する」を押してください。';
+      '今回の自動リトライでも判定できませんでした。\n\n' +
+      'Google AI StudioのUsage / Rate Limitを確認してください。';
 
   }
 
 
   $('error').textContent =
     message;
-
 
   $('error').style.display =
     'block';
@@ -924,10 +877,8 @@ function preview(
     return;
   }
 
-
   const reader =
     new FileReader();
-
 
   reader.onload =
     () => {
@@ -939,7 +890,6 @@ function preview(
         'block';
 
     };
-
 
   reader.readAsDataURL(file);
 
@@ -1006,12 +956,10 @@ function updateCloud(){
   const connected =
     !!token();
 
-
   $('cloudState').textContent =
     connected
       ? '接続済み'
       : '未接続';
-
 
   $('loginBtn')
     .classList
@@ -1019,7 +967,6 @@ function updateCloud(){
       'hidden',
       connected
     );
-
 
   $('logoutBtn')
     .classList
@@ -1057,7 +1004,6 @@ function connect(){
 
   }
 
-
   if(
     location.protocol === 'file:'
   ){
@@ -1068,16 +1014,13 @@ function connect(){
 
   }
 
-
   const state =
     uid();
-
 
   store.setItem(
     'pcloudState',
     state
   );
-
 
   const params =
     new URLSearchParams({
@@ -1094,7 +1037,6 @@ function connect(){
       state
 
     });
-
 
   location.href =
     'https://my.pcloud.com/oauth2/authorize?' +
@@ -1113,12 +1055,10 @@ function readOAuth(){
     return;
   }
 
-
   const params =
     new URLSearchParams(
       location.hash.slice(1)
     );
-
 
   if(
     params.get(
@@ -1139,14 +1079,12 @@ function readOAuth(){
 
     }
 
-
     store.setItem(
       'pcloudToken',
       params.get(
         'access_token'
       )
     );
-
 
     store.setItem(
       'pcloudHost',
@@ -1156,7 +1094,6 @@ function readOAuth(){
       'api.pcloud.com'
     );
 
-
     history.replaceState(
       null,
       '',
@@ -1164,7 +1101,6 @@ function readOAuth(){
     );
 
   }
-
 
   else if(
     params.get('error')
@@ -1198,16 +1134,13 @@ async function pcall(
 
   }
 
-
   const url =
     'https://' +
     apiHost() +
     '/' +
     method;
 
-
   let options;
-
 
   if(form){
 
@@ -1215,7 +1148,6 @@ async function pcall(
       'access_token',
       token()
     );
-
 
     options = {
 
@@ -1249,9 +1181,7 @@ async function pcall(
 
   }
 
-
   let response;
-
 
   try{
 
@@ -1271,9 +1201,7 @@ async function pcall(
 
   }
 
-
   let data;
-
 
   try{
 
@@ -1290,7 +1218,6 @@ async function pcall(
 
   }
 
-
   if(
     !response.ok ||
     data.result !== 0
@@ -1306,7 +1233,6 @@ async function pcall(
     );
 
   }
-
 
   return data;
 
@@ -1332,7 +1258,6 @@ async function root(){
       }
     );
 
-
   return data.metadata.folderid;
 
 }
@@ -1351,31 +1276,26 @@ async function upload(
   const form =
     new FormData();
 
-
   form.append(
     'folderid',
     folderid
   );
-
 
   form.append(
     'nopartial',
     '1'
   );
 
-
   form.append(
     'renameifexists',
     '0'
   );
-
 
   form.append(
     'file',
     file,
     filename
   );
-
 
   return pcall(
     'uploadfile',
@@ -1435,7 +1355,17 @@ memoには、画像から確認できた特徴を簡潔に書いてください�
 
 架空の商品名、架空のシリーズ名、架空のレア度を作らないでください。
 
-必ず指定されたJSON Schemaに従って回答してください。
+JSON以外の説明文は不要です。
+
+必ず次のJSON形式で回答してください。
+
+{
+  "name": "商品名または確認できません",
+  "series": "シリーズ名または確認できません",
+  "kind": "シール",
+  "rarity": "不明",
+  "memo": "画像から確認できた特徴"
+}
 `.trim();
 
 }
@@ -1453,7 +1383,6 @@ async function b64(file){
       const reader =
         new FileReader();
 
-
       reader.onload =
         () => {
 
@@ -1462,10 +1391,8 @@ async function b64(file){
               reader.result
             );
 
-
           const comma =
             result.indexOf(',');
-
 
           if(comma < 0){
 
@@ -1479,7 +1406,6 @@ async function b64(file){
 
           }
 
-
           resolve(
             result.slice(
               comma + 1
@@ -1488,7 +1414,6 @@ async function b64(file){
 
         };
 
-
       reader.onerror =
         () =>
           reject(
@@ -1496,7 +1421,6 @@ async function b64(file){
               '画像の読み込みに失敗しました。'
             )
           );
-
 
       reader.readAsDataURL(file);
 
@@ -1517,39 +1441,28 @@ const GEMINI_SCHEMA = {
   properties:{
 
     name:{
-
       type:'string',
-
       description:
         '画像から確認できる商品名。確認できなければ「確認できません」。'
-
     },
 
     series:{
-
       type:'string',
-
       description:
         'シリーズまたは作品名。確認できなければ「確認できません」。'
-
     },
 
     kind:{
-
       type:'string',
-
       enum:[
         'シール',
         'トレカ',
         '食玩'
       ]
-
     },
 
     rarity:{
-
       type:'string',
-
       enum:[
         'N',
         'R',
@@ -1561,16 +1474,12 @@ const GEMINI_SCHEMA = {
         'PR',
         '不明'
       ]
-
     },
 
     memo:{
-
       type:'string',
-
       description:
         '画像から確認できる特徴や判定根拠。'
-
     }
 
   },
@@ -1582,15 +1491,14 @@ const GEMINI_SCHEMA = {
     'rarity',
     'memo'
   ]
-
 };
 
 
 /* =========================================================
-   JSON安全解析
+   JSON抽出・修復
 ========================================================= */
 
-function safeJsonParse(text){
+function extractJsonText(text){
 
   if(
     typeof text !== 'string'
@@ -1602,14 +1510,16 @@ function safeJsonParse(text){
 
   }
 
-
   let s =
     text
+      .replace(
+        /^\uFEFF/,
+        ''
+      )
       .trim();
 
-
   /*
-   * 前後のMarkdownコードブロックを削除
+   * Markdownコードブロック除去
    */
 
   s =
@@ -1618,29 +1528,24 @@ function safeJsonParse(text){
       ''
     );
 
-
   s =
     s.replace(
       /\s*```$/i,
       ''
     );
 
-
   s =
     s.trim();
 
-
   /*
-   * JSONの開始・終了位置を探す
+   * 最初の { と最後の } を探す
    */
 
   const start =
     s.indexOf('{');
 
-
   const end =
     s.lastIndexOf('}');
-
 
   if(
     start < 0 ||
@@ -1653,69 +1558,80 @@ function safeJsonParse(text){
 
   }
 
-
   s =
     s.slice(
       start,
       end + 1
     );
 
+  /*
+   * スマートクォート修正
+   */
+
+  s =
+    s.replace(
+      /[\u201C\u201D]/g,
+      '"'
+    );
+
+  s =
+    s.replace(
+      /[\u2018\u2019]/g,
+      "'"
+    );
 
   /*
-   * まず通常のJSON.parse
+   * 制御文字除去
+   */
+
+  s =
+    s.replace(
+      /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,
+      ' '
+    );
+
+  return s;
+
+}
+
+
+function safeJsonParse(text){
+
+  const jsonText =
+    extractJsonText(text);
+
+  /*
+   * 第1回
    */
 
   try{
 
-    return JSON.parse(s);
+    return JSON.parse(
+      jsonText
+    );
 
   }
 
   catch(firstError){
 
     console.warn(
-      '通常のJSON.parseに失敗しました。',
-      firstError,
-      s
+      'JSON.parse 第1回失敗:',
+      firstError
     );
 
   }
 
-
   /*
-   * よくある問題を修正
-   *
-   * ・スマートクォート
-   * ・BOM
-   * ・制御文字
+   * 第2回
+   * よくある末尾カンマを修正
    */
 
-  let repaired =
-    s
+  const repaired =
+    jsonText
       .replace(
-        /^\uFEFF/,
-        ''
-      )
-      .replace(
-        /[\u201C\u201D]/g,
-        '"'
-      )
-      .replace(
-        /[\u2018\u2019]/g,
-        "'"
+        /,\s*([}\]])/g,
+        '$1'
       );
-
-
-  /*
-   * 改行・タブなどの制御文字
-   */
-
-  repaired =
-    repaired.replace(
-      /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,
-      ' '
-    );
-
 
   try{
 
@@ -1728,17 +1644,561 @@ function safeJsonParse(text){
   catch(secondError){
 
     console.error(
-      'JSON修復後も解析できません。',
+      'JSON.parse 第2回失敗:',
       secondError,
       repaired
     );
-
 
     throw Error(
       'JSON Parse error: Geminiから返されたJSONを解析できませんでした。'
     );
 
   }
+
+}
+
+
+/* =========================================================
+   Geminiレスポンスからテキストを取り出す
+========================================================= */
+
+function extractGeminiText(data){
+
+  const parts =
+    data
+      ?.candidates?.[0]
+      ?.content
+      ?.parts;
+
+  if(
+    !Array.isArray(parts)
+  ){
+
+    return '';
+
+  }
+
+  return parts
+    .map(
+      part =>
+        typeof part.text === 'string'
+          ? part.text
+          : ''
+    )
+    .join('')
+    .trim();
+
+}
+
+
+/* =========================================================
+   リトライ可能なHTTPエラー
+========================================================= */
+
+function isRetryableStatus(status){
+
+  return [
+    408,
+    429,
+    500,
+    502,
+    503,
+    504
+  ].includes(status);
+
+}
+
+
+/* =========================================================
+   Gemini 1回分のAPI実行
+========================================================= */
+
+async function callGeminiOnce({
+
+  model,
+  parts,
+  useSchema,
+  retryInstruction = false
+
+}){
+
+  const promptParts =
+    [...parts];
+
+  if(retryInstruction){
+
+    promptParts.push({
+
+      text:
+        '\n\n前回の回答を解析できませんでした。' +
+        '\n必ずJSONオブジェクトだけを返してください。' +
+        '\nMarkdown、説明文、コードブロックは不要です。'
+
+    });
+
+  }
+
+  const requestBody = {
+
+    contents:[
+      {
+        role:'user',
+        parts:promptParts
+      }
+    ],
+
+    generationConfig:{
+      responseMimeType:
+        'application/json',
+
+      maxOutputTokens:
+        800
+    }
+
+  };
+
+  /*
+   * JSON Schemaを使う場合だけ追加
+   */
+
+  if(useSchema){
+
+    requestBody.generationConfig.responseSchema =
+      GEMINI_SCHEMA;
+
+  }
+
+  const url =
+    'https://generativelanguage.googleapis.com/v1beta/models/' +
+    encodeURIComponent(model) +
+    ':generateContent?key=' +
+    encodeURIComponent(
+      $('apiKey').value.trim()
+    );
+
+  let response;
+
+  try{
+
+    response =
+      await fetch(
+        url,
+        {
+          method:'POST',
+
+          headers:{
+            'Content-Type':
+              'application/json'
+          },
+
+          body:
+            JSON.stringify(
+              requestBody
+            )
+        }
+      );
+
+  }
+
+  catch(error){
+
+    throw new Error(
+      'NETWORK_ERROR: Gemini APIへ接続できませんでした。'
+    );
+
+  }
+
+  let data;
+
+  try{
+
+    data =
+      await response.json();
+
+  }
+
+  catch{
+
+    throw new Error(
+      'INVALID_RESPONSE: GeminiからJSON応答を取得できませんでした。'
+    );
+
+  }
+
+  /*
+   * HTTPエラー
+   */
+
+  if(!response.ok){
+
+    const message =
+      data?.error?.message ||
+      (
+        'HTTP ' +
+        response.status
+      );
+
+    const error =
+      new Error(
+        'HTTP_' +
+        response.status +
+        ': ' +
+        message
+      );
+
+    error.status =
+      response.status;
+
+    error.retryable =
+      isRetryableStatus(
+        response.status
+      );
+
+    throw error;
+
+  }
+
+  /*
+   * candidate確認
+   */
+
+  const candidate =
+    data?.candidates?.[0];
+
+  if(!candidate){
+
+    throw new Error(
+      'NO_CANDIDATE: Geminiから判定結果が返ってきませんでした。'
+    );
+
+  }
+
+  /*
+   * finishReason
+   */
+
+  if(
+    candidate.finishReason &&
+    candidate.finishReason !== 'STOP'
+  ){
+
+    console.warn(
+      'Gemini finishReason:',
+      candidate.finishReason
+    );
+
+  }
+
+  /*
+   * テキスト取得
+   */
+
+  const text =
+    extractGeminiText(
+      data
+    );
+
+  if(!text){
+
+    throw new Error(
+      'EMPTY_RESPONSE: Geminiの判定結果が空でした。'
+    );
+
+  }
+
+  /*
+   * JSON解析
+   */
+
+  try{
+
+    return safeJsonParse(
+      text
+    );
+
+  }
+
+  catch(error){
+
+    console.warn(
+      'JSON解析失敗:',
+      error,
+      text
+    );
+
+    const jsonError =
+      new Error(
+        'JSON_ERROR: ' +
+        error.message
+      );
+
+    jsonError.rawText =
+      text;
+
+    throw jsonError;
+
+  }
+
+}
+
+
+/* =========================================================
+   Gemini自動フォールバック
+========================================================= */
+
+async function runGeminiWithFallback(parts){
+
+  const attempts = [
+
+    {
+      model:
+        GEMINI_MODEL,
+
+      useSchema:
+        true,
+
+      retryInstruction:
+        false,
+
+      label:
+        '① Gemini 3.6 Flash + JSON Schema'
+    },
+
+    {
+      model:
+        GEMINI_MODEL,
+
+      useSchema:
+        false,
+
+      retryInstruction:
+        false,
+
+      label:
+        '② Gemini 3.6 Flash + JSONモード'
+    },
+
+    {
+      model:
+        GEMINI_MODEL,
+
+      useSchema:
+        false,
+
+      retryInstruction:
+        true,
+
+      label:
+        '③ Gemini 3.6 Flash + JSON再要求'
+    }
+
+  ];
+
+
+  /*
+   * フォールバックモデル
+   */
+
+  for(
+    const model of GEMINI_FALLBACK_MODELS
+  ){
+
+    attempts.push({
+
+      model,
+
+      useSchema:true,
+
+      retryInstruction:false,
+
+      label:
+        '④ ' +
+        model +
+        ' + JSON Schema'
+
+    });
+
+
+    attempts.push({
+
+      model,
+
+      useSchema:false,
+
+      retryInstruction:true,
+
+      label:
+        '⑤ ' +
+        model +
+        ' + JSON再要求'
+
+    });
+
+  }
+
+
+  let lastError =
+    null;
+
+
+  for(
+    let i = 0;
+    i < attempts.length;
+    i++
+  ){
+
+    const attempt =
+      attempts[i];
+
+
+    setStatus(
+      'AI判定を実行しています…\n\n' +
+      attempt.label +
+      '\n\n' +
+      '失敗した場合は自動的に次の方法を試します。'
+    );
+
+
+    try{
+
+      console.log(
+        'Gemini試行:',
+        attempt.label
+      );
+
+
+      const result =
+        await callGeminiOnce({
+
+          model:
+            attempt.model,
+
+          parts,
+
+          useSchema:
+            attempt.useSchema,
+
+          retryInstruction:
+            attempt.retryInstruction
+
+        });
+
+
+      console.log(
+        'Gemini判定成功:',
+        attempt.label,
+        result
+      );
+
+
+      return {
+
+        result,
+
+        method:
+          attempt.label
+
+      };
+
+    }
+
+    catch(error){
+
+      lastError =
+        error;
+
+
+      console.warn(
+        'Gemini試行失敗:',
+        attempt.label,
+        error
+      );
+
+
+      /*
+       * API Key不正などは即終了
+       */
+
+      const status =
+        error?.status;
+
+
+      if(
+        status === 400 ||
+        status === 401 ||
+        status === 403
+      ){
+
+        /*
+         * 400でもJSON関係の場合は次へ
+         */
+
+        if(
+          /JSON/i.test(
+            error.message
+          ) ||
+          /schema/i.test(
+            error.message
+          ) ||
+          /responseMime/i.test(
+            error.message
+          )
+        ){
+
+          continue;
+
+        }
+
+
+        throw error;
+
+      }
+
+
+      /*
+       * まだ試行が残っている場合
+       */
+
+      if(
+        i <
+        attempts.length - 1
+      ){
+
+        await new Promise(
+          resolve =>
+            setTimeout(
+              resolve,
+              700
+            )
+        );
+
+        continue;
+
+      }
+
+    }
+
+  }
+
+
+  /*
+   * 全部失敗
+   */
+
+  if(lastError){
+
+    throw new Error(
+      'Geminiの自動リトライをすべて試しましたが、判定できませんでした。\n\n' +
+      '最後のエラー:\n' +
+      lastError.message
+    );
+
+  }
+
+
+  throw new Error(
+    'Geminiの判定に失敗しました。'
+  );
 
 }
 
@@ -1751,22 +2211,18 @@ async function scan(){
 
   clearMessage();
 
-
   const key =
     $('apiKey')
       .value
       .trim();
 
-
   const front =
     $('front')
       .files[0];
 
-
   const back =
     $('back')
       .files[0];
-
 
   if(!key){
 
@@ -1776,7 +2232,6 @@ async function scan(){
 
   }
 
-
   if(!front){
 
     throw Error(
@@ -1785,20 +2240,12 @@ async function scan(){
 
   }
 
-
   saveKey();
-
 
   $('scanBtn').disabled =
     true;
 
-
   try{
-
-    setStatus(
-      'Gemini 3.6 Flashで画像を解析しています…'
-    );
-
 
     /*
      * Geminiへ送るparts
@@ -1828,7 +2275,7 @@ async function scan(){
 
 
     /*
-     * 裏面がある場合
+     * 裏面
      */
 
     if(back){
@@ -1851,223 +2298,17 @@ async function scan(){
 
 
     /*
-     * Gemini 3.6 Flash
-     *
-     * temperature等は使用しない。
+     * 自動フォールバック
      */
 
-    const requestBody = {
-
-      contents:[
-
-        {
-
-          role:'user',
-
-          parts:
-            parts
-
-        }
-
-      ],
-
-      generationConfig:{
-
-        responseMimeType:
-          'application/json',
-
-        responseSchema:
-          GEMINI_SCHEMA,
-
-        maxOutputTokens:
-          600
-
-      }
-
-    };
-
-
-    /*
-     * API URL
-     */
-
-    const url =
-      'https://generativelanguage.googleapis.com/v1beta/models/' +
-      encodeURIComponent(
-        GEMINI_MODEL
-      ) +
-      ':generateContent?key=' +
-      encodeURIComponent(
-        key
+    const result =
+      await runGeminiWithFallback(
+        parts
       );
 
-
-    let response;
-
-
-    try{
-
-      response =
-        await fetch(
-          url,
-          {
-
-            method:'POST',
-
-            headers:{
-              'Content-Type':
-                'application/json'
-            },
-
-            body:
-              JSON.stringify(
-                requestBody
-              )
-
-          }
-        );
-
-    }
-
-    catch(error){
-
-      throw Error(
-        'Gemini APIへ接続できませんでした。\n\n' +
-        'ネットワーク接続とAPI Keyを確認してください。'
-      );
-
-    }
-
-
-    let data;
-
-
-    try{
-
-      data =
-        await response.json();
-
-    }
-
-    catch{
-
-      throw Error(
-        'Geminiから正しいJSON応答を受け取れませんでした。'
-      );
-
-    }
-
-
-    /*
-     * HTTPエラー
-     */
-
-    if(!response.ok){
-
-      const message =
-        data?.error?.message ||
-        (
-          'HTTP ' +
-          response.status
-        );
-
-
-      /*
-       * Quota
-       */
-
-      if(
-        response.status === 429 ||
-        /quota/i.test(message) ||
-        /rate limit/i.test(message)
-      ){
-
-        throw Error(
-          'Gemini APIの利用上限に達しています。\n\n' +
-          'Google AI StudioのUsage / Rate Limitを確認してください。\n\n' +
-          'これはHTMLのJSON処理エラーではありません。'
-        );
-
-      }
-
-
-      throw Error(
-        'Geminiエラー: ' +
-        message
-      );
-
-    }
-
-
-    /*
-     * candidates
-     */
-
-    const candidate =
-      data
-        ?.candidates?.[0];
-
-
-    if(!candidate){
-
-      throw Error(
-        'Geminiから判定結果が返ってきませんでした。'
-      );
-
-    }
-
-
-    /*
-     * finishReason確認
-     */
-
-    if(
-      candidate.finishReason &&
-      candidate.finishReason !== 'STOP'
-    ){
-
-      console.warn(
-        'Gemini finishReason:',
-        candidate.finishReason
-      );
-
-    }
-
-
-    /*
-     * text抽出
-     */
-
-    const text =
-      candidate
-        ?.content
-        ?.parts
-        ?.map(
-          part =>
-            part.text || ''
-        )
-        .join('')
-        .trim();
-
-
-    if(!text){
-
-      throw Error(
-        'Geminiの判定結果が空でした。\n\n' +
-        '画像をもう一度選択して再実行してください。'
-      );
-
-    }
-
-
-    /*
-     * 安全にJSON解析
-     */
 
     analysis =
-      safeJsonParse(
-        text
-      );
+      result.result;
 
 
     /*
@@ -2075,14 +2316,16 @@ async function scan(){
      */
 
     const name =
-      typeof analysis.name === 'string'
-        ? analysis.name
+      typeof analysis.name === 'string' &&
+      analysis.name.trim()
+        ? analysis.name.trim()
         : '確認できません';
 
 
     const series =
-      typeof analysis.series === 'string'
-        ? analysis.series
+      typeof analysis.series === 'string' &&
+      analysis.series.trim()
+        ? analysis.series.trim()
         : '確認できません';
 
 
@@ -2174,12 +2417,13 @@ async function scan(){
 
     setStatus('');
 
-
     setSuccess(
       'AI判定が完了しました。\n' +
+      '使用方式：' +
+      result.method +
+      '\n\n' +
       '商品名・シリーズ・レア度を確認してください。'
     );
-
 
   }
 
@@ -2210,12 +2454,10 @@ function getSearchKeyword(){
       .value
       .trim();
 
-
   const series =
     $('series')
       .value
       .trim();
-
 
   if(
     !name ||
@@ -2225,7 +2467,6 @@ function getSearchKeyword(){
     return '';
 
   }
-
 
   if(
     series &&
@@ -2239,7 +2480,6 @@ function getSearchKeyword(){
     );
 
   }
-
 
   return name;
 
@@ -2259,7 +2499,6 @@ function googleSearch(
     encodeURIComponent(
       query
     );
-
 
   window.open(
     url,
@@ -2281,7 +2520,6 @@ $('mercariBtn').onclick =
       const keyword =
         getSearchKeyword();
 
-
       if(!keyword){
 
         throw Error(
@@ -2290,12 +2528,10 @@ $('mercariBtn').onclick =
 
       }
 
-
       googleSearch(
         'site:jp.mercari.com ' +
         keyword
       );
-
 
       setWarning(
         'メルカリの検索結果を開きました。\n' +
@@ -2325,7 +2561,6 @@ $('mandarakeBtn').onclick =
       const keyword =
         getSearchKeyword();
 
-
       if(!keyword){
 
         throw Error(
@@ -2334,12 +2569,10 @@ $('mandarakeBtn').onclick =
 
       }
 
-
       googleSearch(
         'site:mandarake.co.jp ' +
         keyword
       );
-
 
       setWarning(
         'まんだらけの検索結果を開きました。\n' +
@@ -2422,7 +2655,6 @@ async function save(){
 
   clearMessage();
 
-
   if(!analysis){
 
     throw Error(
@@ -2430,7 +2662,6 @@ async function save(){
     );
 
   }
-
 
   if(!token()){
 
@@ -2440,16 +2671,13 @@ async function save(){
 
   }
 
-
   const front =
     $('front')
       .files[0];
 
-
   const back =
     $('back')
       .files[0];
-
 
   if(!front){
 
@@ -2459,10 +2687,8 @@ async function save(){
 
   }
 
-
   $('saveBtn').disabled =
     true;
-
 
   try{
 
@@ -2470,14 +2696,11 @@ async function save(){
       'pCloudへ保存しています…'
     );
 
-
     const rootFolderId =
       await root();
 
-
     const item =
       current();
-
 
     /*
      * アイテムフォルダ
@@ -2497,7 +2720,6 @@ async function save(){
 
         }
       );
-
 
     const folderid =
       folder.metadata.folderid;
@@ -2559,7 +2781,6 @@ async function save(){
     item.folderid =
       folderid;
 
-
     const dataFile =
       new File(
 
@@ -2595,17 +2816,13 @@ async function save(){
     item.preview =
       $('frontPreview').src;
 
-
     records.unshift(
       item
     );
 
-
     render();
 
-
     setStatus('');
-
 
     setSuccess(
       'pCloudに保存しました。'
@@ -2631,7 +2848,6 @@ async function refresh(){
 
   clearMessage();
 
-
   if(!token()){
 
     throw Error(
@@ -2640,15 +2856,12 @@ async function refresh(){
 
   }
 
-
   setStatus(
     'pCloudの保存データを確認しています…'
   );
 
-
   const rootFolderId =
     await root();
-
 
   const data =
     await pcall(
@@ -2663,7 +2876,6 @@ async function refresh(){
       }
     );
 
-
   const folders =
     (
       data.metadata.contents ||
@@ -2677,9 +2889,7 @@ async function refresh(){
         )
     );
 
-
   records = [];
-
 
   /*
    * 各フォルダのdata.jsonを読む
@@ -2720,10 +2930,6 @@ async function refresh(){
 
       if(jsonFile){
 
-        /*
-         * ファイルリンク
-         */
-
         const linkData =
           await pcall(
             'getfilelink',
@@ -2749,10 +2955,8 @@ async function refresh(){
           const item =
             await response.json();
 
-
           item.folderid =
             folder.folderid;
-
 
           records.push(
             item
@@ -2798,7 +3002,6 @@ async function refresh(){
         '保存データの読み込み失敗:',
         error
       );
-
 
       records.push({
 
@@ -2846,9 +3049,7 @@ async function refresh(){
 
   render();
 
-
   setStatus('');
-
 
   setSuccess(
     records.length +
@@ -2870,11 +3071,9 @@ async function del(id){
         item.id === id
     );
 
-
   if(!record){
     return;
   }
-
 
   if(
     !confirm(
@@ -2886,16 +3085,13 @@ async function del(id){
 
   }
 
-
   clearMessage();
-
 
   try{
 
     setStatus(
       'pCloudから削除しています…'
     );
-
 
     await pcall(
       'deletefolderrecursive',
@@ -2907,19 +3103,15 @@ async function del(id){
       }
     );
 
-
     records =
       records.filter(
         item =>
           item.id !== id
       );
 
-
     render();
 
-
     setStatus('');
-
 
     setSuccess(
       '削除しました。'
@@ -2950,7 +3142,6 @@ function render(){
     return;
 
   }
-
 
   $('list').innerHTML =
     records
@@ -3018,7 +3209,6 @@ function render(){
               </p>
 
             </div>
-
 
             <button
               class="btn small red"
