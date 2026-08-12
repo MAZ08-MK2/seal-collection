@@ -236,10 +236,19 @@ textarea{
 .thumb{
   width:80px;
   height:80px;
-  object-fit:contain;
+  object-fit:cover;
   border-radius:10px;
   background:#edf1f7;
   flex:none;
+}
+
+.thumb.placeholder{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#98a2b3;
+  font-size:11px;
+  text-align:center;
 }
 
 .item h3{
@@ -299,19 +308,6 @@ textarea{
   line-height:1.5;
 }
 
-.priceRow{
-  display:grid;
-  grid-template-columns:90px 1fr;
-  gap:8px;
-  align-items:center;
-  margin-top:8px;
-}
-
-.priceRow span{
-  font-size:12px;
-  color:var(--sub);
-}
-
 .source{
   font-size:11px;
   color:var(--sub);
@@ -339,6 +335,18 @@ textarea{
   line-height:1.6;
 }
 
+.confirmedView{
+  background:#ecfdf3;
+  border:1px solid #86efac;
+  border-radius:10px;
+  padding:10px;
+  margin-top:10px;
+  font-size:12px;
+  color:#166534;
+  line-height:1.6;
+  display:none;
+}
+
 .hidden{
   display:none !important;
 }
@@ -357,10 +365,6 @@ code{
 
   .photo{
     min-height:140px;
-  }
-
-  .priceRow{
-    grid-template-columns:1fr;
   }
 
   .item{
@@ -427,7 +431,7 @@ type="button">
 
 
 <!-- =================================================
-     Gemini API Key
+     Gemini API
 ================================================== -->
 
 <section class="card">
@@ -500,11 +504,8 @@ type="button">
 
 
 <div id="status" class="status"></div>
-
 <div id="warning" class="warning"></div>
-
 <div id="success" class="success"></div>
-
 <div id="error" class="error"></div>
 
 </section>
@@ -522,8 +523,8 @@ class="card result">
 解析結果
 </label>
 
-<div class="fields">
 
+<div class="fields">
 
 <div>
 
@@ -564,9 +565,7 @@ class="card result">
 </div>
 
 
-<!-- =================================================
-     レア度
-================================================== -->
+<!-- ★ レア度は自由入力に変更 -->
 
 <div>
 
@@ -577,17 +576,17 @@ class="card result">
 <input
 id="rarity"
 type="text"
-placeholder="例：ホロPP、キラ、スーパーゼウス、不明">
+placeholder="例：スーパーゼウス、ホロ、プリズム、SSR、不明 など">
 
 <p class="hint">
-自由に入力できます。ChatGPTで調べたレア度をそのまま入力してください。
+自由に入力できます。AI判定後に修正してください。
 </p>
 
 </div>
 
 
 <!-- =================================================
-     ChatGPT調査
+     ChatGPT
 ================================================== -->
 
 <div class="chatgptBox">
@@ -624,17 +623,9 @@ type="button">
 💰 相場
 </div>
 
-<div class="priceRow">
-
-<span>
-相場
-</span>
-
 <input
 id="price"
 placeholder="例：2,500円～3,500円">
-
-</div>
 
 <div class="source">
 
@@ -672,9 +663,10 @@ ChatGPTで調べた結果を入力してください。<br>
 </div>
 
 <div class="confirmText">
-レア度・相場・シール名などを確認してから
-「この内容で確定」を押してください。<br>
-pCloudには、この時点で確定した内容だけが保存されます。
+ここで「この内容で確定する」を押すと、<br>
+その時点のシール名・シリーズ・種類・レア度・相場・メモを
+保存用データとして固定します。<br>
+その後に画面を変更しても、pCloudには確定時の内容が保存されます。
 </div>
 
 <button
@@ -683,6 +675,11 @@ class="btn green full"
 type="button">
 ✅ この内容で確定する
 </button>
+
+<div
+id="confirmedView"
+class="confirmedView">
+</div>
 
 </div>
 
@@ -743,15 +740,12 @@ pCloudに接続すると保存済みの一覧を読み込みます。
 const PCLOUD_CLIENT_ID =
   'VvTvHaowOR0';
 
-
 const GEMINI_MODEL =
   'gemini-3.6-flash';
-
 
 const GEMINI_FALLBACK_MODELS = [
   'gemini-3.1-flash-lite'
 ];
-
 
 const ROOT_FOLDER =
   '8.seal collection';
@@ -764,27 +758,37 @@ const ROOT_FOLDER =
 const $ =
   id => document.getElementById(id);
 
-
 const store =
   localStorage;
 
 
-let analysis = null;
+/*
+ * AIが返した結果
+ * ---------------------------------
+ * 「判定結果」であり、
+ * pCloud保存用データではない。
+ */
+let analysis =
+  null;
 
 
 /*
- * AI判定結果とは完全に分離する。
- *
- * 「この内容で確定する」を押したときだけ
- * ここに保存対象データをコピーする。
+ * pCloudから読み込んだ一覧
  */
-let confirmedItem = null;
+let records =
+  [];
 
 
-let records = [];
-
-
-let confirmed = false;
+/*
+ * ★ 最重要
+ *
+ * 「この内容で確定する」を押した時点の
+ * 完成データをここに保存する。
+ *
+ * pCloud保存処理は、この変数だけを使う。
+ */
+let confirmedItem =
+  null;
 
 
 /* =========================================================
@@ -793,31 +797,31 @@ let confirmed = false;
 
 function setStatus(text){
 
-  $('status').textContent = text;
+  $('status').textContent =
+    text;
 
   $('status').style.display =
     text ? 'block' : 'none';
-
 }
 
 
 function setWarning(text){
 
-  $('warning').textContent = text;
+  $('warning').textContent =
+    text;
 
   $('warning').style.display =
     text ? 'block' : 'none';
-
 }
 
 
 function setSuccess(text){
 
-  $('success').textContent = text;
+  $('success').textContent =
+    text;
 
   $('success').style.display =
     text ? 'block' : 'none';
-
 }
 
 
@@ -833,7 +837,6 @@ function fail(error){
     error?.message ||
     String(error);
 
-
   if(
     /quota/i.test(message) ||
     /rate limit/i.test(message) ||
@@ -844,16 +847,13 @@ function fail(error){
     message =
       'Gemini APIの利用上限に達しています。\n\n' +
       'Google AI StudioのUsage / Rate Limitを確認してください。';
-
   }
-
 
   $('error').textContent =
     message;
 
   $('error').style.display =
     'block';
-
 }
 
 
@@ -865,7 +865,6 @@ function clearMessage(){
   setWarning('');
   setSuccess('');
   setStatus('');
-
 }
 
 
@@ -886,7 +885,6 @@ function esc(text){
         "'":'&#39;'
       }[c])
     );
-
 }
 
 
@@ -902,7 +900,6 @@ function uid(){
       .toString(36)
       .slice(2,8)
   );
-
 }
 
 
@@ -914,7 +911,6 @@ function mime(file){
 
   return file.type ||
     'image/jpeg';
-
 }
 
 
@@ -922,10 +918,7 @@ function mime(file){
    画像プレビュー
 ========================================================= */
 
-function preview(
-  input,
-  image
-){
+function preview(input,image){
 
   const file =
     input.files[0];
@@ -945,11 +938,9 @@ function preview(
 
       image.style.display =
         'block';
-
     };
 
   reader.readAsDataURL(file);
-
 }
 
 
@@ -970,52 +961,6 @@ $('back').onchange =
 
 
 /* =========================================================
-   入力内容を変更したら
-   「確定済み」を解除
-========================================================= */
-
-[
-  'name',
-  'series',
-  'kind',
-  'rarity',
-  'price',
-  'memo'
-].forEach(id => {
-
-  $(id).addEventListener(
-    'input',
-    invalidateConfirmation
-  );
-
-  $(id).addEventListener(
-    'change',
-    invalidateConfirmation
-  );
-
-});
-
-
-function invalidateConfirmation(){
-
-  if(!confirmed){
-    return;
-  }
-
-  confirmed = false;
-  confirmedItem = null;
-
-  $('saveBtn').disabled = true;
-
-  setWarning(
-    '登録内容が変更されました。\n\n' +
-    '変更後の内容を保存する場合は、もう一度「この内容で確定する」を押してください。'
-  );
-
-}
-
-
-/* =========================================================
    Gemini API Key
 ========================================================= */
 
@@ -1025,7 +970,6 @@ function saveKey(){
     'stickerGeminiKey',
     $('apiKey').value.trim()
   );
-
 }
 
 
@@ -1041,7 +985,6 @@ function apiHost(){
     ) ||
     'api.pcloud.com'
   );
-
 }
 
 
@@ -1050,7 +993,6 @@ function token(){
   return store.getItem(
     'pcloudToken'
   );
-
 }
 
 
@@ -1077,7 +1019,6 @@ function updateCloud(){
       'hidden',
       !connected
     );
-
 }
 
 
@@ -1085,7 +1026,6 @@ function redirectURI(){
 
   return location.href
     .split('#')[0];
-
 }
 
 
@@ -1104,7 +1044,6 @@ function connect(){
     throw Error(
       'PCLOUD_CLIENT_IDにpCloudのClient IDを入力してください。'
     );
-
   }
 
   if(
@@ -1114,7 +1053,6 @@ function connect(){
     throw Error(
       'このHTMLはHTTPSで公開してから使用してください。'
     );
-
   }
 
   const state =
@@ -1138,13 +1076,11 @@ function connect(){
         redirectURI(),
 
       state
-
     });
 
   location.href =
     'https://my.pcloud.com/oauth2/authorize?' +
     params.toString();
-
 }
 
 
@@ -1179,7 +1115,6 @@ function readOAuth(){
       throw Error(
         'pCloud認証の確認値が一致しません。もう一度接続してください。'
       );
-
     }
 
     store.setItem(
@@ -1202,7 +1137,6 @@ function readOAuth(){
       '',
       redirectURI()
     );
-
   }
 
   else if(
@@ -1213,9 +1147,7 @@ function readOAuth(){
       'pCloud認証が完了しませんでした: ' +
       params.get('error')
     );
-
   }
-
 }
 
 
@@ -1234,7 +1166,6 @@ async function pcall(
     throw Error(
       '先にpCloudへ接続してください。'
     );
-
   }
 
   const url =
@@ -1253,15 +1184,11 @@ async function pcall(
     );
 
     options = {
-
       method:'POST',
-
       body:form
-
     };
 
   }
-
   else{
 
     options = {
@@ -1279,9 +1206,7 @@ async function pcall(
           access_token:
             token()
         })
-
     };
-
   }
 
   let response;
@@ -1295,13 +1220,11 @@ async function pcall(
       );
 
   }
-
   catch{
 
     throw Error(
       'pCloudへ接続できませんでした。公開URL・通信環境・pCloud設定を確認してください。'
     );
-
   }
 
   let data;
@@ -1312,13 +1235,11 @@ async function pcall(
       await response.json();
 
   }
-
   catch{
 
     throw Error(
       'pCloudから正しい応答が返りませんでした。'
     );
-
   }
 
   if(
@@ -1334,11 +1255,9 @@ async function pcall(
         response.status
       )
     );
-
   }
 
   return data;
-
 }
 
 
@@ -1358,7 +1277,6 @@ async function root(){
     );
 
   return data.metadata.folderid;
-
 }
 
 
@@ -1387,7 +1305,7 @@ async function upload(
 
   form.append(
     'renameifexists',
-    '0'
+    '1'
   );
 
   form.append(
@@ -1401,7 +1319,6 @@ async function upload(
     {},
     form
   );
-
 }
 
 
@@ -1438,26 +1355,7 @@ return `
 トレカ
 食玩
 
-レア度は、画像から確認できる正式な表記を優先してください。
-
-例えば、
-
-N
-R
-SR
-SSR
-SC
-UR
-SEC
-PR
-ホロPP
-ホロ
-キラ
-箔押し
-シークレット
-ゴールド
-
-などです。
+レア度は画像から確認できる正式な表記を優先してください。
 
 上記以外でも、画像に明確に記載されている正式なレア度表記がある場合は、その表記を使用してください。
 
@@ -1511,7 +1409,6 @@ async function b64(file){
             );
 
             return;
-
           }
 
           resolve(
@@ -1519,7 +1416,6 @@ async function b64(file){
               comma + 1
             )
           );
-
         };
 
       reader.onerror =
@@ -1531,15 +1427,13 @@ async function b64(file){
           );
 
       reader.readAsDataURL(file);
-
     }
   );
-
 }
 
 
 /* =========================================================
-   Gemini JSON Schema
+   Gemini Schema
 ========================================================= */
 
 const GEMINI_SCHEMA = {
@@ -1572,7 +1466,6 @@ const GEMINI_SCHEMA = {
     memo:{
       type:'string'
     }
-
   },
 
   required:[
@@ -1586,7 +1479,7 @@ const GEMINI_SCHEMA = {
 
 
 /* =========================================================
-   JSON抽出
+   JSON
 ========================================================= */
 
 function extractJsonText(text){
@@ -1598,7 +1491,6 @@ function extractJsonText(text){
     throw Error(
       'GeminiからJSON文字列を取得できませんでした。'
     );
-
   }
 
   let s =
@@ -1635,35 +1527,12 @@ function extractJsonText(text){
     throw Error(
       'Geminiの回答にJSONオブジェクトがありません。'
     );
-
   }
 
-  s =
-    s.slice(
-      start,
-      end + 1
-    );
-
-  s =
-    s.replace(
-      /[\u201C\u201D]/g,
-      '"'
-    );
-
-  s =
-    s.replace(
-      /[\u2018\u2019]/g,
-      "'"
-    );
-
-  s =
-    s.replace(
-      /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,
-      ' '
-    );
-
-  return s;
-
+  return s.slice(
+    start,
+    end + 1
+  );
 }
 
 
@@ -1679,7 +1548,6 @@ function safeJsonParse(text){
     );
 
   }
-
   catch{
 
     const repaired =
@@ -1695,17 +1563,13 @@ function safeJsonParse(text){
       );
 
     }
-
     catch{
 
       throw Error(
         'JSON Parse error: Geminiから返されたJSONを解析できませんでした。'
       );
-
     }
-
   }
-
 }
 
 
@@ -1726,7 +1590,6 @@ function extractGeminiText(data){
   ){
 
     return '';
-
   }
 
   return parts
@@ -1738,12 +1601,11 @@ function extractGeminiText(data){
     )
     .join('')
     .trim();
-
 }
 
 
 /* =========================================================
-   HTTPエラー
+   HTTP
 ========================================================= */
 
 function isRetryableStatus(status){
@@ -1756,7 +1618,6 @@ function isRetryableStatus(status){
     503,
     504
   ].includes(status);
-
 }
 
 
@@ -1779,14 +1640,11 @@ async function callGeminiOnce({
   if(retryInstruction){
 
     promptParts.push({
-
       text:
         '\n\n前回の回答を解析できませんでした。' +
         '\n必ずJSONオブジェクトだけを返してください。' +
         '\nMarkdown、説明文、コードブロックは不要です。'
-
     });
-
   }
 
   const requestBody = {
@@ -1805,19 +1663,16 @@ async function callGeminiOnce({
 
       maxOutputTokens:
         800
-
     }
-
   };
-
 
   if(useSchema){
 
-    requestBody.generationConfig.responseSchema =
-      GEMINI_SCHEMA;
-
+    requestBody
+      .generationConfig
+      .responseSchema =
+        GEMINI_SCHEMA;
   }
-
 
   const url =
     'https://generativelanguage.googleapis.com/v1beta/models/' +
@@ -1826,7 +1681,6 @@ async function callGeminiOnce({
     encodeURIComponent(
       $('apiKey').value.trim()
     );
-
 
   let response;
 
@@ -1851,15 +1705,12 @@ async function callGeminiOnce({
       );
 
   }
-
   catch{
 
     throw new Error(
       'NETWORK_ERROR: Gemini APIへ接続できませんでした。'
     );
-
   }
-
 
   let data;
 
@@ -1869,15 +1720,12 @@ async function callGeminiOnce({
       await response.json();
 
   }
-
   catch{
 
     throw new Error(
       'INVALID_RESPONSE: GeminiからJSON応答を取得できませんでした。'
     );
-
   }
-
 
   if(!response.ok){
 
@@ -1905,9 +1753,7 @@ async function callGeminiOnce({
       );
 
     throw error;
-
   }
-
 
   const candidate =
     data?.candidates?.[0];
@@ -1917,9 +1763,7 @@ async function callGeminiOnce({
     throw new Error(
       'NO_CANDIDATE: Geminiから判定結果が返ってきませんでした。'
     );
-
   }
-
 
   const text =
     extractGeminiText(
@@ -1931,9 +1775,7 @@ async function callGeminiOnce({
     throw new Error(
       'EMPTY_RESPONSE: Geminiの判定結果が空でした。'
     );
-
   }
-
 
   try{
 
@@ -1942,22 +1784,13 @@ async function callGeminiOnce({
     );
 
   }
-
   catch(error){
 
-    const jsonError =
-      new Error(
-        'JSON_ERROR: ' +
-        error.message
-      );
-
-    jsonError.rawText =
-      text;
-
-    throw jsonError;
-
+    throw new Error(
+      'JSON_ERROR: ' +
+      error.message
+    );
   }
-
 }
 
 
@@ -1989,9 +1822,7 @@ async function runGeminiWithFallback(parts){
       retryInstruction:true,
       label:'Gemini + JSON再要求'
     }
-
   ];
-
 
   for(
     const model of GEMINI_FALLBACK_MODELS
@@ -2002,44 +1833,38 @@ async function runGeminiWithFallback(parts){
       model,
       useSchema:true,
       retryInstruction:false,
-      label:model + ' + JSON Schema'
-
+      label:
+        model +
+        ' + JSON Schema'
     });
-
 
     attempts.push({
 
       model,
       useSchema:false,
       retryInstruction:true,
-      label:model + ' + JSON再要求'
-
+      label:
+        model +
+        ' + JSON再要求'
     });
-
   }
-
 
   let lastError =
     null;
 
-
   for(
-    let i = 0;
-    i < attempts.length;
+    let i=0;
+    i<attempts.length;
     i++
   ){
 
     const attempt =
       attempts[i];
 
-
     setStatus(
       'AI判定を実行しています…\n\n' +
-      attempt.label +
-      '\n\n' +
-      '失敗した場合は自動的に次の方法を試します。'
+      attempt.label
     );
-
 
     try{
 
@@ -2053,18 +1878,12 @@ async function runGeminiWithFallback(parts){
 
         });
 
-
       return {
-
         result,
-
-        method:
-          attempt.label
-
+        method:attempt.label
       };
 
     }
-
     catch(error){
 
       lastError =
@@ -2072,7 +1891,6 @@ async function runGeminiWithFallback(parts){
 
       const status =
         error?.status;
-
 
       if(
         status === 400 ||
@@ -2087,13 +1905,10 @@ async function runGeminiWithFallback(parts){
         ){
 
           continue;
-
         }
 
         throw error;
-
       }
-
 
       if(
         i <
@@ -2109,29 +1924,18 @@ async function runGeminiWithFallback(parts){
         );
 
         continue;
-
       }
-
     }
-
   }
-
-
-  if(lastError){
-
-    throw new Error(
-      'Geminiの自動リトライをすべて試しましたが、判定できませんでした。\n\n' +
-      '最後のエラー:\n' +
-      lastError.message
-    );
-
-  }
-
 
   throw new Error(
-    'Geminiの判定に失敗しました。'
+    'Geminiの自動リトライをすべて試しましたが、判定できませんでした。\n\n' +
+    '最後のエラー:\n' +
+    (
+      lastError?.message ||
+      ''
+    )
   );
-
 }
 
 
@@ -2156,41 +1960,37 @@ async function scan(){
     $('back')
       .files[0];
 
-
   if(!key){
 
     throw Error(
       'Gemini API Keyを入力してください。'
     );
-
   }
-
 
   if(!front){
 
     throw Error(
       '表面の画像を選択してください。'
     );
-
   }
 
-
   saveKey();
-
 
   $('scanBtn').disabled =
     true;
 
-
-  confirmed =
-    false;
-
+  /*
+   * ★ 新しいAI判定を始めたら、
+   * 以前の確定データは必ず破棄する。
+   */
   confirmedItem =
     null;
 
   $('saveBtn').disabled =
     true;
 
+  $('confirmedView').style.display =
+    'none';
 
   try{
 
@@ -2203,48 +2003,32 @@ async function scan(){
 
       {
         inline_data:{
-
-          mime_type:
-            mime(front),
-
-          data:
-            await b64(front)
-
+          mime_type:mime(front),
+          data:await b64(front)
         }
-
       }
 
     ];
-
 
     if(back){
 
       parts.push({
 
         inline_data:{
-
-          mime_type:
-            mime(back),
-
-          data:
-            await b64(back)
-
+          mime_type:mime(back),
+          data:await b64(back)
         }
 
       });
-
     }
-
 
     const result =
       await runGeminiWithFallback(
         parts
       );
 
-
     analysis =
       result.result;
-
 
     const name =
       typeof analysis.name === 'string' &&
@@ -2252,20 +2036,22 @@ async function scan(){
         ? analysis.name.trim()
         : '確認できません';
 
-
     const series =
       typeof analysis.series === 'string' &&
       analysis.series.trim()
         ? analysis.series.trim()
         : '確認できません';
 
-
-    const kinds = [
-      'シール',
-      'トレカ',
-      '食玩'
-    ];
-
+    const kind =
+      [
+        'シール',
+        'トレカ',
+        '食玩'
+      ].includes(
+        analysis.kind
+      )
+        ? analysis.kind
+        : 'シール';
 
     const rarity =
       typeof analysis.rarity === 'string' &&
@@ -2273,65 +2059,43 @@ async function scan(){
         ? analysis.rarity.trim()
         : '不明';
 
-
-    const kind =
-      kinds.includes(
-        analysis.kind
-      )
-        ? analysis.kind
-        : 'シール';
-
-
     const memo =
       typeof analysis.memo === 'string'
         ? analysis.memo
         : '';
 
-
     $('name').value =
       name;
-
 
     $('series').value =
       series;
 
-
     $('kind').value =
       kind;
-
 
     $('rarity').value =
       rarity;
 
-
     $('memo').value =
       memo;
-
 
     $('price').value =
       '';
 
-
     $('resultCard').style.display =
       'block';
 
-
-    setStatus('');
-
     setSuccess(
       'AI判定が完了しました。\n\n' +
-      '次に「ChatGPTで調べる」を押して、レア度と相場を確認してください。'
+      'レア度・相場を確認、修正してから「この内容で確定する」を押してください。'
     );
 
   }
-
   finally{
 
     $('scanBtn').disabled =
       false;
-
   }
-
 }
 
 
@@ -2351,7 +2115,6 @@ function buildChatGPTPrompt(){
       .value
       .trim();
 
-
   if(
     !name ||
     name === '確認できません'
@@ -2360,9 +2123,7 @@ function buildChatGPTPrompt(){
     throw Error(
       'シール名が確認できないため、ChatGPTで調べることができません。'
     );
-
   }
-
 
   const today =
     new Date()
@@ -2375,11 +2136,9 @@ function buildChatGPTPrompt(){
         }
       );
 
-
   let itemText =
     'シール名：' +
     name;
-
 
   if(
     series &&
@@ -2389,9 +2148,7 @@ function buildChatGPTPrompt(){
     itemText +=
       '\nシリーズ：' +
       series;
-
   }
-
 
   return `
 このコレクション品について、Web検索を使って調べてください。
@@ -2420,12 +2177,11 @@ ${itemText}
 推測だけで価格を作らないでください。
 Web上で確認できる情報を優先してください。
 `.trim();
-
 }
 
 
 /* =========================================================
-   ChatGPTで調べる
+   ChatGPT
 ========================================================= */
 
 $('chatgptBtn').onclick =
@@ -2438,20 +2194,17 @@ $('chatgptBtn').onclick =
       const prompt =
         buildChatGPTPrompt();
 
-
       const url =
         'https://chatgpt.com/?q=' +
         encodeURIComponent(
           prompt
         );
 
-
       const newWindow =
         window.open(
           url,
           '_blank'
         );
-
 
       if(
         navigator.clipboard &&
@@ -2460,58 +2213,49 @@ $('chatgptBtn').onclick =
 
         navigator.clipboard
           .writeText(prompt)
-          .then(
-            () => {
-
-              setSuccess(
-                'ChatGPTを開きました。\n\n' +
-                '調査文も自動で用意しています。\n' +
-                'もし入力欄が空の場合は、クリップボードにコピー済みなので貼り付けてください。'
-              );
-
-            }
-          )
           .catch(
-            () => {
-
-              setSuccess(
-                'ChatGPTを開きました。\n\n' +
-                '調査文を入力欄に貼り付けて検索してください。'
-              );
-
-            }
+            () => {}
           );
-
       }
 
+      if(newWindow){
 
-      if(!newWindow){
-
-        setWarning(
-          'ChatGPTを開けませんでした。ブラウザのポップアップブロックを確認してください。'
+        setSuccess(
+          'ChatGPTを開きました。\n\n' +
+          '調査結果を確認して、この画面の「レア度」と「相場」に入力してください。\n\n' +
+          'その後、必ず「この内容で確定する」を押してください。'
         );
 
       }
+      else{
+
+        setWarning(
+          'ChatGPTを開けませんでした。ポップアップブロックを確認してください。'
+        );
+      }
 
     }
-
     catch(error){
 
       fail(error);
-
     }
-
   };
 
 
 /* =========================================================
-   「確定」した内容を作成
+   ★ 保存対象を作成
 ========================================================= */
 
-function confirmItem(){
+/*
+ * ここが今回の最重要部分。
+ *
+ * AI判定結果 analysis は絶対にここでは使わない。
+ *
+ * 画面に表示されている値を読み取り、
+ * 「確定した瞬間」のスナップショットを作る。
+ */
 
-  clearMessage();
-
+function createConfirmedItem(){
 
   const name =
     $('name')
@@ -2525,7 +2269,8 @@ function confirmItem(){
 
   const kind =
     $('kind')
-      .value;
+      .value
+      .trim();
 
   const rarity =
     $('rarity')
@@ -2542,55 +2287,14 @@ function confirmItem(){
       .value
       .trim();
 
-
   if(!name){
 
     throw Error(
       'シール名を入力してください。'
     );
-
   }
 
-
-  if(
-    !rarity
-  ){
-
-    const ok =
-      confirm(
-        'レア度が未入力です。\n\nこのまま確定しますか？'
-      );
-
-    if(!ok){
-      return;
-    }
-
-  }
-
-
-  if(!price){
-
-    const ok =
-      confirm(
-        '相場が未入力です。\n\nこのまま確定しますか？'
-      );
-
-    if(!ok){
-      return;
-    }
-
-  }
-
-
-  /*
-   * ★最重要★
-   *
-   * ここでAI判定結果とは別に、
-   * 現在画面に表示されている内容を
-   * 「保存対象」として完全コピーする。
-   */
-
-  confirmedItem = {
+  return {
 
     id:
       uid(),
@@ -2614,26 +2318,119 @@ function confirmItem(){
       memo,
 
     savedAt:
-      new Date()
-        .toISOString()
+      new Date().toISOString(),
 
+    /*
+     * ★ AI結果そのものは保存しない。
+     */
+    source:
+      'user-confirmed',
+
+    /*
+     * 確定時の値であることを明示
+     */
+    confirmedAt:
+      new Date().toISOString()
   };
+}
 
 
-  confirmed =
-    true;
+/* =========================================================
+   ★ 内容を確定
+========================================================= */
 
+function confirmItem(){
+
+  clearMessage();
+
+  /*
+   * まず現在画面の値から完全コピー。
+   */
+  const item =
+    createConfirmedItem();
+
+  /*
+   * レア度
+   */
+  if(
+    !item.rarity ||
+    item.rarity === '不明'
+  ){
+
+    const ok =
+      confirm(
+        'レア度が「不明」になっています。\n\nこの内容で確定しますか？'
+      );
+
+    if(!ok){
+
+      return;
+    }
+  }
+
+  /*
+   * 相場
+   */
+  if(!item.price){
+
+    const ok =
+      confirm(
+        '相場が未入力です。\n\nこの内容で確定しますか？'
+      );
+
+    if(!ok){
+
+      return;
+    }
+  }
+
+  /*
+   * ★★★
+   * ここで保存対象を固定。
+   *
+   * 以降のpCloud保存は
+   * confirmedItemだけを見る。
+   */
+  confirmedItem =
+    structuredClone
+      ? structuredClone(item)
+      : JSON.parse(
+          JSON.stringify(item)
+        );
+
+  /*
+   * 確定表示
+   */
+  $('confirmedView').innerHTML =
+    '<strong>確定済みの保存内容</strong><br>' +
+    'シール名：' +
+    esc(confirmedItem.name) +
+    '<br>' +
+    'シリーズ：' +
+    esc(confirmedItem.series) +
+    '<br>' +
+    '種類：' +
+    esc(confirmedItem.kind) +
+    '<br>' +
+    'レア度：<strong>' +
+    esc(confirmedItem.rarity) +
+    '</strong><br>' +
+    '相場：<strong>' +
+    esc(
+      confirmedItem.price ||
+      '未入力'
+    ) +
+    '</strong>';
+
+  $('confirmedView').style.display =
+    'block';
 
   $('saveBtn').disabled =
     false;
 
-
   setSuccess(
     '登録内容を確定しました。\n\n' +
-    '保存対象：\n' +
-    'シール名：' +
-    confirmedItem.name +
-    '\n' +
+    'pCloudに保存される内容：\n' +
     'レア度：' +
     confirmedItem.rarity +
     '\n' +
@@ -2643,9 +2440,8 @@ function confirmItem(){
       '未入力'
     ) +
     '\n\n' +
-    'この内容がpCloudに保存されます。'
+    'この後のpCloud保存では、この「確定済みデータ」だけを使用します。'
   );
-
 }
 
 
@@ -2666,59 +2462,34 @@ function ext(file){
     ''
   )
   .toLowerCase();
-
 }
 
 
 /* =========================================================
-   pCloud保存
+   ★ pCloud保存
 ========================================================= */
 
 async function save(){
 
   clearMessage();
 
-
   /*
-   * AI判定結果だけでは保存させない。
+   * ★ AI結果ではなく、
+   * 確定済みデータが存在するかだけ確認。
    */
-
-  if(!analysis){
-
-    throw Error(
-      '先にAIで判定してください。'
-    );
-
-  }
-
-
-  /*
-   * ★ここが重要
-   *
-   * 「この内容で確定する」を押して
-   * confirmedItem が作られていることを必須にする。
-   */
-
-  if(
-    !confirmed ||
-    !confirmedItem
-  ){
+  if(!confirmedItem){
 
     throw Error(
       '先に「この内容で確定する」を押してください。'
     );
-
   }
-
 
   if(!token()){
 
     throw Error(
       '先にpCloudへ接続してください。'
     );
-
   }
-
 
   const front =
     $('front')
@@ -2728,23 +2499,31 @@ async function save(){
     $('back')
       .files[0];
 
-
   if(!front){
 
     throw Error(
       '表面の画像がありません。'
     );
-
   }
 
+  /*
+   * ★★★ 保存直前にも再確認
+   */
+  const item =
+    structuredClone
+      ? structuredClone(confirmedItem)
+      : JSON.parse(
+          JSON.stringify(confirmedItem)
+        );
+
+  /*
+   * 念のためsourceを固定
+   */
+  item.source =
+    'user-confirmed';
 
   $('saveBtn').disabled =
     true;
-
-
-  let saveSucceeded =
-    false;
-
 
   try{
 
@@ -2752,128 +2531,131 @@ async function save(){
       'pCloudへ保存しています…'
     );
 
-
+    /*
+     * ルート
+     */
     const rootFolderId =
       await root();
-
-
-    /*
-     * ★AI結果ではなく
-     * ★確定データをコピー
-     */
-
-    const item = {
-
-      ...confirmedItem
-
-    };
-
 
     /*
      * アイテムフォルダ
      */
-
     const folder =
       await pcall(
         'createfolderifnotexists',
         {
-
           folderid:
             rootFolderId,
 
           name:
             'item-' +
             item.id
-
         }
       );
-
 
     const folderid =
       folder.metadata.folderid;
 
-
     /*
      * 表面画像
      */
-
-    const frontUpload =
-      await upload(
-        folderid,
-        front,
-        'front.' +
-        ext(front)
-      );
-
-
-    /*
-     * pCloud上の表面画像fileidを保存
-     */
-
-    const frontMeta =
-      frontUpload?.metadata?.[0] ||
-      frontUpload?.metadata;
-
-
-    if(
-      frontMeta &&
-      frontMeta.fileid
-    ){
-
-      item.frontFileId =
-        frontMeta.fileid;
-
-    }
-
+    await upload(
+      folderid,
+      front,
+      'front.' +
+      ext(front)
+    );
 
     /*
      * 裏面画像
      */
-
     if(back){
 
-      const backUpload =
-        await upload(
-          folderid,
-          back,
-          'back.' +
-          ext(back)
+      await upload(
+        folderid,
+        back,
+        'back.' +
+        ext(back)
+      );
+    }
+
+    /*
+     * ★★★
+     * 画像アップロード後、
+     * 一覧表示用の情報を取得。
+     */
+    let frontPreview =
+      '';
+
+    try{
+
+      const fileList =
+        await pcall(
+          'listfolder',
+          {
+            folderid:
+              folderid,
+
+            recursive:0
+          }
         );
 
+      const frontFile =
+        (
+          fileList
+            .metadata
+            .contents ||
+          []
+        ).find(
+          f =>
+            !f.isfolder &&
+            f.name.startsWith(
+              'front.'
+            )
+        );
 
-      const backMeta =
-        backUpload?.metadata?.[0] ||
-        backUpload?.metadata;
+      if(frontFile){
 
+        const linkData =
+          await pcall(
+            'getfilelink',
+            {
+              fileid:
+                frontFile.fileid,
 
-      if(
-        backMeta &&
-        backMeta.fileid
-      ){
+              forcedownload:0
+            }
+          );
 
-        item.backFileId =
-          backMeta.fileid;
-
+        frontPreview =
+          linkData.link ||
+          '';
       }
 
     }
+    catch(error){
 
+      console.warn(
+        '画像リンク取得失敗:',
+        error
+      );
+    }
 
     /*
-     * フォルダID
+     * ★ 保存するJSONは、
+     * confirmedItemをそのまま使用。
+     *
+     * analysisは一切使用しない。
      */
-
     item.folderid =
       folderid;
 
+    item.preview =
+      frontPreview;
 
     /*
-     * JSON
-     *
-     * ★ここにはconfirmedItem由来の
-     * 確定したレア度・相場が入る。
+     * JSON生成
      */
-
     const dataFile =
       new File(
 
@@ -2891,36 +2673,27 @@ async function save(){
           type:
             'application/json'
         }
-
       );
 
-
+    /*
+     * data.json
+     */
     await upload(
       folderid,
       dataFile,
       'data.json'
     );
 
-
     /*
-     * 一覧にすぐ表示するため、
-     * 今回だけブラウザ内プレビューを使用。
+     * ★ 画面一覧にも保存した確定データを入れる。
      */
-
-    item.preview =
-      $('frontPreview').src;
-
-
     records.unshift(
       item
     );
 
-
     render();
 
-
     setStatus('');
-
 
     setSuccess(
       'pCloudに保存しました。\n\n' +
@@ -2937,21 +2710,12 @@ async function save(){
         '未入力'
       ) +
       '\n\n' +
-      '画像もpCloudに保存しました。'
+      'AI判定結果ではなく、「この内容で確定する」を押した時点の内容を保存しています。'
     );
 
-
-    saveSucceeded =
-      true;
-
-
     /*
-     * 次の登録へ
+     * ★ 保存完了後は確定データを解除。
      */
-
-    confirmed =
-      false;
-
     confirmedItem =
       null;
 
@@ -2959,70 +2723,19 @@ async function save(){
       true;
 
   }
-
-  finally{
-
-    if(saveSucceeded){
-
-      $('saveBtn').disabled =
-        true;
-
-    }
-    else{
-
-      /*
-       * 保存失敗時は
-       * 確定データを保持したまま
-       * 再度保存できる。
-       */
-
-      $('saveBtn').disabled =
-        false;
-
-    }
-
-  }
-
-}
-
-
-/* =========================================================
-   pCloud画像リンク取得
-========================================================= */
-
-async function getImageLink(fileid){
-
-  if(!fileid){
-    return '';
-  }
-
-  try{
-
-    const data =
-      await pcall(
-        'getfilelink',
-        {
-          fileid:fileid,
-          forcedownload:0
-        }
-      );
-
-
-    return data.link || '';
-
-  }
-
   catch(error){
 
-    console.warn(
-      '画像リンク取得失敗:',
-      error
-    );
+    /*
+     * エラーの場合は、
+     * 確定データを残す。
+     *
+     * もう一度保存できるようにする。
+     */
+    $('saveBtn').disabled =
+      false;
 
-    return '';
-
+    throw error;
   }
-
 }
 
 
@@ -3034,38 +2747,30 @@ async function refresh(){
 
   clearMessage();
 
-
   if(!token()){
 
     throw Error(
       '先にpCloudへ接続してください。'
     );
-
   }
-
 
   setStatus(
     'pCloudの保存データを確認しています…'
   );
 
-
   const rootFolderId =
     await root();
-
 
   const data =
     await pcall(
       'listfolder',
       {
-
         folderid:
           rootFolderId,
 
         recursive:0
-
       }
     );
-
 
   const folders =
     (
@@ -3080,9 +2785,7 @@ async function refresh(){
         )
     );
 
-
   records = [];
-
 
   for(
     const folder of folders
@@ -3094,20 +2797,16 @@ async function refresh(){
         await pcall(
           'listfolder',
           {
-
             folderid:
               folder.folderid,
 
             recursive:0
-
           }
         );
-
 
       const contents =
         files.metadata.contents ||
         [];
-
 
       const jsonFile =
         contents.find(
@@ -3117,20 +2816,52 @@ async function refresh(){
               'data.json'
         );
 
-
       /*
-       * 表面画像を探す
+       * ★ 画像ファイルを探す
        */
-
       const frontFile =
         contents.find(
           item =>
             !item.isfolder &&
-            /^front\./i.test(
-              item.name
+            item.name.startsWith(
+              'front.'
             )
         );
 
+      let preview =
+        '';
+
+      /*
+       * ★ front画像のリンクを取得
+       */
+      if(frontFile){
+
+        try{
+
+          const linkData =
+            await pcall(
+              'getfilelink',
+              {
+                fileid:
+                  frontFile.fileid,
+
+                forcedownload:0
+              }
+            );
+
+          preview =
+            linkData.link ||
+            '';
+
+        }
+        catch(error){
+
+          console.warn(
+            '画像リンク取得失敗:',
+            error
+          );
+        }
+      }
 
       if(jsonFile){
 
@@ -3138,120 +2869,47 @@ async function refresh(){
           await pcall(
             'getfilelink',
             {
-
               fileid:
                 jsonFile.fileid,
 
               forcedownload:1
-
             }
           );
-
 
         const response =
           await fetch(
             linkData.link
           );
 
-
         if(!response.ok){
 
           throw Error(
             'data.jsonを取得できませんでした。'
           );
-
         }
-
 
         const item =
           await response.json();
 
-
         item.folderid =
           folder.folderid;
 
-
         /*
-         * 旧データとの互換性
+         * ★ JSONにpreviewが無くても
+         * pCloud内の画像から取得したリンクを使用
          */
-
-        if(
-          !item.rarity
-        ){
-
-          item.rarity =
-            '不明';
-
-        }
-
-
-        if(
-          typeof item.price ===
-          'undefined'
-        ){
-
-          item.price =
-            '';
-
-        }
-
-
-        /*
-         * frontFileIdがJSONにない場合でも
-         * pCloudフォルダから探す。
-         */
-
-        if(
-          !item.frontFileId &&
-          frontFile
-        ){
-
-          item.frontFileId =
-            frontFile.fileid;
-
-        }
-
-
-        /*
-         * 表面画像リンクを取得
-         */
-
-        if(
-          item.frontFileId
-        ){
+        if(preview){
 
           item.preview =
-            await getImageLink(
-              item.frontFileId
-            );
-
+            preview;
         }
-
 
         records.push(
           item
         );
 
       }
-
       else{
-
-        /*
-         * data.jsonがない古いフォルダ
-         */
-
-        let preview = '';
-
-
-        if(frontFile){
-
-          preview =
-            await getImageLink(
-              frontFile.fileid
-            );
-
-        }
-
 
         records.push({
 
@@ -3269,27 +2927,20 @@ async function refresh(){
           rarity:'不明',
           price:'',
           memo:'',
-
-          preview:
-
-            preview,
+          preview:preview,
 
           savedAt:
             folder.modified
-
         });
-
       }
 
     }
-
     catch(error){
 
       console.warn(
         '保存データの読み込み失敗:',
         error
       );
-
 
       records.push({
 
@@ -3307,16 +2958,13 @@ async function refresh(){
         rarity:'不明',
         price:'',
         memo:'',
+        preview:'',
 
         savedAt:
           folder.modified
-
       });
-
     }
-
   }
-
 
   records.sort(
     (a,b) =>
@@ -3328,18 +2976,14 @@ async function refresh(){
       )
   );
 
-
   render();
 
-
   setStatus('');
-
 
   setSuccess(
     records.length +
     '件読み込みました。'
   );
-
 }
 
 
@@ -3355,11 +2999,9 @@ async function del(id){
         item.id === id
     );
 
-
   if(!record){
     return;
   }
-
 
   if(
     !confirm(
@@ -3368,12 +3010,9 @@ async function del(id){
   ){
 
     return;
-
   }
 
-
   clearMessage();
-
 
   try{
 
@@ -3381,17 +3020,13 @@ async function del(id){
       'pCloudから削除しています…'
     );
 
-
     await pcall(
       'deletefolderrecursive',
       {
-
         folderid:
           record.folderid
-
       }
     );
-
 
     records =
       records.filter(
@@ -3399,25 +3034,19 @@ async function del(id){
           item.id !== id
       );
 
-
     render();
 
-
     setStatus('');
-
 
     setSuccess(
       '削除しました。'
     );
 
   }
-
   catch(error){
 
     fail(error);
-
   }
-
 }
 
 
@@ -3433,9 +3062,7 @@ function render(){
       '<p class="muted">まだ保存されていません。</p>';
 
     return;
-
   }
-
 
   $('list').innerHTML =
     records
@@ -3451,10 +3078,18 @@ ${
         class="thumb"
         src="${esc(record.preview)}"
         alt=""
-        loading="lazy">
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+
+      <div
+        class="thumb placeholder"
+        style="display:none;">
+        画像
+      </div>
     `
     : `
-      <div class="thumb"></div>
+      <div class="thumb placeholder">
+        画像なし
+      </div>
     `
 }
 
@@ -3466,7 +3101,8 @@ ${esc(record.name)}
 
 <p>
 ${esc(record.series)}
-　${esc(record.kind)}
+　
+${esc(record.kind)}
 </p>
 
 <p>
@@ -3488,8 +3124,7 @@ ${
   record.savedAt
     ? new Date(
         record.savedAt
-      )
-      .toLocaleDateString(
+      ).toLocaleDateString(
         'ja-JP'
       )
     : ''
@@ -3509,7 +3144,6 @@ onclick="del('${esc(record.id)}')">
 `
       )
       .join('');
-
 }
 
 
@@ -3525,13 +3159,10 @@ $('loginBtn').onclick =
       connect();
 
     }
-
     catch(error){
 
       fail(error);
-
     }
-
   };
 
 
@@ -3551,7 +3182,6 @@ $('logoutBtn').onclick =
     records = [];
 
     render();
-
   };
 
 
@@ -3569,13 +3199,10 @@ $('confirmBtn').onclick =
       confirmItem();
 
     }
-
     catch(error){
 
       fail(error);
-
     }
-
   };
 
 
@@ -3600,11 +3227,9 @@ try{
   readOAuth();
 
 }
-
 catch(error){
 
   fail(error);
-
 }
 
 
@@ -3615,7 +3240,6 @@ $('apiKey').value =
 
 
 updateCloud();
-
 
 render();
 
