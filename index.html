@@ -1,788 +1,735 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
-  <title>シールコレクション AI</title>
+<title>シールコレクション AI</title>
 
-  <style>
-    :root{
-      --blue:#1677ff;
-      --green:#16a34a;
-      --red:#dc2626;
-      --orange:#ea580c;
-      --purple:#7c3aed;
-      --bg:#f5f7fb;
-      --line:#dde3ee;
-      --text:#172033;
-      --sub:#667085;
-    }
+<style>
+:root{
+  --blue:#1677ff;
+  --green:#16a34a;
+  --red:#dc2626;
+  --orange:#ea580c;
+  --purple:#7c3aed;
+  --bg:#f5f7fb;
+  --line:#dde3ee;
+  --text:#172033;
+  --sub:#667085;
+}
 
-    *{
-      box-sizing:border-box;
-    }
+*{
+  box-sizing:border-box;
+}
 
-    body{
-      margin:0;
-      background:var(--bg);
-      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      color:var(--text);
-    }
+body{
+  margin:0;
+  background:var(--bg);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--text);
+}
 
-    main{
-      max-width:680px;
-      margin:auto;
-      padding:20px 14px 42px;
-    }
+main{
+  max-width:680px;
+  margin:auto;
+  padding:20px 14px 42px;
+}
 
-    h1{
-      font-size:23px;
-      text-align:center;
-      margin:8px 0 4px;
-    }
+h1{
+  font-size:23px;
+  text-align:center;
+  margin:8px 0 4px;
+}
 
-    .lead{
-      text-align:center;
-      color:var(--sub);
-      font-size:13px;
-      margin:0 0 18px;
-    }
+.lead{
+  text-align:center;
+  color:var(--sub);
+  font-size:13px;
+  margin:0 0 18px;
+}
 
-    .card{
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:16px;
-      margin:12px 0;
-      box-shadow:0 2px 10px #16213a0a;
-    }
+.card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:16px;
+  margin:12px 0;
+  box-shadow:0 2px 10px #16213a0a;
+}
 
-    .row{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      justify-content:space-between;
-    }
+.row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  justify-content:space-between;
+}
 
-    .muted,
-    .hint{
-      color:var(--sub);
-      font-size:12px;
-      line-height:1.5;
-    }
+.muted,
+.hint{
+  color:var(--sub);
+  font-size:12px;
+  line-height:1.5;
+}
 
-    .hint{
-      margin-top:7px;
-    }
+.hint{
+  margin-top:7px;
+}
 
-    label{
-      display:block;
-      font-size:13px;
-      font-weight:700;
-      margin:0 0 6px;
-    }
+label{
+  display:block;
+  font-size:13px;
+  font-weight:700;
+  margin:0 0 6px;
+}
 
-    input,
-    textarea,
-    select{
-      width:100%;
-      border:1px solid var(--line);
-      border-radius:10px;
-      padding:11px;
-      font:inherit;
-      background:#fff;
-    }
+input,
+textarea,
+select{
+  width:100%;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:11px;
+  font:inherit;
+  background:#fff;
+}
 
-    input:disabled,
-    textarea:disabled,
-    select:disabled{
-      background:#f1f5f9;
-      color:#475569;
-    }
+textarea{
+  min-height:90px;
+  resize:vertical;
+}
 
-    textarea{
-      min-height:90px;
-      resize:vertical;
-    }
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
 
-    .grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-    }
+.photo{
+  border:2px dashed #b8c3d6;
+  border-radius:13px;
+  min-height:160px;
+  padding:10px;
+  text-align:center;
+  cursor:pointer;
+  color:var(--sub);
+  font-size:13px;
+}
 
-    .photo{
-      border:2px dashed #b8c3d6;
-      border-radius:13px;
-      min-height:160px;
-      padding:10px;
-      text-align:center;
-      cursor:pointer;
-      color:var(--sub);
-      font-size:13px;
-    }
+.photo img{
+  width:100%;
+  height:118px;
+  object-fit:contain;
+  display:none;
+  margin-top:8px;
+  border-radius:8px;
+}
 
-    .photo img{
-      width:100%;
-      height:118px;
-      object-fit:contain;
-      display:none;
-      margin-top:8px;
-      border-radius:8px;
-    }
+.photo input{
+  display:none;
+}
 
-    .photo input{
-      display:none;
-    }
+.btn{
+  border:0;
+  border-radius:11px;
+  padding:12px 14px;
+  background:var(--blue);
+  color:#fff;
+  font-weight:700;
+  font-size:14px;
+  cursor:pointer;
+}
 
-    .btn{
-      border:0;
-      border-radius:11px;
-      padding:12px 14px;
-      background:var(--blue);
-      color:#fff;
-      font-weight:700;
-      font-size:14px;
-      cursor:pointer;
-    }
+.btn:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
 
-    .btn:disabled{
-      opacity:.55;
-      cursor:not-allowed;
-    }
+.btn.secondary{
+  background:#eef4ff;
+  color:#125dc9;
+}
 
-    .btn.secondary{
-      background:#eef4ff;
-      color:#125dc9;
-    }
+.btn.green{
+  background:var(--green);
+}
 
-    .btn.green{
-      background:var(--green);
-    }
+.btn.red{
+  background:var(--red);
+}
 
-    .btn.red{
-      background:var(--red);
-    }
+.btn.orange{
+  background:var(--orange);
+}
 
-    .btn.orange{
-      background:var(--orange);
-    }
+.btn.purple{
+  background:var(--purple);
+}
 
-    .btn.purple{
-      background:var(--purple);
-    }
+.btn.small{
+  padding:8px 10px;
+  font-size:12px;
+  width:auto;
+}
 
-    .btn.small{
-      padding:8px 10px;
-      font-size:12px;
-      width:auto;
-    }
+.full{
+  width:100%;
+  margin-top:12px;
+}
 
-    .full{
-      width:100%;
-      margin-top:12px;
-    }
+.status,
+.error,
+.warning,
+.success{
+  margin-top:11px;
+  padding:10px;
+  border-radius:9px;
+  font-size:13px;
+  white-space:pre-wrap;
+  line-height:1.5;
+}
 
-    .status,
-    .error,
-    .warning,
-    .success{
-      margin-top:11px;
-      padding:10px;
-      border-radius:9px;
-      font-size:13px;
-      white-space:pre-wrap;
-      line-height:1.5;
-    }
+.status{
+  display:none;
+  background:#eff6ff;
+  color:#1957a7;
+}
 
-    .status{
-      display:none;
-      background:#eff6ff;
-      color:#1957a7;
-    }
+.error{
+  display:none;
+  background:#fff1f2;
+  color:#a9162b;
+}
 
-    .error{
-      display:none;
-      background:#fff1f2;
-      color:#a9162b;
-    }
+.warning{
+  display:none;
+  background:#fff7ed;
+  color:#9a3412;
+}
 
-    .warning{
-      display:none;
-      background:#fff7ed;
-      color:#9a3412;
-    }
+.success{
+  display:none;
+  background:#ecfdf3;
+  color:#166534;
+}
 
-    .success{
-      display:none;
-      background:#ecfdf3;
-      color:#166534;
-    }
+.result{
+  display:none;
+}
 
-    .result{
-      display:none;
-    }
+.fields{
+  display:grid;
+  gap:10px;
+}
 
-    .fields{
-      display:grid;
-      gap:10px;
-    }
+.item{
+  display:flex;
+  gap:12px;
+  padding:12px 0;
+  border-bottom:1px solid var(--line);
+}
 
-    .item{
-      display:flex;
-      gap:12px;
-      padding:12px 0;
-      border-bottom:1px solid var(--line);
-      align-items:flex-start;
-    }
+.item:last-child{
+  border:0;
+}
 
-    .item:last-child{
-      border:0;
-    }
+.thumb{
+  width:80px;
+  height:80px;
+  object-fit:contain;
+  border-radius:10px;
+  background:#edf1f7;
+  flex:none;
+}
 
-    .thumb{
-      width:80px;
-      height:80px;
-      object-fit:contain;
-      border-radius:10px;
-      background:#edf1f7;
-      flex:none;
-    }
+.item h3{
+  font-size:15px;
+  margin:0 0 3px;
+}
 
-    .thumbPlaceholder{
-      width:80px;
-      height:80px;
-      border-radius:10px;
-      background:#edf1f7;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      color:#94a3b8;
-      font-size:11px;
-      text-align:center;
-      flex:none;
-    }
+.item p{
+  font-size:12px;
+  color:var(--sub);
+  margin:2px 0;
+}
 
-    .item h3{
-      font-size:15px;
-      margin:0 0 3px;
-    }
+.item .grow{
+  flex:1;
+  min-width:0;
+}
 
-    .item p{
-      font-size:12px;
-      color:var(--sub);
-      margin:2px 0;
-    }
+.badge{
+  font-size:12px;
+  color:#17643b;
+  background:#e9f9ef;
+  padding:5px 8px;
+  border-radius:999px;
+  white-space:nowrap;
+}
 
-    .item .grow{
-      flex:1;
-      min-width:0;
-    }
+.marketBox{
+  background:#f8fafc;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px;
+  margin-top:4px;
+}
 
-    .badge{
-      font-size:12px;
-      color:#17643b;
-      background:#e9f9ef;
-      padding:5px 8px;
-      border-radius:999px;
-      white-space:nowrap;
-    }
+.marketTitle{
+  font-weight:700;
+  margin-bottom:8px;
+}
 
-    .marketBox{
-      background:#f8fafc;
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:12px;
-      margin-top:4px;
-    }
+.chatgptBox{
+  background:#f5f3ff;
+  border:1px solid #ddd6fe;
+  border-radius:12px;
+  padding:12px;
+  margin-top:4px;
+}
 
-    .marketTitle{
-      font-weight:700;
-      margin-bottom:8px;
-    }
+.chatgptTitle{
+  font-weight:700;
+  margin-bottom:6px;
+}
 
-    .chatgptBox{
-      background:#f5f3ff;
-      border:1px solid #ddd6fe;
-      border-radius:12px;
-      padding:12px;
-      margin-top:4px;
-    }
+.chatgptText{
+  font-size:12px;
+  color:#5b21b6;
+  line-height:1.5;
+}
 
-    .chatgptTitle{
-      font-weight:700;
-      margin-bottom:6px;
-    }
+.priceRow{
+  display:grid;
+  grid-template-columns:90px 1fr;
+  gap:8px;
+  align-items:center;
+  margin-top:8px;
+}
 
-    .chatgptText{
-      font-size:12px;
-      color:#5b21b6;
-      line-height:1.5;
-    }
+.priceRow span{
+  font-size:12px;
+  color:var(--sub);
+}
 
-    .priceRow{
-      display:grid;
-      grid-template-columns:90px 1fr;
-      gap:8px;
-      align-items:center;
-      margin-top:8px;
-    }
+.source{
+  font-size:11px;
+  color:var(--sub);
+  line-height:1.5;
+  margin-top:8px;
+}
 
-    .priceRow span{
-      font-size:12px;
-      color:var(--sub);
-    }
+.confirmBox{
+  background:#f0fdf4;
+  border:1px solid #bbf7d0;
+  border-radius:12px;
+  padding:12px;
+  margin-top:10px;
+}
 
-    .source{
-      font-size:11px;
-      color:var(--sub);
-      line-height:1.5;
-      margin-top:8px;
-    }
+.confirmTitle{
+  font-weight:700;
+  color:#166534;
+  margin-bottom:6px;
+}
 
-    .confirmBox{
-      background:#f0fdf4;
-      border:1px solid #bbf7d0;
-      border-radius:12px;
-      padding:12px;
-      margin-top:10px;
-    }
+.confirmText{
+  font-size:12px;
+  color:#166534;
+  line-height:1.6;
+}
 
-    .confirmTitle{
-      font-weight:700;
-      color:#166534;
-      margin-bottom:6px;
-    }
+.hidden{
+  display:none !important;
+}
 
-    .confirmText{
-      font-size:12px;
-      color:#166534;
-      line-height:1.6;
-    }
+code{
+  background:#f1f5f9;
+  padding:2px 4px;
+  border-radius:4px;
+}
 
-    .confirmedMark{
-      display:none;
-      margin-top:8px;
-      padding:8px 10px;
-      border-radius:8px;
-      background:#dcfce7;
-      color:#166534;
-      font-size:12px;
-      font-weight:700;
-    }
+@media(max-width:390px){
 
-    .hidden{
-      display:none !important;
-    }
+  .grid{
+    gap:7px;
+  }
 
-    code{
-      background:#f1f5f9;
-      padding:2px 4px;
-      border-radius:4px;
-    }
+  .photo{
+    min-height:140px;
+  }
 
-    @media(max-width:390px){
+  .priceRow{
+    grid-template-columns:1fr;
+  }
 
-      .grid{
-        gap:7px;
-      }
+  .item{
+    gap:8px;
+  }
 
-      .photo{
-        min-height:140px;
-      }
-
-      .priceRow{
-        grid-template-columns:1fr;
-      }
-
-      .item{
-        gap:8px;
-      }
-
-      .thumb,
-      .thumbPlaceholder{
-        width:68px;
-        height:68px;
-      }
-    }
-  </style>
+  .thumb{
+    width:68px;
+    height:68px;
+  }
+}
+</style>
 </head>
 
 <body>
 
 <main>
 
-  <h1>✨ シールコレクション AI</h1>
+<h1>✨ シールコレクション AI</h1>
 
-  <p class="lead">
-    表面・裏面を撮影して、AIで判定・ChatGPTで相場確認・pCloud保存
-  </p>
+<p class="lead">
+表面・裏面を撮影して、AIで判定・ChatGPTで相場確認・pCloud保存
+</p>
 
 
-  <!-- =================================================
-       pCloud
-  ================================================== -->
+<!-- =================================================
+     pCloud
+================================================== -->
 
-  <section class="card">
+<section class="card">
 
-    <div class="row">
+<div class="row">
 
-      <strong>pCloud 保存先</strong>
+<strong>pCloud 保存先</strong>
 
-      <span
-        id="cloudState"
-        class="badge">
-        未接続
-      </span>
+<span id="cloudState" class="badge">
+未接続
+</span>
 
-    </div>
+</div>
 
-    <p class="hint">
-      pCloud承認後に
-      <code>PCLOUD_CLIENT_ID</code>
-      を入力してください。<br>
-      Client Secret は入力しません。
-    </p>
+<p class="hint">
+pCloud承認後に
+<code>PCLOUD_CLIENT_ID</code>
+を入力してください。<br>
+Client Secret は入力しません。
+</p>
 
-    <button
-      id="loginBtn"
-      class="btn secondary full"
-      type="button">
-      pCloud に接続
-    </button>
+<button
+id="loginBtn"
+class="btn secondary full"
+type="button">
+pCloud に接続
+</button>
 
-    <button
-      id="logoutBtn"
-      class="btn small hidden"
-      type="button">
-      接続を解除
-    </button>
+<button
+id="logoutBtn"
+class="btn small hidden"
+type="button">
+接続を解除
+</button>
 
-  </section>
+</section>
 
 
-  <!-- =================================================
-       Gemini API Key
-  ================================================== -->
+<!-- =================================================
+     Gemini API Key
+================================================== -->
 
-  <section class="card">
+<section class="card">
 
-    <label for="apiKey">
-      Gemini API Key
-    </label>
+<label for="apiKey">
+Gemini API Key
+</label>
 
-    <input
-      id="apiKey"
-      type="password"
-      autocomplete="off"
-      placeholder="Gemini APIキーを貼り付け">
+<input
+id="apiKey"
+type="password"
+autocomplete="off"
+placeholder="Gemini APIキーを貼り付け">
 
-    <p class="hint">
-      APIキーはこの端末・このブラウザ内に保存されます。
-    </p>
+<p class="hint">
+APIキーはこの端末・このブラウザ内に保存されます。
+</p>
 
-  </section>
+</section>
 
 
-  <!-- =================================================
-       画像
-  ================================================== -->
+<!-- =================================================
+     画像
+================================================== -->
 
-  <section class="card">
+<section class="card">
 
-    <div class="grid">
+<div class="grid">
 
-      <label class="photo">
+<label class="photo">
 
-        🖼 表面の画像
+🖼 表面の画像
 
-        <input
-          id="front"
-          type="file"
-          accept="image/*">
+<input
+id="front"
+type="file"
+accept="image/*">
 
-        <img
-          id="frontPreview"
-          alt="表面のプレビュー">
+<img
+id="frontPreview"
+alt="表面のプレビュー">
 
-      </label>
+</label>
 
-      <label class="photo">
 
-        🖼 裏面の画像（任意）
+<label class="photo">
 
-        <input
-          id="back"
-          type="file"
-          accept="image/*">
+🖼 裏面の画像（任意）
 
-        <img
-          id="backPreview"
-          alt="裏面のプレビュー">
+<input
+id="back"
+type="file"
+accept="image/*">
 
-      </label>
+<img
+id="backPreview"
+alt="裏面のプレビュー">
 
-    </div>
+</label>
 
-    <button
-      id="scanBtn"
-      class="btn full"
-      type="button">
-      🔎 AIで判定する
-    </button>
+</div>
 
-    <div
-      id="status"
-      class="status">
-    </div>
 
-    <div
-      id="warning"
-      class="warning">
-    </div>
+<button
+id="scanBtn"
+class="btn full"
+type="button">
+🔎 AIで判定する
+</button>
 
-    <div
-      id="success"
-      class="success">
-    </div>
 
-    <div
-      id="error"
-      class="error">
-    </div>
+<div id="status" class="status"></div>
 
-  </section>
+<div id="warning" class="warning"></div>
 
+<div id="success" class="success"></div>
 
-  <!-- =================================================
-       AI結果
-  ================================================== -->
+<div id="error" class="error"></div>
 
-  <section
-    id="resultCard"
-    class="card result">
+</section>
 
-    <label>
-      解析結果
-    </label>
 
-    <div class="fields">
+<!-- =================================================
+     AI結果
+================================================== -->
 
-      <div>
+<section
+id="resultCard"
+class="card result">
 
-        <label>
-          シール名
-        </label>
+<label>
+解析結果
+</label>
 
-        <input id="name">
+<div class="fields">
 
-      </div>
 
+<div>
 
-      <div>
+<label>
+シール名
+</label>
 
-        <label>
-          シリーズ・作品名
-        </label>
+<input id="name">
 
-        <input id="series">
+</div>
 
-      </div>
 
+<div>
 
-      <div>
+<label>
+シリーズ・作品名
+</label>
 
-        <label>
-          種類
-        </label>
+<input id="series">
 
-        <select id="kind">
+</div>
 
-          <option>シール</option>
-          <option>トレカ</option>
-          <option>食玩</option>
 
-        </select>
+<div>
 
-      </div>
+<label>
+種類
+</label>
 
+<select id="kind">
 
-      <!-- =================================================
-           レア度
-           ★ プルダウンを廃止
-           ★ 完全自由入力
-      ================================================== -->
+<option>シール</option>
+<option>トレカ</option>
+<option>食玩</option>
 
-      <div>
+</select>
 
-        <label for="rarity">
-          レア度
-        </label>
+</div>
 
-        <input
-          id="rarity"
-          type="text"
-          placeholder="例：ノーマル、プリズム、ヘッド、ホロ、不明">
 
-        <div class="hint">
-          レア度は自由に入力できます。
-        </div>
+<!-- =================================================
+     レア度
+================================================== -->
 
-      </div>
+<div>
 
+<label>
+レア度
+</label>
 
-      <!-- =================================================
-           ChatGPT調査
-      ================================================== -->
+<input
+id="rarity"
+type="text"
+placeholder="例：ホロPP、キラ、スーパーゼウス、不明">
 
-      <div class="chatgptBox">
+<p class="hint">
+自由に入力できます。ChatGPTで調べたレア度をそのまま入力してください。
+</p>
 
-        <div class="chatgptTitle">
-          🔍 ChatGPTでレア度・相場を調べる
-        </div>
+</div>
 
-        <div class="chatgptText">
 
-          シール画像はChatGPTには送信しません。<br>
-          AIで判定した「シール名」と「シリーズ名」だけを使って、
-          調査用の質問を自動作成します。
+<!-- =================================================
+     ChatGPT調査
+================================================== -->
 
-        </div>
+<div class="chatgptBox">
 
-        <button
-          id="chatgptBtn"
-          class="btn purple full"
-          type="button">
-          🤖 ChatGPTで調べる
-        </button>
+<div class="chatgptTitle">
+🔍 ChatGPTでレア度・相場を調べる
+</div>
 
-      </div>
+<div class="chatgptText">
 
+シール画像はChatGPTには送信しません。<br>
+AIで判定した「シール名」と「シリーズ名」だけを使って、
+調査用の質問を自動作成します。
 
-      <!-- =================================================
-           相場
-      ================================================== -->
+</div>
 
-      <div class="marketBox">
+<button
+id="chatgptBtn"
+class="btn purple full"
+type="button">
+🤖 ChatGPTで調べる
+</button>
 
-        <div class="marketTitle">
-          💰 相場
-        </div>
+</div>
 
-        <div class="priceRow">
 
-          <span>
-            相場
-          </span>
+<!-- =================================================
+     相場
+================================================== -->
 
-          <input
-            id="price"
-            type="text"
-            placeholder="例：2,500円～3,500円">
+<div class="marketBox">
 
-        </div>
+<div class="marketTitle">
+💰 相場
+</div>
 
-        <div class="source">
+<div class="priceRow">
 
-          ChatGPTで調べた結果を入力してください。<br>
-          価格が確認できない場合は「確認できません」としてください。
+<span>
+相場
+</span>
 
-        </div>
+<input
+id="price"
+placeholder="例：2,500円～3,500円">
 
-      </div>
+</div>
 
+<div class="source">
 
-      <!-- =================================================
-           メモ
-      ================================================== -->
+ChatGPTで調べた結果を入力してください。<br>
+価格が確認できない場合は「確認できません」としてください。
 
-      <div>
+</div>
 
-        <label>
-          メモ
-        </label>
+</div>
 
-        <textarea id="memo"></textarea>
 
-      </div>
+<!-- =================================================
+     メモ
+================================================== -->
 
+<div>
 
-      <!-- =================================================
-           確定
-      ================================================== -->
+<label>
+メモ
+</label>
 
-      <div class="confirmBox">
+<textarea id="memo"></textarea>
 
-        <div class="confirmTitle">
-          ✅ 登録内容を確定
-        </div>
+</div>
 
-        <div class="confirmText">
-          レア度と相場を入力・確認したら、
-          「この内容で確定する」を押してください。<br>
-          確定した内容がpCloud保存用データになります。
-        </div>
 
-        <button
-          id="confirmBtn"
-          class="btn green full"
-          type="button">
-          ✅ この内容で確定する
-        </button>
+<!-- =================================================
+     確定
+================================================== -->
 
-        <div
-          id="confirmedMark"
-          class="confirmedMark">
-          ✓ 登録内容は確定済みです
-        </div>
+<div class="confirmBox">
 
-      </div>
+<div class="confirmTitle">
+✅ 登録内容を確定
+</div>
 
+<div class="confirmText">
+レア度・相場・シール名などを確認してから
+「この内容で確定」を押してください。<br>
+pCloudには、この時点で確定した内容だけが保存されます。
+</div>
 
-      <button
-        id="saveBtn"
-        class="btn green full"
-        type="button"
-        disabled>
-        💾 pCloudに保存
-      </button>
+<button
+id="confirmBtn"
+class="btn green full"
+type="button">
+✅ この内容で確定する
+</button>
 
-    </div>
+</div>
 
-  </section>
 
+<button
+id="saveBtn"
+class="btn green full"
+type="button"
+disabled>
+💾 pCloudに保存
+</button>
 
-  <!-- =================================================
-       コレクション
-  ================================================== -->
+</div>
 
-  <section class="card">
+</section>
 
-    <div class="row">
 
-      <label style="margin:0">
-        マイコレクション
-      </label>
+<!-- =================================================
+     コレクション
+================================================== -->
 
-      <button
-        id="refreshBtn"
-        class="btn small secondary"
-        type="button">
-        一覧を更新
-      </button>
+<section class="card">
 
-    </div>
+<div class="row">
 
-    <div id="list">
+<label style="margin:0">
+マイコレクション
+</label>
 
-      <p class="muted">
-        pCloudに接続すると保存済みの一覧を読み込みます。
-      </p>
+<button
+id="refreshBtn"
+class="btn small secondary"
+type="button">
+一覧を更新
+</button>
 
-    </div>
+</div>
 
-  </section>
+<div id="list">
+
+<p class="muted">
+pCloudに接続すると保存済みの一覧を読み込みます。
+</p>
+
+</div>
+
+</section>
 
 </main>
 
@@ -822,24 +769,22 @@ const store =
   localStorage;
 
 
-let analysis =
-  null;
-
-
-let records =
-  [];
+let analysis = null;
 
 
 /*
- * 「この内容で確定する」を押した時点の
- * 完全な保存用データ
+ * AI判定結果とは完全に分離する。
+ *
+ * 「この内容で確定する」を押したときだけ
+ * ここに保存対象データをコピーする。
  */
-let confirmedData =
-  null;
+let confirmedItem = null;
 
 
-let confirmed =
-  false;
+let records = [];
+
+
+let confirmed = false;
 
 
 /* =========================================================
@@ -848,8 +793,7 @@ let confirmed =
 
 function setStatus(text){
 
-  $('status').textContent =
-    text;
+  $('status').textContent = text;
 
   $('status').style.display =
     text ? 'block' : 'none';
@@ -859,8 +803,7 @@ function setStatus(text){
 
 function setWarning(text){
 
-  $('warning').textContent =
-    text;
+  $('warning').textContent = text;
 
   $('warning').style.display =
     text ? 'block' : 'none';
@@ -870,8 +813,7 @@ function setWarning(text){
 
 function setSuccess(text){
 
-  $('success').textContent =
-    text;
+  $('success').textContent = text;
 
   $('success').style.display =
     text ? 'block' : 'none';
@@ -1012,61 +954,24 @@ function preview(
 
 
 $('front').onchange =
-  () => {
-
+  () =>
     preview(
       $('front'),
       $('frontPreview')
     );
 
-    invalidateConfirmation();
-
-  };
-
 
 $('back').onchange =
-  () => {
-
+  () =>
     preview(
       $('back'),
       $('backPreview')
     );
 
-    invalidateConfirmation();
-
-  };
-
 
 /* =========================================================
-   確定状態を解除
-========================================================= */
-
-function invalidateConfirmation(){
-
-  if(
-    confirmed ||
-    confirmedData
-  ){
-
-    confirmed =
-      false;
-
-    confirmedData =
-      null;
-
-    $('saveBtn').disabled =
-      true;
-
-    $('confirmedMark').style.display =
-      'none';
-
-  }
-
-}
-
-
-/* =========================================================
-   入力変更時
+   入力内容を変更したら
+   「確定済み」を解除
 ========================================================= */
 
 [
@@ -1076,21 +981,38 @@ function invalidateConfirmation(){
   'rarity',
   'price',
   'memo'
-].forEach(
-  id => {
+].forEach(id => {
 
-    $(id).addEventListener(
-      'input',
-      invalidateConfirmation
-    );
+  $(id).addEventListener(
+    'input',
+    invalidateConfirmation
+  );
 
-    $(id).addEventListener(
-      'change',
-      invalidateConfirmation
-    );
+  $(id).addEventListener(
+    'change',
+    invalidateConfirmation
+  );
 
+});
+
+
+function invalidateConfirmation(){
+
+  if(!confirmed){
+    return;
   }
-);
+
+  confirmed = false;
+  confirmedItem = null;
+
+  $('saveBtn').disabled = true;
+
+  setWarning(
+    '登録内容が変更されました。\n\n' +
+    '変更後の内容を保存する場合は、もう一度「この内容で確定する」を押してください。'
+  );
+
+}
 
 
 /* =========================================================
@@ -1430,12 +1352,8 @@ async function root(){
     await pcall(
       'createfolderifnotexists',
       {
-
         folderid:0,
-
-        name:
-          ROOT_FOLDER
-
+        name:ROOT_FOLDER
       }
     );
 
@@ -1488,58 +1406,12 @@ async function upload(
 
 
 /* =========================================================
-   pCloudファイルURL取得
-========================================================= */
-
-async function getFileUrl(fileid){
-
-  const data =
-    await pcall(
-      'getfilelink',
-      {
-        fileid,
-        forcedownload:0
-      }
-    );
-
-  if(
-    data.link
-  ){
-
-    return data.link;
-
-  }
-
-  /*
-   * pCloudのレスポンス形式によって
-   * hosts/path形式の場合にも対応
-   */
-  if(
-    Array.isArray(data.hosts) &&
-    data.hosts.length &&
-    data.path
-  ){
-
-    return (
-      'https://' +
-      data.hosts[0] +
-      data.path
-    );
-
-  }
-
-  return '';
-
-}
-
-
-/* =========================================================
    Geminiプロンプト
 ========================================================= */
 
 function buildPrompt(){
 
-  return `
+return `
 あなたは日本のコレクション品を判定する専門アシスタントです。
 
 添付された画像の表面と裏面を確認してください。
@@ -2098,45 +1970,24 @@ async function runGeminiWithFallback(parts){
   const attempts = [
 
     {
-      model:
-        GEMINI_MODEL,
-
-      useSchema:
-        true,
-
-      retryInstruction:
-        false,
-
-      label:
-        'Gemini + JSON Schema'
+      model:GEMINI_MODEL,
+      useSchema:true,
+      retryInstruction:false,
+      label:'Gemini + JSON Schema'
     },
 
     {
-      model:
-        GEMINI_MODEL,
-
-      useSchema:
-        false,
-
-      retryInstruction:
-        false,
-
-      label:
-        'Gemini + JSONモード'
+      model:GEMINI_MODEL,
+      useSchema:false,
+      retryInstruction:false,
+      label:'Gemini + JSONモード'
     },
 
     {
-      model:
-        GEMINI_MODEL,
-
-      useSchema:
-        false,
-
-      retryInstruction:
-        true,
-
-      label:
-        'Gemini + JSON再要求'
+      model:GEMINI_MODEL,
+      useSchema:false,
+      retryInstruction:true,
+      label:'Gemini + JSON再要求'
     }
 
   ];
@@ -2149,14 +2000,9 @@ async function runGeminiWithFallback(parts){
     attempts.push({
 
       model,
-
       useSchema:true,
-
       retryInstruction:false,
-
-      label:
-        model +
-        ' + JSON Schema'
+      label:model + ' + JSON Schema'
 
     });
 
@@ -2164,14 +2010,9 @@ async function runGeminiWithFallback(parts){
     attempts.push({
 
       model,
-
       useSchema:false,
-
       retryInstruction:true,
-
-      label:
-        model +
-        ' + JSON再要求'
+      label:model + ' + JSON再要求'
 
     });
 
@@ -2205,16 +2046,10 @@ async function runGeminiWithFallback(parts){
       const result =
         await callGeminiOnce({
 
-          model:
-            attempt.model,
-
+          model:attempt.model,
           parts,
-
-          useSchema:
-            attempt.useSchema,
-
-          retryInstruction:
-            attempt.retryInstruction
+          useSchema:attempt.useSchema,
+          retryInstruction:attempt.retryInstruction
 
         });
 
@@ -2235,7 +2070,6 @@ async function runGeminiWithFallback(parts){
       lastError =
         error;
 
-
       const status =
         error?.status;
 
@@ -2247,15 +2081,9 @@ async function runGeminiWithFallback(parts){
       ){
 
         if(
-          /JSON/i.test(
-            error.message
-          ) ||
-          /schema/i.test(
-            error.message
-          ) ||
-          /responseMime/i.test(
-            error.message
-          )
+          /JSON/i.test(error.message) ||
+          /schema/i.test(error.message) ||
+          /responseMime/i.test(error.message)
         ){
 
           continue;
@@ -2357,14 +2185,11 @@ async function scan(){
   confirmed =
     false;
 
-  confirmedData =
+  confirmedItem =
     null;
 
   $('saveBtn').disabled =
     true;
-
-  $('confirmedMark').style.display =
-    'none';
 
 
   try{
@@ -2511,7 +2336,7 @@ async function scan(){
 
 
 /* =========================================================
-   ChatGPT調査文を作る
+   ChatGPT調査文
 ========================================================= */
 
 function buildChatGPTPrompt(){
@@ -2610,7 +2435,6 @@ $('chatgptBtn').onclick =
 
       clearMessage();
 
-
       const prompt =
         buildChatGPTPrompt();
 
@@ -2681,91 +2505,7 @@ $('chatgptBtn').onclick =
 
 
 /* =========================================================
-   現在の入力内容
-========================================================= */
-
-function collectFormData(){
-
-  return {
-
-    name:
-      $('name')
-        .value
-        .trim() ||
-      '名称未設定',
-
-    series:
-      $('series')
-        .value
-        .trim(),
-
-    kind:
-      $('kind').value,
-
-    rarity:
-      $('rarity')
-        .value
-        .trim() ||
-      '不明',
-
-    price:
-      $('price')
-        .value
-        .trim(),
-
-    memo:
-      $('memo')
-        .value
-        .trim()
-
-  };
-
-}
-
-
-/* =========================================================
-   新規保存データ作成
-========================================================= */
-
-function current(){
-
-  const formData =
-    collectFormData();
-
-  return {
-
-    id:
-      uid(),
-
-    name:
-      formData.name,
-
-    series:
-      formData.series,
-
-    kind:
-      formData.kind,
-
-    rarity:
-      formData.rarity,
-
-    price:
-      formData.price,
-
-    memo:
-      formData.memo,
-
-    savedAt:
-      new Date()
-        .toISOString()
-
-  };
-
-}
-
-
-/* =========================================================
-   内容を確定
+   「確定」した内容を作成
 ========================================================= */
 
 function confirmItem(){
@@ -2773,11 +2513,37 @@ function confirmItem(){
   clearMessage();
 
 
-  const formData =
-    collectFormData();
+  const name =
+    $('name')
+      .value
+      .trim();
+
+  const series =
+    $('series')
+      .value
+      .trim();
+
+  const kind =
+    $('kind')
+      .value;
+
+  const rarity =
+    $('rarity')
+      .value
+      .trim();
+
+  const price =
+    $('price')
+      .value
+      .trim();
+
+  const memo =
+    $('memo')
+      .value
+      .trim();
 
 
-  if(!formData.name){
+  if(!name){
 
     throw Error(
       'シール名を入力してください。'
@@ -2787,25 +2553,22 @@ function confirmItem(){
 
 
   if(
-    !formData.rarity ||
-    formData.rarity === '不明'
+    !rarity
   ){
 
     const ok =
       confirm(
-        'レア度が「不明」になっています。\n\nこのまま確定しますか？'
+        'レア度が未入力です。\n\nこのまま確定しますか？'
       );
 
     if(!ok){
-
       return;
-
     }
 
   }
 
 
-  if(!formData.price){
+  if(!price){
 
     const ok =
       confirm(
@@ -2813,32 +2576,48 @@ function confirmItem(){
       );
 
     if(!ok){
-
       return;
-
     }
 
   }
 
 
   /*
-   * ★ここが今回の重要修正
+   * ★最重要★
    *
-   * 「確定」した瞬間の内容を
-   * confirmedDataへ丸ごとコピーします。
-   *
-   * pCloud保存時には、このデータを使用します。
+   * ここでAI判定結果とは別に、
+   * 現在画面に表示されている内容を
+   * 「保存対象」として完全コピーする。
    */
 
-  const newData =
-    current();
+  confirmedItem = {
 
+    id:
+      uid(),
 
-  /*
-   * IDを確定
-   */
-  confirmedData =
-    newData;
+    name:
+      name,
+
+    series:
+      series,
+
+    kind:
+      kind,
+
+    rarity:
+      rarity || '不明',
+
+    price:
+      price,
+
+    memo:
+      memo,
+
+    savedAt:
+      new Date()
+        .toISOString()
+
+  };
 
 
   confirmed =
@@ -2849,29 +2628,29 @@ function confirmItem(){
     false;
 
 
-  $('confirmedMark').style.display =
-    'block';
-
-
   setSuccess(
     '登録内容を確定しました。\n\n' +
+    '保存対象：\n' +
+    'シール名：' +
+    confirmedItem.name +
+    '\n' +
     'レア度：' +
-    confirmedData.rarity +
+    confirmedItem.rarity +
     '\n' +
     '相場：' +
     (
-      confirmedData.price ||
+      confirmedItem.price ||
       '未入力'
     ) +
     '\n\n' +
-    'この確定内容をpCloudへ保存できます。'
+    'この内容がpCloudに保存されます。'
   );
 
 }
 
 
 /* =========================================================
-   ファイル拡張子
+   拡張子
 ========================================================= */
 
 function ext(file){
@@ -2900,6 +2679,10 @@ async function save(){
   clearMessage();
 
 
+  /*
+   * AI判定結果だけでは保存させない。
+   */
+
   if(!analysis){
 
     throw Error(
@@ -2909,7 +2692,17 @@ async function save(){
   }
 
 
-  if(!confirmed || !confirmedData){
+  /*
+   * ★ここが重要
+   *
+   * 「この内容で確定する」を押して
+   * confirmedItem が作られていることを必須にする。
+   */
+
+  if(
+    !confirmed ||
+    !confirmedItem
+  ){
 
     throw Error(
       '先に「この内容で確定する」を押してください。'
@@ -2949,6 +2742,10 @@ async function save(){
     true;
 
 
+  let saveSucceeded =
+    false;
+
+
   try{
 
     setStatus(
@@ -2961,16 +2758,15 @@ async function save(){
 
 
     /*
-     * ★確定済みデータをそのまま使用
-     *
-     * ここでcurrent()を作り直さないのが重要です。
+     * ★AI結果ではなく
+     * ★確定データをコピー
      */
-    const item =
-      JSON.parse(
-        JSON.stringify(
-          confirmedData
-        )
-      );
+
+    const item = {
+
+      ...confirmedItem
+
+    };
 
 
     /*
@@ -2998,68 +2794,84 @@ async function save(){
 
 
     /*
-     * 表面画像ファイル名
+     * 表面画像
      */
 
-    const frontFilename =
-      'front.' +
-      ext(front);
-
-
-    /*
-     * 裏面画像ファイル名
-     */
-
-    const backFilename =
-      back
-        ? 'back.' + ext(back)
-        : '';
-
-
-    /*
-     * 表面画像を保存
-     */
-
-    await upload(
-      folderid,
-      front,
-      frontFilename
-    );
-
-
-    /*
-     * 裏面画像を保存
-     */
-
-    if(back){
-
+    const frontUpload =
       await upload(
         folderid,
-        back,
-        backFilename
+        front,
+        'front.' +
+        ext(front)
       );
+
+
+    /*
+     * pCloud上の表面画像fileidを保存
+     */
+
+    const frontMeta =
+      frontUpload?.metadata?.[0] ||
+      frontUpload?.metadata;
+
+
+    if(
+      frontMeta &&
+      frontMeta.fileid
+    ){
+
+      item.frontFileId =
+        frontMeta.fileid;
 
     }
 
 
     /*
-     * ★画像情報をJSONにも保存
+     * 裏面画像
+     */
+
+    if(back){
+
+      const backUpload =
+        await upload(
+          folderid,
+          back,
+          'back.' +
+          ext(back)
+        );
+
+
+      const backMeta =
+        backUpload?.metadata?.[0] ||
+        backUpload?.metadata;
+
+
+      if(
+        backMeta &&
+        backMeta.fileid
+      ){
+
+        item.backFileId =
+          backMeta.fileid;
+
+      }
+
+    }
+
+
+    /*
+     * フォルダID
      */
 
     item.folderid =
       folderid;
 
-    item.frontImage =
-      frontFilename;
-
-    item.backImage =
-      back
-        ? backFilename
-        : '';
-
 
     /*
-     * JSON保存
+     * JSON
+     *
+     * ★ここにはconfirmedItem由来の
+     * 確定したレア度・相場が入る。
      */
 
     const dataFile =
@@ -3091,96 +2903,13 @@ async function save(){
 
 
     /*
-     * ★保存直後はpCloud上の画像URLを取得
+     * 一覧にすぐ表示するため、
+     * 今回だけブラウザ内プレビューを使用。
      */
 
-    try{
+    item.preview =
+      $('frontPreview').src;
 
-      const files =
-        await pcall(
-          'listfolder',
-          {
-            folderid,
-            recursive:0
-          }
-        );
-
-
-      const frontFile =
-        (
-          files.metadata.contents ||
-          []
-        )
-        .find(
-          file =>
-            !file.isfolder &&
-            file.name ===
-              frontFilename
-        );
-
-
-      if(frontFile){
-
-        item.preview =
-          await getFileUrl(
-            frontFile.fileid
-          );
-
-      }
-
-    }
-
-    catch(error){
-
-      console.warn(
-        '保存直後の画像URL取得に失敗しました。',
-        error
-      );
-
-    }
-
-
-    /*
-     * ★JSONにpreviewも保存
-     *
-     * 次回一覧更新時にも画像を表示できます。
-     */
-
-    if(item.preview){
-
-      const finalDataFile =
-        new File(
-
-          [
-            JSON.stringify(
-              item,
-              null,
-              2
-            )
-          ],
-
-          'data.json',
-
-          {
-            type:
-              'application/json'
-          }
-
-        );
-
-
-      await upload(
-        folderid,
-        finalDataFile,
-        'data.json'
-      );
-
-    }
-
-
-    /*
-     * 一覧へ追加
-     */
 
     records.unshift(
       item
@@ -3192,8 +2921,10 @@ async function save(){
 
     setStatus('');
 
+
     setSuccess(
       'pCloudに保存しました。\n\n' +
+      '【保存した内容】\n' +
       'シール名：' +
       item.name +
       '\n' +
@@ -3206,38 +2937,89 @@ async function save(){
         '未入力'
       ) +
       '\n\n' +
-      '画像も保存しました。'
+      '画像もpCloudに保存しました。'
     );
 
 
+    saveSucceeded =
+      true;
+
+
     /*
-     * 次の登録に備える
+     * 次の登録へ
      */
 
     confirmed =
       false;
 
-    confirmedData =
+    confirmedItem =
       null;
 
     $('saveBtn').disabled =
       true;
 
-    $('confirmedMark').style.display =
-      'none';
+  }
+
+  finally{
+
+    if(saveSucceeded){
+
+      $('saveBtn').disabled =
+        true;
+
+    }
+    else{
+
+      /*
+       * 保存失敗時は
+       * 確定データを保持したまま
+       * 再度保存できる。
+       */
+
+      $('saveBtn').disabled =
+        false;
+
+    }
+
+  }
+
+}
+
+
+/* =========================================================
+   pCloud画像リンク取得
+========================================================= */
+
+async function getImageLink(fileid){
+
+  if(!fileid){
+    return '';
+  }
+
+  try{
+
+    const data =
+      await pcall(
+        'getfilelink',
+        {
+          fileid:fileid,
+          forcedownload:0
+        }
+      );
+
+
+    return data.link || '';
 
   }
 
   catch(error){
 
-    /*
-     * エラー時は再度保存可能
-     */
+    console.warn(
+      '画像リンク取得失敗:',
+      error
+    );
 
-    $('saveBtn').disabled =
-      false;
-
-    throw error;
+    return '';
 
   }
 
@@ -3327,13 +3109,8 @@ async function refresh(){
         [];
 
 
-      /*
-       * data.json
-       */
-
       const jsonFile =
-        contents
-        .find(
+        contents.find(
           item =>
             !item.isfolder &&
             item.name ===
@@ -3342,12 +3119,11 @@ async function refresh(){
 
 
       /*
-       * ★表面画像
+       * 表面画像を探す
        */
 
       const frontFile =
-        contents
-        .find(
+        contents.find(
           item =>
             !item.isfolder &&
             /^front\./i.test(
@@ -3355,14 +3131,6 @@ async function refresh(){
             )
         );
 
-
-      let item =
-        null;
-
-
-      /*
-       * JSON読み込み
-       */
 
       if(jsonFile){
 
@@ -3386,26 +3154,112 @@ async function refresh(){
           );
 
 
-        if(response.ok){
+        if(!response.ok){
 
-          item =
-            await response.json();
+          throw Error(
+            'data.jsonを取得できませんでした。'
+          );
 
         }
 
+
+        const item =
+          await response.json();
+
+
+        item.folderid =
+          folder.folderid;
+
+
+        /*
+         * 旧データとの互換性
+         */
+
+        if(
+          !item.rarity
+        ){
+
+          item.rarity =
+            '不明';
+
+        }
+
+
+        if(
+          typeof item.price ===
+          'undefined'
+        ){
+
+          item.price =
+            '';
+
+        }
+
+
+        /*
+         * frontFileIdがJSONにない場合でも
+         * pCloudフォルダから探す。
+         */
+
+        if(
+          !item.frontFileId &&
+          frontFile
+        ){
+
+          item.frontFileId =
+            frontFile.fileid;
+
+        }
+
+
+        /*
+         * 表面画像リンクを取得
+         */
+
+        if(
+          item.frontFileId
+        ){
+
+          item.preview =
+            await getImageLink(
+              item.frontFileId
+            );
+
+        }
+
+
+        records.push(
+          item
+        );
+
       }
 
+      else{
 
-      /*
-       * JSONがない場合
-       */
+        /*
+         * data.jsonがない古いフォルダ
+         */
 
-      if(!item){
+        let preview = '';
 
-        item = {
+
+        if(frontFile){
+
+          preview =
+            await getImageLink(
+              frontFile.fileid
+            );
+
+        }
+
+
+        records.push({
 
           id:
             folder.name.slice(5),
+
+          folderid:
+            folder.folderid,
 
           name:
             '保存済みアイテム',
@@ -3416,58 +3270,16 @@ async function refresh(){
           price:'',
           memo:'',
 
+          preview:
+
+            preview,
+
           savedAt:
             folder.modified
 
-        };
+        });
 
       }
-
-
-      /*
-       * フォルダIDをセット
-       */
-
-      item.folderid =
-        folder.folderid;
-
-
-      /*
-       * ★画像URLを取得
-       *
-       * JSONにpreviewがなくても、
-       * pCloud内のfront画像を探します。
-       */
-
-      if(frontFile){
-
-        try{
-
-          item.preview =
-            await getFileUrl(
-              frontFile.fileid
-            );
-
-          item.frontImage =
-            frontFile.name;
-
-        }
-
-        catch(error){
-
-          console.warn(
-            '画像URL取得失敗:',
-            error
-          );
-
-        }
-
-      }
-
-
-      records.push(
-        item
-      );
 
     }
 
@@ -3521,6 +3333,7 @@ async function refresh(){
 
 
   setStatus('');
+
 
   setSuccess(
     records.length +
@@ -3592,6 +3405,7 @@ async function del(id){
 
     setStatus('');
 
+
     setSuccess(
       '削除しました。'
     );
@@ -3628,91 +3442,71 @@ function render(){
       .map(
         record => `
 
-          <div class="item">
+<div class="item">
 
-            ${
-              record.preview
-                ? `
-                  <img
-                    class="thumb"
-                    src="${esc(record.preview)}"
-                    alt=""
-                    loading="lazy"
-                    onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+${
+  record.preview
+    ? `
+      <img
+        class="thumb"
+        src="${esc(record.preview)}"
+        alt=""
+        loading="lazy">
+    `
+    : `
+      <div class="thumb"></div>
+    `
+}
 
-                  <div
-                    class="thumbPlaceholder"
-                    style="display:none;">
-                    画像<br>表示不可
-                  </div>
-                `
-                : `
-                  <div class="thumbPlaceholder">
-                    画像なし
-                  </div>
-                `
-            }
+<div class="grow">
 
-            <div class="grow">
+<h3>
+${esc(record.name)}
+</h3>
 
-              <h3>
-                ${esc(record.name)}
-              </h3>
+<p>
+${esc(record.series)}
+　${esc(record.kind)}
+</p>
 
-              <p>
-                ${esc(record.series || '')}
-               　
-                ${esc(record.kind || '')}
-              </p>
+<p>
+レア度：
+<strong>
+${esc(record.rarity || '不明')}
+</strong>
+</p>
 
-              <p>
-                レア度：
-                <strong>
-                  ${esc(record.rarity || '不明')}
-                </strong>
-              </p>
+<p>
+相場：
+<strong>
+${esc(record.price || '未入力')}
+</strong>
+</p>
 
-              <p>
-                相場：
-                <strong>
-                  ${esc(record.price || '未入力')}
-                </strong>
-              </p>
+<p>
+${
+  record.savedAt
+    ? new Date(
+        record.savedAt
+      )
+      .toLocaleDateString(
+        'ja-JP'
+      )
+    : ''
+}
+</p>
 
-              ${
-                record.memo
-                  ? `
-                    <p>
-                      ${esc(record.memo)}
-                    </p>
-                  `
-                  : ''
-              }
+</div>
 
-              <p>
-                ${
-                  record.savedAt
-                    ? new Date(
-                        record.savedAt
-                      )
-                      .toLocaleDateString(
-                        'ja-JP'
-                      )
-                    : ''
-                }
-              </p>
+<button
+class="btn small red"
+onclick="del('${esc(record.id)}')">
+削除
+</button>
 
-            </div>
+</div>
 
-            <button
-              class="btn small red"
-              onclick="del('${esc(record.id)}')">
-              削除
-            </button>
-
-          </div>
-
-        `
+`
       )
       .join('');
 
@@ -3821,6 +3615,7 @@ $('apiKey').value =
 
 
 updateCloud();
+
 
 render();
 
