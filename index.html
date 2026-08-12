@@ -94,6 +94,13 @@
       background:#fff;
     }
 
+    input:disabled,
+    textarea:disabled,
+    select:disabled{
+      background:#f1f5f9;
+      color:#475569;
+    }
+
     textarea{
       min-height:90px;
       resize:vertical;
@@ -227,6 +234,7 @@
       gap:12px;
       padding:12px 0;
       border-bottom:1px solid var(--line);
+      align-items:flex-start;
     }
 
     .item:last-child{
@@ -236,9 +244,23 @@
     .thumb{
       width:80px;
       height:80px;
-      object-fit:cover;
+      object-fit:contain;
       border-radius:10px;
       background:#edf1f7;
+      flex:none;
+    }
+
+    .thumbPlaceholder{
+      width:80px;
+      height:80px;
+      border-radius:10px;
+      background:#edf1f7;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#94a3b8;
+      font-size:11px;
+      text-align:center;
       flex:none;
     }
 
@@ -339,6 +361,17 @@
       line-height:1.6;
     }
 
+    .confirmedMark{
+      display:none;
+      margin-top:8px;
+      padding:8px 10px;
+      border-radius:8px;
+      background:#dcfce7;
+      color:#166534;
+      font-size:12px;
+      font-weight:700;
+    }
+
     .hidden{
       display:none !important;
     }
@@ -367,7 +400,8 @@
         gap:8px;
       }
 
-      .thumb{
+      .thumb,
+      .thumbPlaceholder{
         width:68px;
         height:68px;
       }
@@ -574,34 +608,26 @@
       </div>
 
 
+      <!-- =================================================
+           レア度
+           ★ プルダウンを廃止
+           ★ 完全自由入力
+      ================================================== -->
+
       <div>
 
-        <label>
-          レア度ランク
+        <label for="rarity">
+          レア度
         </label>
 
-        <select id="rarity">
+        <input
+          id="rarity"
+          type="text"
+          placeholder="例：ノーマル、プリズム、ヘッド、ホロ、不明">
 
-          <option>N</option>
-          <option>R</option>
-          <option>SR</option>
-          <option>SSR</option>
-          <option>SC</option>
-          <option>UR</option>
-          <option>SEC</option>
-          <option>PR</option>
-
-          <!-- コレクション品で使用される表記 -->
-          <option>ホロPP</option>
-          <option>ホロ</option>
-          <option>キラ</option>
-          <option>箔押し</option>
-          <option>シークレット</option>
-          <option>ゴールド</option>
-
-          <option>不明</option>
-
-        </select>
+        <div class="hint">
+          レア度は自由に入力できます。
+        </div>
 
       </div>
 
@@ -652,6 +678,7 @@
 
           <input
             id="price"
+            type="text"
             placeholder="例：2,500円～3,500円">
 
         </div>
@@ -693,7 +720,8 @@
 
         <div class="confirmText">
           レア度と相場を入力・確認したら、
-          「内容を確定」してからpCloudに保存してください。
+          「この内容で確定する」を押してください。<br>
+          確定した内容がpCloud保存用データになります。
         </div>
 
         <button
@@ -702,6 +730,12 @@
           type="button">
           ✅ この内容で確定する
         </button>
+
+        <div
+          id="confirmedMark"
+          class="confirmedMark">
+          ✓ 登録内容は確定済みです
+        </div>
 
       </div>
 
@@ -759,31 +793,19 @@
    基本設定
 ========================================================= */
 
-/*
- * pCloud My AppsのClient ID
- */
 const PCLOUD_CLIENT_ID =
   'VvTvHaowOR0';
 
 
-/*
- * Geminiモデル
- */
 const GEMINI_MODEL =
   'gemini-3.6-flash';
 
 
-/*
- * Geminiフォールバック
- */
 const GEMINI_FALLBACK_MODELS = [
   'gemini-3.1-flash-lite'
 ];
 
 
-/*
- * pCloud保存先
- */
 const ROOT_FOLDER =
   '8.seal collection';
 
@@ -806,6 +828,14 @@ let analysis =
 
 let records =
   [];
+
+
+/*
+ * 「この内容で確定する」を押した時点の
+ * 完全な保存用データ
+ */
+let confirmedData =
+  null;
 
 
 let confirmed =
@@ -982,19 +1012,85 @@ function preview(
 
 
 $('front').onchange =
-  () =>
+  () => {
+
     preview(
       $('front'),
       $('frontPreview')
     );
 
+    invalidateConfirmation();
+
+  };
+
 
 $('back').onchange =
-  () =>
+  () => {
+
     preview(
       $('back'),
       $('backPreview')
     );
+
+    invalidateConfirmation();
+
+  };
+
+
+/* =========================================================
+   確定状態を解除
+========================================================= */
+
+function invalidateConfirmation(){
+
+  if(
+    confirmed ||
+    confirmedData
+  ){
+
+    confirmed =
+      false;
+
+    confirmedData =
+      null;
+
+    $('saveBtn').disabled =
+      true;
+
+    $('confirmedMark').style.display =
+      'none';
+
+  }
+
+}
+
+
+/* =========================================================
+   入力変更時
+========================================================= */
+
+[
+  'name',
+  'series',
+  'kind',
+  'rarity',
+  'price',
+  'memo'
+].forEach(
+  id => {
+
+    $(id).addEventListener(
+      'input',
+      invalidateConfirmation
+    );
+
+    $(id).addEventListener(
+      'change',
+      invalidateConfirmation
+    );
+
+  }
+);
 
 
 /* =========================================================
@@ -1387,6 +1483,52 @@ async function upload(
     {},
     form
   );
+
+}
+
+
+/* =========================================================
+   pCloudファイルURL取得
+========================================================= */
+
+async function getFileUrl(fileid){
+
+  const data =
+    await pcall(
+      'getfilelink',
+      {
+        fileid,
+        forcedownload:0
+      }
+    );
+
+  if(
+    data.link
+  ){
+
+    return data.link;
+
+  }
+
+  /*
+   * pCloudのレスポンス形式によって
+   * hosts/path形式の場合にも対応
+   */
+  if(
+    Array.isArray(data.hosts) &&
+    data.hosts.length &&
+    data.path
+  ){
+
+    return (
+      'https://' +
+      data.hosts[0] +
+      data.path
+    );
+
+  }
+
+  return '';
 
 }
 
@@ -2215,8 +2357,14 @@ async function scan(){
   confirmed =
     false;
 
+  confirmedData =
+    null;
+
   $('saveBtn').disabled =
     true;
+
+  $('confirmedMark').style.display =
+    'none';
 
 
   try{
@@ -2299,44 +2447,6 @@ async function scan(){
       analysis.rarity.trim()
         ? analysis.rarity.trim()
         : '不明';
-
-
-    /*
-     * Geminiが返したレア度が
-     * プルダウンに存在しない場合、
-     * 自動的に追加します。
-     */
-    const raritySelect =
-      $('rarity');
-
-    const exists =
-      Array.from(
-        raritySelect.options
-      )
-      .some(
-        option =>
-          option.value === rarity
-      );
-
-
-    if(!exists && rarity){
-
-      const option =
-        document.createElement(
-          'option'
-        );
-
-      option.value =
-        rarity;
-
-      option.textContent =
-        rarity;
-
-      raritySelect.appendChild(
-        option
-      );
-
-    }
 
 
     const kind =
@@ -2505,10 +2615,6 @@ $('chatgptBtn').onclick =
         buildChatGPTPrompt();
 
 
-      /*
-       * ChatGPTの新しいチャットを
-       * 調査文付きで開く
-       */
       const url =
         'https://chatgpt.com/?q=' +
         encodeURIComponent(
@@ -2523,11 +2629,6 @@ $('chatgptBtn').onclick =
         );
 
 
-      /*
-       * ブラウザによって
-       * ?q= の自動入力が効かない場合に備えて
-       * クリップボードにもコピー
-       */
       if(
         navigator.clipboard &&
         navigator.clipboard.writeText
@@ -2580,15 +2681,12 @@ $('chatgptBtn').onclick =
 
 
 /* =========================================================
-   現在のデータ
+   現在の入力内容
 ========================================================= */
 
-function current(){
+function collectFormData(){
 
   return {
-
-    id:
-      uid(),
 
     name:
       $('name')
@@ -2605,7 +2703,10 @@ function current(){
       $('kind').value,
 
     rarity:
-      $('rarity').value,
+      $('rarity')
+        .value
+        .trim() ||
+      '不明',
 
     price:
       $('price')
@@ -2615,7 +2716,44 @@ function current(){
     memo:
       $('memo')
         .value
-        .trim(),
+        .trim()
+
+  };
+
+}
+
+
+/* =========================================================
+   新規保存データ作成
+========================================================= */
+
+function current(){
+
+  const formData =
+    collectFormData();
+
+  return {
+
+    id:
+      uid(),
+
+    name:
+      formData.name,
+
+    series:
+      formData.series,
+
+    kind:
+      formData.kind,
+
+    rarity:
+      formData.rarity,
+
+    price:
+      formData.price,
+
+    memo:
+      formData.memo,
 
     savedAt:
       new Date()
@@ -2635,23 +2773,11 @@ function confirmItem(){
   clearMessage();
 
 
-  const name =
-    $('name')
-      .value
-      .trim();
-
-  const rarity =
-    $('rarity')
-      .value
-      .trim();
-
-  const price =
-    $('price')
-      .value
-      .trim();
+  const formData =
+    collectFormData();
 
 
-  if(!name){
+  if(!formData.name){
 
     throw Error(
       'シール名を入力してください。'
@@ -2661,8 +2787,8 @@ function confirmItem(){
 
 
   if(
-    !rarity ||
-    rarity === '不明'
+    !formData.rarity ||
+    formData.rarity === '不明'
   ){
 
     const ok =
@@ -2679,7 +2805,7 @@ function confirmItem(){
   }
 
 
-  if(!price){
+  if(!formData.price){
 
     const ok =
       confirm(
@@ -2695,6 +2821,26 @@ function confirmItem(){
   }
 
 
+  /*
+   * ★ここが今回の重要修正
+   *
+   * 「確定」した瞬間の内容を
+   * confirmedDataへ丸ごとコピーします。
+   *
+   * pCloud保存時には、このデータを使用します。
+   */
+
+  const newData =
+    current();
+
+
+  /*
+   * IDを確定
+   */
+  confirmedData =
+    newData;
+
+
   confirmed =
     true;
 
@@ -2703,19 +2849,44 @@ function confirmItem(){
     false;
 
 
+  $('confirmedMark').style.display =
+    'block';
+
+
   setSuccess(
     '登録内容を確定しました。\n\n' +
     'レア度：' +
-    rarity +
+    confirmedData.rarity +
     '\n' +
     '相場：' +
     (
-      price ||
+      confirmedData.price ||
       '未入力'
     ) +
     '\n\n' +
-    '内容に間違いがなければ「pCloudに保存」を押してください。'
+    'この確定内容をpCloudへ保存できます。'
   );
+
+}
+
+
+/* =========================================================
+   ファイル拡張子
+========================================================= */
+
+function ext(file){
+
+  return (
+    file.name
+      .split('.')
+      .pop() ||
+    'jpg'
+  )
+  .replace(
+    /[^a-z0-9]/gi,
+    ''
+  )
+  .toLowerCase();
 
 }
 
@@ -2738,7 +2909,7 @@ async function save(){
   }
 
 
-  if(!confirmed){
+  if(!confirmed || !confirmedData){
 
     throw Error(
       '先に「この内容で確定する」を押してください。'
@@ -2789,8 +2960,17 @@ async function save(){
       await root();
 
 
+    /*
+     * ★確定済みデータをそのまま使用
+     *
+     * ここでcurrent()を作り直さないのが重要です。
+     */
     const item =
-      current();
+      JSON.parse(
+        JSON.stringify(
+          confirmedData
+        )
+      );
 
 
     /*
@@ -2818,40 +2998,37 @@ async function save(){
 
 
     /*
-     * 拡張子
+     * 表面画像ファイル名
      */
 
-    function ext(file){
-
-      return (
-        file.name
-          .split('.')
-          .pop() ||
-        'jpg'
-      )
-      .replace(
-        /[^a-z0-9]/gi,
-        ''
-      )
-      .toLowerCase();
-
-    }
+    const frontFilename =
+      'front.' +
+      ext(front);
 
 
     /*
-     * 表面
+     * 裏面画像ファイル名
+     */
+
+    const backFilename =
+      back
+        ? 'back.' + ext(back)
+        : '';
+
+
+    /*
+     * 表面画像を保存
      */
 
     await upload(
       folderid,
       front,
-      'front.' +
-      ext(front)
+      frontFilename
     );
 
 
     /*
-     * 裏面
+     * 裏面画像を保存
      */
 
     if(back){
@@ -2859,20 +3036,31 @@ async function save(){
       await upload(
         folderid,
         back,
-        'back.' +
-        ext(back)
+        backFilename
       );
 
     }
 
 
     /*
-     * JSON
+     * ★画像情報をJSONにも保存
      */
 
     item.folderid =
       folderid;
 
+    item.frontImage =
+      frontFilename;
+
+    item.backImage =
+      back
+        ? backFilename
+        : '';
+
+
+    /*
+     * JSON保存
+     */
 
     const dataFile =
       new File(
@@ -2903,12 +3091,96 @@ async function save(){
 
 
     /*
-     * 一覧表示用
+     * ★保存直後はpCloud上の画像URLを取得
      */
 
-    item.preview =
-      $('frontPreview').src;
+    try{
 
+      const files =
+        await pcall(
+          'listfolder',
+          {
+            folderid,
+            recursive:0
+          }
+        );
+
+
+      const frontFile =
+        (
+          files.metadata.contents ||
+          []
+        )
+        .find(
+          file =>
+            !file.isfolder &&
+            file.name ===
+              frontFilename
+        );
+
+
+      if(frontFile){
+
+        item.preview =
+          await getFileUrl(
+            frontFile.fileid
+          );
+
+      }
+
+    }
+
+    catch(error){
+
+      console.warn(
+        '保存直後の画像URL取得に失敗しました。',
+        error
+      );
+
+    }
+
+
+    /*
+     * ★JSONにpreviewも保存
+     *
+     * 次回一覧更新時にも画像を表示できます。
+     */
+
+    if(item.preview){
+
+      const finalDataFile =
+        new File(
+
+          [
+            JSON.stringify(
+              item,
+              null,
+              2
+            )
+          ],
+
+          'data.json',
+
+          {
+            type:
+              'application/json'
+          }
+
+        );
+
+
+      await upload(
+        folderid,
+        finalDataFile,
+        'data.json'
+      );
+
+    }
+
+
+    /*
+     * 一覧へ追加
+     */
 
     records.unshift(
       item
@@ -2922,6 +3194,9 @@ async function save(){
 
     setSuccess(
       'pCloudに保存しました。\n\n' +
+      'シール名：' +
+      item.name +
+      '\n' +
       'レア度：' +
       item.rarity +
       '\n' +
@@ -2929,7 +3204,9 @@ async function save(){
       (
         item.price ||
         '未入力'
-      )
+      ) +
+      '\n\n' +
+      '画像も保存しました。'
     );
 
 
@@ -2940,30 +3217,27 @@ async function save(){
     confirmed =
       false;
 
+    confirmedData =
+      null;
 
     $('saveBtn').disabled =
       true;
 
+    $('confirmedMark').style.display =
+      'none';
+
   }
 
-  finally{
+  catch(error){
 
     /*
-     * 保存成功後は上でdisabledにしている。
-     * エラー時だけ再度有効にする。
+     * エラー時は再度保存可能
      */
-    if(!confirmed){
 
-      $('saveBtn').disabled =
-        true;
+    $('saveBtn').disabled =
+      false;
 
-    }
-    else{
-
-      $('saveBtn').disabled =
-        false;
-
-    }
+    throw error;
 
   }
 
@@ -3048,11 +3322,17 @@ async function refresh(){
         );
 
 
+      const contents =
+        files.metadata.contents ||
+        [];
+
+
+      /*
+       * data.json
+       */
+
       const jsonFile =
-        (
-          files.metadata.contents ||
-          []
-        )
+        contents
         .find(
           item =>
             !item.isfolder &&
@@ -3060,6 +3340,29 @@ async function refresh(){
               'data.json'
         );
 
+
+      /*
+       * ★表面画像
+       */
+
+      const frontFile =
+        contents
+        .find(
+          item =>
+            !item.isfolder &&
+            /^front\./i.test(
+              item.name
+            )
+        );
+
+
+      let item =
+        null;
+
+
+      /*
+       * JSON読み込み
+       */
 
       if(jsonFile){
 
@@ -3085,31 +3388,24 @@ async function refresh(){
 
         if(response.ok){
 
-          const item =
+          item =
             await response.json();
-
-
-          item.folderid =
-            folder.folderid;
-
-
-          records.push(
-            item
-          );
 
         }
 
       }
 
-      else{
 
-        records.push({
+      /*
+       * JSONがない場合
+       */
+
+      if(!item){
+
+        item = {
 
           id:
             folder.name.slice(5),
-
-          folderid:
-            folder.folderid,
 
           name:
             '保存済みアイテム',
@@ -3123,9 +3419,55 @@ async function refresh(){
           savedAt:
             folder.modified
 
-        });
+        };
 
       }
+
+
+      /*
+       * フォルダIDをセット
+       */
+
+      item.folderid =
+        folder.folderid;
+
+
+      /*
+       * ★画像URLを取得
+       *
+       * JSONにpreviewがなくても、
+       * pCloud内のfront画像を探します。
+       */
+
+      if(frontFile){
+
+        try{
+
+          item.preview =
+            await getFileUrl(
+              frontFile.fileid
+            );
+
+          item.frontImage =
+            frontFile.name;
+
+        }
+
+        catch(error){
+
+          console.warn(
+            '画像URL取得失敗:',
+            error
+          );
+
+        }
+
+      }
+
+
+      records.push(
+        item
+      );
 
     }
 
@@ -3294,10 +3636,20 @@ function render(){
                   <img
                     class="thumb"
                     src="${esc(record.preview)}"
-                    alt="">
+                    alt=""
+                    loading="lazy"
+                    onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+
+                  <div
+                    class="thumbPlaceholder"
+                    style="display:none;">
+                    画像<br>表示不可
+                  </div>
                 `
                 : `
-                  <div class="thumb"></div>
+                  <div class="thumbPlaceholder">
+                    画像なし
+                  </div>
                 `
             }
 
@@ -3308,9 +3660,9 @@ function render(){
               </h3>
 
               <p>
-                ${esc(record.series)}
+                ${esc(record.series || '')}
                　
-                ${esc(record.kind)}
+                ${esc(record.kind || '')}
               </p>
 
               <p>
@@ -3326,6 +3678,16 @@ function render(){
                   ${esc(record.price || '未入力')}
                 </strong>
               </p>
+
+              ${
+                record.memo
+                  ? `
+                    <p>
+                      ${esc(record.memo)}
+                    </p>
+                  `
+                  : ''
+              }
 
               <p>
                 ${
