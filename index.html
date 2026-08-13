@@ -46,6 +46,13 @@ h1{
   text-align:center;
   color:var(--sub);
   font-size:13px;
+  margin:0 0 4px;
+}
+
+.buildStamp{
+  text-align:center;
+  color:#9aa5b8;
+  font-size:11px;
   margin:0 0 18px;
 }
 
@@ -222,43 +229,6 @@ textarea{
   gap:10px;
 }
 
-.item{
-  display:flex;
-  gap:12px;
-  padding:12px 0;
-  border-bottom:1px solid var(--line);
-  align-items:flex-start;
-}
-
-.item:last-child{
-  border:0;
-}
-
-.thumb{
-  width:80px;
-  height:80px;
-  object-fit:contain;
-  border-radius:10px;
-  background:#edf1f7;
-  flex:none;
-}
-
-.item h3{
-  font-size:15px;
-  margin:0 0 3px;
-}
-
-.item p{
-  font-size:12px;
-  color:var(--sub);
-  margin:2px 0;
-}
-
-.item .grow{
-  flex:1;
-  min-width:0;
-}
-
 .badge{
   font-size:12px;
   color:#17643b;
@@ -300,13 +270,6 @@ textarea{
   line-height:1.5;
 }
 
-.source{
-  font-size:11px;
-  color:var(--sub);
-  line-height:1.5;
-  margin-top:8px;
-}
-
 .confirmBox{
   background:#f0fdf4;
   border:1px solid #bbf7d0;
@@ -327,19 +290,6 @@ textarea{
   line-height:1.6;
 }
 
-.confirmedPreview{
-  display:none;
-  background:#ecfdf3;
-  border:1px solid #86efac;
-  border-radius:12px;
-  padding:12px;
-  margin-top:10px;
-}
-
-.confirmedPreview strong{
-  color:#166534;
-}
-
 .hidden{
   display:none !important;
 }
@@ -348,6 +298,188 @@ code{
   background:#f1f5f9;
   padding:2px 4px;
   border-radius:4px;
+}
+
+/* =========================================================
+   セッション履歴（保存はしない・参照用のみ）
+========================================================= */
+
+.historyItem{
+  display:flex;
+  gap:10px;
+  padding:10px 0;
+  border-bottom:1px solid var(--line);
+  align-items:center;
+}
+
+.historyItem:last-child{
+  border:0;
+}
+
+.historyThumb{
+  width:52px;
+  height:52px;
+  object-fit:contain;
+  border-radius:8px;
+  background:#edf1f7;
+  flex:none;
+}
+
+.historyItem .grow{
+  flex:1;
+  min-width:0;
+}
+
+.historyItem h4{
+  font-size:13px;
+  margin:0 0 2px;
+}
+
+.historyItem p{
+  font-size:11px;
+  color:var(--sub);
+  margin:0;
+}
+
+/* =========================================================
+   スクリーンショット用カード
+========================================================= */
+
+#cardView{
+  display:none;
+}
+
+.screenshotWrap{
+  background:#fff;
+  border-radius:22px;
+  padding:22px 18px 26px;
+  border:1px solid var(--line);
+  box-shadow:0 4px 18px #16213a12;
+}
+
+.screenshotHeader{
+  text-align:center;
+  font-size:12px;
+  color:var(--sub);
+  letter-spacing:.04em;
+  margin-bottom:14px;
+}
+
+.screenshotPhotos{
+  display:flex;
+  gap:10px;
+  margin-bottom:16px;
+}
+
+.screenshotPhotos img{
+  flex:1;
+  width:0;
+  min-height:150px;
+  max-height:260px;
+  object-fit:contain;
+  background:#f1f5f9;
+  border-radius:16px;
+  border:1px solid var(--line);
+}
+
+.screenshotPhotos.single img{
+  max-height:320px;
+}
+
+.screenshotName{
+  font-size:21px;
+  font-weight:800;
+  margin:0 0 3px;
+  text-align:center;
+}
+
+.screenshotSeries{
+  text-align:center;
+  color:var(--sub);
+  font-size:13px;
+  margin:0 0 14px;
+}
+
+.screenshotBadges{
+  display:flex;
+  gap:8px;
+  justify-content:center;
+  flex-wrap:wrap;
+  margin-bottom:16px;
+}
+
+.screenshotBadges .badge{
+  font-size:13px;
+  padding:6px 12px;
+}
+
+.badge.kindBadge{
+  background:#eef4ff;
+  color:#125dc9;
+}
+
+.badge.rarityBadge{
+  background:#fff7ed;
+  color:#9a3412;
+}
+
+.screenshotPriceBox{
+  text-align:center;
+  background:#ecfdf3;
+  border:1px solid #bbf7d0;
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:14px;
+}
+
+.screenshotPriceLabel{
+  font-size:12px;
+  color:#166534;
+  margin-bottom:4px;
+}
+
+.screenshotPrice{
+  font-size:24px;
+  font-weight:800;
+  color:#166534;
+}
+
+.screenshotMemoLabel{
+  font-size:12px;
+  font-weight:700;
+  color:var(--sub);
+  margin-bottom:4px;
+}
+
+.screenshotMemo{
+  font-size:13px;
+  line-height:1.6;
+  background:#f8fafc;
+  border-radius:12px;
+  padding:12px;
+  white-space:pre-wrap;
+}
+
+.screenshotMeta{
+  text-align:right;
+  font-size:11px;
+  color:#9aa5b8;
+  margin-top:14px;
+}
+
+.instructionBox{
+  background:#eff6ff;
+  border:1px solid #bfdbfe;
+  border-radius:14px;
+  padding:14px;
+  margin-top:16px;
+  font-size:13px;
+  color:#1957a7;
+  line-height:1.7;
+}
+
+.instructionBox b{
+  color:#0f3d78;
 }
 
 @media(max-width:390px){
@@ -360,13 +492,8 @@ code{
     min-height:140px;
   }
 
-  .item{
-    gap:8px;
-  }
-
-  .thumb{
-    width:68px;
-    height:68px;
+  .screenshotPhotos img{
+    min-height:120px;
   }
 }
 </style>
@@ -379,50 +506,18 @@ code{
 <h1>✨ シールコレクション AI</h1>
 
 <p class="lead">
-表面・裏面を撮影して、AIで判定・ChatGPTで相場確認・pCloud保存
+表面・裏面を撮影して、AIで判定・ChatGPTで相場確認。<br>
+最後にスクリーンショットしてpCloudへ手動保存します。
 </p>
 
-<p class="hint" id="buildStamp" style="text-align:center;margin-top:-10px;margin-bottom:14px"></p>
+<p class="buildStamp" id="buildStamp"></p>
 
 
 <!-- =====================================================
-     pCloud
+     入力フォーム画面
 ===================================================== -->
 
-<section class="card">
-
-<div class="row">
-
-<strong>pCloud 保存先</strong>
-
-<span id="cloudState" class="badge">
-未接続
-</span>
-
-</div>
-
-<p class="hint">
-pCloud承認後に
-<code>PCLOUD_CLIENT_ID</code>
-を設定してください。<br>
-Client Secret は入力しません。
-</p>
-
-<button
-id="loginBtn"
-class="btn secondary full"
-type="button">
-pCloud に接続
-</button>
-
-<button
-id="logoutBtn"
-class="btn small hidden"
-type="button">
-接続を解除
-</button>
-
-</section>
+<div id="formView">
 
 
 <!-- =====================================================
@@ -561,11 +656,6 @@ class="card result">
 </div>
 
 
-<!-- =====================================================
-     レア度
-     ★自由入力に変更
-===================================================== -->
-
 <div>
 
 <label>
@@ -594,7 +684,8 @@ placeholder="例：ホロ、プリズム、天使、UR、不明など">
 
 シール画像はChatGPTには送信しません。<br>
 AIで判定した「シール名」と「シリーズ名」だけを使って、
-調査用の質問を自動作成します。
+調査用の質問を自動作成します。<br>
+調べた結果は、下の「相場」欄に手動で入力してください。
 
 </div>
 
@@ -655,14 +746,15 @@ ChatGPTで調べた結果を入力してください。<br>
 <div class="confirmBox">
 
 <div class="confirmTitle">
-✅ 登録内容を確定
+✅ 保存用画面を作成
 </div>
 
 <div class="confirmText">
 
-ここで確定した内容だけがpCloudに保存されます。<br>
-AI判定結果は保存処理では使用しません。<br>
-<strong>確定後に上の項目を編集した場合は、保存前に必ずもう一度「確定する」を押してください。</strong>
+「確定する」を押すと、写真と入力内容だけの
+スクリーンショット用の画面に切り替わります。<br>
+その画面をスクリーンショットして、
+<b>pCloudアプリへ手動でアップロード</b>してください。
 
 </div>
 
@@ -670,38 +762,11 @@ AI判定結果は保存処理では使用しません。<br>
 id="confirmBtn"
 class="btn green full"
 type="button">
-✅ この内容で確定する
+✅ この内容で確定してスクリーンショット画面へ
 </button>
 
 </div>
 
-
-<!-- =====================================================
-     確定済み表示
-===================================================== -->
-
-<div
-id="confirmedPreview"
-class="confirmedPreview">
-
-<div>
-<strong>確定済みの保存内容</strong>
-</div>
-
-<div id="confirmedText"></div>
-
-</div>
-
-
-<button
-id="saveBtn"
-class="btn green full"
-type="button"
-disabled>
-
-💾 確定した内容をpCloudに保存
-
-</button>
 
 <div id="confirmStatus" class="status"></div>
 <div id="confirmWarning" class="warning"></div>
@@ -715,40 +780,89 @@ disabled>
 
 
 <!-- =====================================================
-     コレクション
+     このセッションでの登録履歴（保存はされません）
 ===================================================== -->
 
-<section class="card">
+<section class="card" id="historySection" style="display:none">
 
-<div class="row">
-
-<label style="margin:0">
-マイコレクション
+<label style="margin-bottom:2px">
+今回のセッションで確定した一覧
 </label>
 
+<p class="hint" style="margin-top:0">
+※このリストは保存されません。ページを閉じる・再読み込みすると消えます。<br>
+各アイテムは確定した時点でスクリーンショットしてpCloudへ手動保存してください。
+</p>
+
+<div id="historyList"></div>
+
+</section>
+
+
+</div>
+
+
+<!-- =====================================================
+     スクリーンショット用カード画面
+===================================================== -->
+
+<div id="cardView">
+
+<div class="screenshotWrap" id="screenshotWrap">
+
+<div class="screenshotHeader">
+シールコレクション記録
+</div>
+
+<div class="screenshotPhotos" id="screenshotPhotos"></div>
+
+<div class="screenshotName" id="cardName"></div>
+<div class="screenshotSeries" id="cardSeries"></div>
+
+<div class="screenshotBadges">
+<span class="badge kindBadge" id="cardKind"></span>
+<span class="badge rarityBadge" id="cardRarity"></span>
+</div>
+
+<div class="screenshotPriceBox">
+<div class="screenshotPriceLabel">相場</div>
+<div class="screenshotPrice" id="cardPrice"></div>
+</div>
+
+<div id="cardMemoBlock">
+<div class="screenshotMemoLabel">メモ</div>
+<div class="screenshotMemo" id="cardMemo"></div>
+</div>
+
+<div class="screenshotMeta" id="cardMeta"></div>
+
+</div>
+
+
+<div class="instructionBox">
+📸 <b>保存方法</b><br>
+① この画面全体をスクリーンショットしてください（iPhoneはそのまま、Androidはスクロールキャプチャ推奨）。<br>
+② 保存した画像を pCloud アプリで手動でアップロードしてください。
+</div>
+
+
 <button
-id="refreshBtn"
-class="btn small secondary"
+id="backToFormBtn"
+class="btn secondary full"
+type="button"
+style="margin-top:14px">
+✏️ 編集に戻る
+</button>
+
+<button
+id="nextItemBtn"
+class="btn green full"
 type="button">
-一覧を更新
+➕ 次のアイテムを登録する
 </button>
 
 </div>
 
-<div id="listStatus" class="status"></div>
-<div id="listWarning" class="warning"></div>
-<div id="listSuccess" class="success"></div>
-<div id="listError" class="error"></div>
-
-<div id="list">
-
-<p class="muted">
-pCloudに接続すると保存済みの一覧を読み込みます。
-</p>
-
-</div>
-
-</section>
 
 </main>
 
@@ -759,10 +873,6 @@ pCloudに接続すると保存済みの一覧を読み込みます。
    基本設定
 ========================================================= */
 
-const PCLOUD_CLIENT_ID =
-  'VvTvHaowOR0';
-
-
 const GEMINI_MODEL =
   'gemini-3.6-flash';
 
@@ -770,10 +880,6 @@ const GEMINI_MODEL =
 const GEMINI_FALLBACK_MODELS = [
   'gemini-3.1-flash-lite'
 ];
-
-
-const ROOT_FOLDER =
-  '8.seal collection';
 
 
 /* =========================================================
@@ -789,42 +895,28 @@ const store =
 
 
 /*
- * 重要
- *
  * analysis
- * = AI判定結果（画面初期表示にしか使わない・保存には絶対使わない）
+ * = AI判定結果（画面初期表示の下書きにしか使わない）
  *
  * confirmedItem
- * = ユーザーが「この内容で確定する」を押した時点の
- *   完全な保存用データ（フィールドの現在値のスナップショット）
+ * = 「確定する」を押した瞬間の、画面の現在値そのもの。
+ *   スクリーンショット画面の表示にはこれだけを使う。
  *
- * pCloud保存では confirmedItem のみ使用する。
- * さらに save() 実行直前に、画面の現在値と confirmedItem が
- * 完全に一致しているかを検証し、ズレていれば保存を止める。
+ * pCloudへの自動アップロードは行わない。
+ * 保存はユーザーがスクリーンショットして手動で行う。
  */
 
 let analysis = null;
 
 let confirmedItem = null;
 
-let records = [];
+let sessionHistory = [];
 
 
 /* =========================================================
    メッセージ
+   scope: 'scan' | 'confirm'
 ========================================================= */
-
-/*
- * メッセージ表示は「どの操作か」ごとに別々の場所に出す。
- *
- * scope:
- *   'scan'    → AI判定セクション（画像カードの下）
- *   'confirm' → 確定・ChatGPT・保存セクション（結果カード内）
- *   'list'    → マイコレクション一覧セクション
- *
- * これにより「削除しました」が確定/保存とは無関係な
- * 場所に表示されてしまう問題を防ぐ。
- */
 
 function msgIds(scope){
 
@@ -1047,450 +1139,6 @@ function saveKey(){
   store.setItem(
     'stickerGeminiKey',
     $('apiKey').value.trim()
-  );
-
-}
-
-
-/* =========================================================
-   pCloud
-========================================================= */
-
-function apiHost(){
-
-  return (
-    store.getItem('pcloudHost') ||
-    'api.pcloud.com'
-  );
-
-}
-
-
-function token(){
-
-  return store.getItem(
-    'pcloudToken'
-  );
-
-}
-
-
-function updateCloud(){
-
-  const connected =
-    !!token();
-
-  $('cloudState').textContent =
-    connected
-      ? '接続済み'
-      : '未接続';
-
-  $('loginBtn')
-    .classList
-    .toggle(
-      'hidden',
-      connected
-    );
-
-  $('logoutBtn')
-    .classList
-    .toggle(
-      'hidden',
-      !connected
-    );
-
-}
-
-
-/*
- * ★起動時のトークン有効性チェック
- *
- * localStorageにトークンがあるというだけでは
- * 「本当にpCloud側で有効か」はわからない。
- *
- * ここで軽いAPI呼び出し(userinfo)を1回投げて、
- * 失敗したら（＝上のpcall内の認証エラー処理により）
- * トークンが自動的に破棄され、画面が「未接続」に戻る。
- */
-
-async function validateConnection(){
-
-  if(!token()){
-    return;
-  }
-
-  try{
-
-    await pcall(
-      'userinfo'
-    );
-
-  }
-
-  catch{
-
-    /*
-     * pcall内で既にトークン破棄・updateCloud()済み。
-     * ここでは何もしなくてよい。
-     */
-
-  }
-
-}
-
-
-function redirectURI(){
-
-  return location.href
-    .split('#')[0];
-
-}
-
-
-/* =========================================================
-   pCloud OAuth
-========================================================= */
-
-function connect(){
-
-  if(
-    PCLOUD_CLIENT_ID.includes('PASTE_')
-  ){
-
-    throw Error(
-      'PCLOUD_CLIENT_IDにpCloudのClient IDを入力してください。'
-    );
-
-  }
-
-  if(
-    location.protocol === 'file:'
-  ){
-
-    throw Error(
-      'このHTMLはHTTPSで公開してから使用してください。'
-    );
-
-  }
-
-  const state =
-    uid();
-
-  store.setItem(
-    'pcloudState',
-    state
-  );
-
-  const params =
-    new URLSearchParams({
-
-      client_id:
-        PCLOUD_CLIENT_ID,
-
-      response_type:
-        'token',
-
-      redirect_uri:
-        redirectURI(),
-
-      state
-
-    });
-
-  location.href =
-    'https://my.pcloud.com/oauth2/authorize?' +
-    params.toString();
-
-}
-
-
-/* =========================================================
-   OAuth戻り
-========================================================= */
-
-function readOAuth(){
-
-  if(!location.hash){
-    return;
-  }
-
-  const params =
-    new URLSearchParams(
-      location.hash.slice(1)
-    );
-
-  if(
-    params.get('access_token')
-  ){
-
-    if(
-      params.get('state') !==
-      store.getItem('pcloudState')
-    ){
-
-      throw Error(
-        'pCloud認証の確認値が一致しません。もう一度接続してください。'
-      );
-
-    }
-
-    store.setItem(
-      'pcloudToken',
-      params.get('access_token')
-    );
-
-    store.setItem(
-      'pcloudHost',
-      params.get('hostname') ||
-      'api.pcloud.com'
-    );
-
-    history.replaceState(
-      null,
-      '',
-      redirectURI()
-    );
-
-  }
-
-  else if(
-    params.get('error')
-  ){
-
-    throw Error(
-      'pCloud認証が完了しませんでした: ' +
-      params.get('error')
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   pCloud API
-========================================================= */
-
-async function pcall(
-  method,
-  params = {},
-  form = null
-){
-
-  if(!token()){
-
-    throw Error(
-      '先にpCloudへ接続してください。'
-    );
-
-  }
-
-  const url =
-    'https://' +
-    apiHost() +
-    '/' +
-    method;
-
-  let options;
-
-  if(form){
-
-    form.append(
-      'access_token',
-      token()
-    );
-
-    options = {
-      method:'POST',
-      body:form
-    };
-
-  }
-
-  else{
-
-    options = {
-
-      method:'POST',
-
-      headers:{
-        'Content-Type':
-          'application/x-www-form-urlencoded'
-      },
-
-      body:
-        new URLSearchParams({
-          ...params,
-          access_token:
-            token()
-        })
-
-    };
-
-  }
-
-  let response;
-
-  try{
-
-    response =
-      await fetch(
-        url,
-        options
-      );
-
-  }
-
-  catch{
-
-    throw Error(
-      'pCloudへ接続できませんでした。公開URL・通信環境・pCloud設定を確認してください。'
-    );
-
-  }
-
-  let data;
-
-  try{
-
-    data =
-      await response.json();
-
-  }
-
-  catch{
-
-    throw Error(
-      'pCloudから正しい応答が返りませんでした。'
-    );
-
-  }
-
-  if(
-    !response.ok ||
-    data.result !== 0
-  ){
-
-    const rawMessage =
-      data.error ||
-      String(data.result) ||
-      String(response.status);
-
-    /*
-     * ★認証切れの検出
-     *
-     * pCloudは、トークンが無効・失効している場合に
-     * 「log in required」等のエラーを返す。
-     *
-     * この場合は「接続済み」表示のまま止まってしまうと
-     * 何度試してもエラーになり続けるため、
-     * ここでトークンを強制的に破棄し、
-     * 画面を「未接続」状態に戻す。
-     */
-
-    const isAuthError =
-      /log in required/i.test(rawMessage) ||
-      /login failed/i.test(rawMessage) ||
-      /invalid access token/i.test(rawMessage) ||
-      /invalid token/i.test(rawMessage) ||
-      data.result === 1000 ||
-      data.result === 2000 ||
-      data.result === 2094 ||
-      data.result === 2095;
-
-    if(isAuthError){
-
-      store.removeItem(
-        'pcloudToken'
-      );
-
-      store.removeItem(
-        'pcloudHost'
-      );
-
-      updateCloud();
-
-      throw Error(
-        'pCloudの接続が切れています（' +
-        rawMessage +
-        '）。\n\n' +
-        '「未接続」表示に戻しましたので、' +
-        'もう一度「pCloud に接続」を押して再接続してください。\n' +
-        '再接続後、確定済みの内容は消えていないので、そのまま「保存」を押し直せます。'
-      );
-
-    }
-
-    throw Error(
-      'pCloudエラー: ' +
-      rawMessage
-    );
-
-  }
-
-  return data;
-
-}
-
-
-/* =========================================================
-   pCloudルート
-========================================================= */
-
-async function root(){
-
-  const data =
-    await pcall(
-      'createfolderifnotexists',
-      {
-        folderid:0,
-        name:ROOT_FOLDER
-      }
-    );
-
-  return data.metadata.folderid;
-
-}
-
-
-/* =========================================================
-   pCloudアップロード
-========================================================= */
-
-async function upload(
-  folderid,
-  file,
-  filename
-){
-
-  const form =
-    new FormData();
-
-  form.append(
-    'folderid',
-    folderid
-  );
-
-  form.append(
-    'nopartial',
-    '1'
-  );
-
-  form.append(
-    'renameifexists',
-    '0'
-  );
-
-  form.append(
-    'file',
-    file,
-    filename
-  );
-
-  return pcall(
-    'uploadfile',
-    {},
-    form
   );
 
 }
@@ -2157,12 +1805,6 @@ async function scan(){
   analysis = null;
   confirmedItem = null;
 
-  $('saveBtn').disabled =
-    true;
-
-  $('confirmedPreview').style.display =
-    'none';
-
   try{
 
     const parts = [
@@ -2262,8 +1904,7 @@ async function scan(){
     setSuccess(
       'AI判定が完了しました。\n\n' +
       'レア度・相場を確認・編集してください。\n' +
-      'その後「この内容で確定する」を押してください。\n\n' +
-      '※ここで表示されているのはAIの下書きです。まだpCloudには保存されていません。',
+      'その後「この内容で確定する」を押してください。',
       'scan'
     );
 
@@ -2392,7 +2033,7 @@ $('chatgptBtn').onclick =
               setSuccess(
                 'ChatGPTを開きました。\n\n' +
                 '調査文をクリップボードにもコピーしました。\n\n' +
-                '※レア度・相場欄を更新したら、必ずもう一度「この内容で確定する」を押してください。',
+                '※調べた結果は「相場」欄に手動で入力してください。',
                 'confirm'
               );
 
@@ -2426,25 +2067,22 @@ $('chatgptBtn').onclick =
 
 /* =========================================================
    ★★★★★
-   最重要：確定データ作成
+   確定 → スクリーンショット画面表示
 ========================================================= */
 
 /*
- * この関数が今回の修正の中心です。
+ * AI判定結果 analysis は一切使わない。
  *
- * AI判定結果 analysis は一切使いません。
+ * 画面上の入力欄・画像プレビューから
+ * 今この瞬間の値を読み取り、
+ * そのままスクリーンショット用カードに表示する。
  *
- * 画面上の入力欄から現在の値を読み取り、
- * その瞬間の値を「完全な保存用スナップショット」として
- * confirmedItem にコピーします。
- *
- * さらに Object.freeze することで、
- * 確定後にこのオブジェクトのプロパティが
- * 誤って書き換えられることを防ぎます
- * （＝confirmedItemは常に「確定を押した瞬間の値」のまま）。
+ * pCloudへの自動アップロードはしない。
+ * ユーザーがこの画面をスクリーンショットして、
+ * 自分の手でpCloudへ保存する。
  */
 
-function createConfirmedItem(){
+function buildConfirmedItem(){
 
   const name =
     $('name').value.trim();
@@ -2498,12 +2136,17 @@ function createConfirmedItem(){
 
   }
 
-  /*
-   * ★ここで完全コピー
-   *
-   * 以後のpCloud保存では、
-   * このオブジェクトだけを使用する。
-   */
+  const frontSrc =
+    $('frontPreview').src &&
+    $('frontPreview').style.display !== 'none'
+      ? $('frontPreview').src
+      : '';
+
+  const backSrc =
+    $('backPreview').src &&
+    $('backPreview').style.display !== 'none'
+      ? $('backPreview').src
+      : '';
 
   const snapshot = {
 
@@ -2521,14 +2164,14 @@ function createConfirmedItem(){
 
     memo:String(memo),
 
-    savedAt:
+    frontSrc,
+
+    backSrc,
+
+    confirmedAt:
       new Date().toISOString()
 
   };
-
-  /*
-   * ★確定後に中身が書き換わらないようにロックする
-   */
 
   return Object.freeze(
     snapshot
@@ -2537,23 +2180,168 @@ function createConfirmedItem(){
 }
 
 
-/* =========================================================
-   ★★★★★
-   この内容で確定
-========================================================= */
+function renderCardView(item){
+
+  const photos = [];
+
+  if(item.frontSrc){
+
+    photos.push(
+      item.frontSrc
+    );
+
+  }
+
+  if(item.backSrc){
+
+    photos.push(
+      item.backSrc
+    );
+
+  }
+
+  const photosBox =
+    $('screenshotPhotos');
+
+  photosBox.className =
+    'screenshotPhotos' +
+    (
+      photos.length === 1
+        ? ' single'
+        : ''
+    );
+
+  photosBox.innerHTML =
+    photos
+      .map(
+        src =>
+          '<img src="' +
+          esc(src) +
+          '" alt="">'
+      )
+      .join('');
+
+  $('cardName').textContent =
+    item.name;
+
+  $('cardSeries').textContent =
+    item.series || '';
+
+  $('cardSeries').style.display =
+    item.series ? 'block' : 'none';
+
+  $('cardKind').textContent =
+    item.kind;
+
+  $('cardRarity').textContent =
+    'レア度：' +
+    (item.rarity || '未入力');
+
+  $('cardPrice').textContent =
+    item.price || '未入力';
+
+  const memoText =
+    item.memo || '';
+
+  $('cardMemo').textContent =
+    memoText;
+
+  $('cardMemoBlock').style.display =
+    memoText ? 'block' : 'none';
+
+  const date =
+    new Date(
+      item.confirmedAt
+    );
+
+  $('cardMeta').textContent =
+    '確定日時：' +
+    date.toLocaleString(
+      'ja-JP'
+    );
+
+}
+
+
+function addToHistory(item){
+
+  sessionHistory.unshift(
+    item
+  );
+
+  $('historySection').style.display =
+    'block';
+
+  $('historyList').innerHTML =
+    sessionHistory
+      .map(
+        record => `
+<div class="historyItem">
+
+${
+  record.frontSrc
+    ? '<img class="historyThumb" src="' +
+      esc(record.frontSrc) +
+      '" alt="">'
+    : '<div class="historyThumb"></div>'
+}
+
+<div class="grow">
+<h4>${esc(record.name)}</h4>
+<p>
+${esc(record.series || '')}
+　${esc(record.kind || '')}
+　${esc(record.rarity || '不明')}
+　${esc(record.price || '未入力')}
+</p>
+</div>
+
+</div>
+`
+      )
+      .join('');
+
+}
+
+
+function showCardView(){
+
+  $('formView').style.display =
+    'none';
+
+  $('cardView').style.display =
+    'block';
+
+  window.scrollTo(
+    0,
+    0
+  );
+
+}
+
+
+function showFormView(){
+
+  $('cardView').style.display =
+    'none';
+
+  $('formView').style.display =
+    'block';
+
+  window.scrollTo(
+    0,
+    0
+  );
+
+}
+
 
 function confirmItem(){
 
   clearMessage('confirm');
 
-  /*
-   * 既存のconfirmedItemを捨てて、
-   * 今画面に表示されている内容から
-   * 新しい確定データを作る。
-   */
-
   const snapshot =
-    createConfirmedItem();
+    buildConfirmedItem();
 
   if(!snapshot){
     return;
@@ -2562,995 +2350,17 @@ function confirmItem(){
   confirmedItem =
     snapshot;
 
-  /*
-   * 画面にも確定内容を表示
-   */
-
-  $('confirmedText').innerHTML =
-    '<div>シール名：<strong>' +
-    esc(confirmedItem.name) +
-    '</strong></div>' +
-
-    '<div>シリーズ：<strong>' +
-    esc(confirmedItem.series || '未入力') +
-    '</strong></div>' +
-
-    '<div>種類：<strong>' +
-    esc(confirmedItem.kind) +
-    '</strong></div>' +
-
-    '<div>レア度：<strong>' +
-    esc(confirmedItem.rarity || '未入力') +
-    '</strong></div>' +
-
-    '<div>相場：<strong>' +
-    esc(confirmedItem.price || '未入力') +
-    '</strong></div>';
-
-  $('confirmedPreview').style.display =
-    'block';
-
-  /*
-   * ★保存ボタンを有効化
-   */
-
-  $('saveBtn').disabled =
-    false;
-
-  setSuccess(
-    '登録内容を確定しました。\n\n' +
-    'レア度：' +
-    (confirmedItem.rarity || '未入力') +
-    '\n' +
-    '相場：' +
-    (confirmedItem.price || '未入力') +
-    '\n\n' +
-    '現在の「確定済み保存データ」だけがpCloudへ保存されます。',
-    'confirm'
+  renderCardView(
+    confirmedItem
   );
 
-}
-
-
-/* =========================================================
-   ★★★★★
-   確定済みデータと画面表示の整合性チェック
-========================================================= */
-
-/*
- * save() の直前に必ず呼ぶ。
- *
- * 「確定を押した後に、確定を押し直さずに
- *   入力欄だけ書き換えてしまった」ケースを検出し、
- * ズレていれば保存自体をブロックする。
- *
- * これにより、画面に見えている内容と
- * 実際にpCloudへ保存される内容が
- * 常に一致することを機械的に保証する。
- */
-
-function assertConfirmedMatchesScreen(){
-
-  if(!confirmedItem){
-
-    throw Error(
-      '先に「この内容で確定する」を押してください。'
-    );
-
-  }
-
-  const current = {
-
-    name:
-      $('name').value.trim(),
-
-    series:
-      $('series').value.trim(),
-
-    kind:
-      $('kind').value,
-
-    rarity:
-      $('rarity').value.trim(),
-
-    price:
-      $('price').value.trim(),
-
-    memo:
-      $('memo').value.trim()
-
-  };
-
-  const fieldLabels = {
-
-    name:'シール名',
-    series:'シリーズ',
-    kind:'種類',
-    rarity:'レア度',
-    price:'相場',
-    memo:'メモ'
-
-  };
-
-  const changed =
-    Object.keys(current)
-      .filter(
-        key =>
-          current[key] !==
-          confirmedItem[key]
-      );
-
-  if(changed.length){
-
-    const changedLabels =
-      changed
-        .map(
-          key =>
-            fieldLabels[key]
-        )
-        .join('、');
-
-    throw Error(
-      '確定後に「' +
-      changedLabels +
-      '」が編集されています。\n\n' +
-      '画面の内容と確定済みデータが一致していないため、保存を中止しました。\n' +
-      'もう一度「この内容で確定する」を押してから保存してください。'
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   拡張子
-========================================================= */
-
-function ext(file){
-
-  return (
-    file.name
-      .split('.')
-      .pop() ||
-    'jpg'
-  )
-  .replace(
-    /[^a-z0-9]/gi,
-    ''
-  )
-  .toLowerCase();
-
-}
-
-
-/* =========================================================
-   ★★★★★
-   pCloud保存
-========================================================= */
-
-async function save(){
-
-  clearMessage('confirm');
-
-  /*
-   * analysis はここでは絶対に使用しない。
-   */
-
-  if(!confirmedItem){
-
-    throw Error(
-      '先に「この内容で確定する」を押してください。'
-    );
-
-  }
-
-  /*
-   * ★強制ガード
-   *
-   * 確定後に画面の値が変わっていないかを検証する。
-   * 変わっていれば例外を投げて保存を中止する。
-   */
-
-  assertConfirmedMatchesScreen();
-
-  if(!token()){
-
-    throw Error(
-      '先にpCloudへ接続してください。'
-    );
-
-  }
-
-  const front =
-    $('front').files[0];
-
-  const back =
-    $('back').files[0];
-
-  if(!front){
-
-    throw Error(
-      '表面の画像がありません。'
-    );
-
-  }
-
-  $('saveBtn').disabled =
-    true;
-
-  /*
-   * ★★★★★
-   * 最終確認ダイアログ（絶対に見逃せない場所に出す）
-   *
-   * ここで表示する内容は confirmedItem そのもの。
-   * AI判定結果（analysis）は一切使わない。
-   *
-   * ユーザーがOKを押さない限り、
-   * pCloudへは1バイトもアップロードしない。
-   */
-
-  const finalPreview =
-    'シール名：' +
-    confirmedItem.name +
-    '\n' +
-
-    'シリーズ：' +
-    (confirmedItem.series || '未入力') +
-    '\n' +
-
-    '種類：' +
-    confirmedItem.kind +
-    '\n' +
-
-    'レア度：' +
-    (confirmedItem.rarity || '未入力') +
-    '\n' +
-
-    '相場：' +
-    (confirmedItem.price || '未入力') +
-    '\n' +
-
-    'メモ：' +
-    (confirmedItem.memo || '未入力');
-
-  const okToSave =
-    confirm(
-      '次の内容でpCloudに保存します。\n\n' +
-      finalPreview +
-      '\n\n' +
-      'よろしいですか？'
-    );
-
-  if(!okToSave){
-
-    $('saveBtn').disabled =
-      false;
-
-    setWarning(
-      '保存をキャンセルしました。内容を修正して、必要であればもう一度「この内容で確定する」を押してください。',
-      'confirm'
-    );
-
-    return;
-
-  }
-
-  try{
-
-    setStatus(
-      '確定済みの内容をpCloudへ保存しています…',
-      'confirm'
-    );
-
-    /*
-     * =====================================================
-     * ★重要
-     *
-     * pCloudへ保存するitemは
-     * confirmedItemを完全コピーする。
-     *
-     * AIのanalysisはここに一切入れない。
-     * =====================================================
-     */
-
-    const item =
-      JSON.parse(
-        JSON.stringify(
-          confirmedItem
-        )
-      );
-
-    /*
-     * デバッグ用：実際にアップロードされる中身を
-     * ブラウザのコンソールで確認できるようにしておく。
-     */
-
-    console.log(
-      '[pCloudへ保存する内容]',
-      item
-    );
-
-    const rootFolderId =
-      await root();
-
-    const folder =
-      await pcall(
-        'createfolderifnotexists',
-        {
-          folderid:
-            rootFolderId,
-
-          name:
-            'item-' +
-            item.id
-        }
-      );
-
-    const folderid =
-      folder.metadata.folderid;
-
-    /*
-     * 表面画像
-     */
-
-    const frontFilename =
-      'front.' +
-      ext(front);
-
-    await upload(
-      folderid,
-      front,
-      frontFilename
-    );
-
-    /*
-     * 裏面画像
-     */
-
-    let backFilename = '';
-
-    if(back){
-
-      backFilename =
-        'back.' +
-        ext(back);
-
-      await upload(
-        folderid,
-        back,
-        backFilename
-      );
-
-    }
-
-    /*
-     * ★画像ファイル名をJSONに記録
-     */
-
-    item.folderid =
-      folderid;
-
-    item.frontFile =
-      frontFilename;
-
-    item.backFile =
-      backFilename;
-
-    /*
-     * ★pCloudに保存するJSON
-     *
-     * ここに入っているのは
-     * 確定済みitemだけ。
-     */
-
-    const dataFile =
-      new File(
-        [
-          JSON.stringify(
-            item,
-            null,
-            2
-          )
-        ],
-        'data.json',
-        {
-          type:
-            'application/json'
-        }
-      );
-
-    await upload(
-      folderid,
-      dataFile,
-      'data.json'
-    );
-
-    /*
-     * 一覧表示用
-     *
-     * 保存直後はローカルプレビューを使用
-     */
-
-    item.preview =
-      $('frontPreview').src;
-
-    records.unshift(
-      item
-    );
-
-    render();
-
-    setStatus('', 'confirm');
-
-    setSuccess(
-      'pCloudに保存しました。\n\n' +
-      '【実際に保存した内容】\n' +
-      'シール名：' +
-      item.name +
-      '\n' +
-      'シリーズ：' +
-      (item.series || '未入力') +
-      '\n' +
-      'レア度：' +
-      (item.rarity || '未入力') +
-      '\n' +
-      '相場：' +
-      (item.price || '未入力'),
-      'confirm'
-    );
-
-    /*
-     * 保存完了後に確定データをクリア
-     */
-
-    confirmedItem =
-      null;
-
-    $('saveBtn').disabled =
-      true;
-
-    $('confirmedPreview').style.display =
-      'none';
-
-  }
-
-  catch(error){
-
-    /*
-     * 保存失敗時は確定データを残す。
-     * もう一度保存できるようにする。
-     */
-
-    $('saveBtn').disabled =
-      false;
-
-    throw error;
-
-  }
-
-}
-
-
-/* =========================================================
-   pCloud画像リンク取得
-========================================================= */
-
-async function getImageLink(fileid){
-
-  try{
-
-    const data =
-      await pcall(
-        'getfilelink',
-        {
-          fileid:fileid,
-          forcedownload:0
-        }
-      );
-
-    return data.link || '';
-
-  }
-
-  catch(error){
-
-    console.warn(
-      '画像リンク取得失敗:',
-      error
-    );
-
-    return '';
-
-  }
-
-}
-
-
-/* =========================================================
-   pCloud一覧
-========================================================= */
-
-async function refresh(){
-
-  clearMessage('list');
-
-  if(!token()){
-
-    throw Error(
-      '先にpCloudへ接続してください。'
-    );
-
-  }
-
-  setStatus(
-    'pCloudの保存データを確認しています…',
-    'list'
+  addToHistory(
+    confirmedItem
   );
 
-  const rootFolderId =
-    await root();
-
-  const data =
-    await pcall(
-      'listfolder',
-      {
-        folderid:
-          rootFolderId,
-        recursive:0
-      }
-    );
-
-  const folders =
-    (
-      data.metadata.contents ||
-      []
-    )
-    .filter(
-      item =>
-        item.isfolder &&
-        item.name.startsWith('item-')
-    );
-
-  records = [];
-
-  for(
-    const folder of folders
-  ){
-
-    try{
-
-      const files =
-        await pcall(
-          'listfolder',
-          {
-            folderid:
-              folder.folderid,
-            recursive:0
-          }
-        );
-
-      const contents =
-        files.metadata.contents ||
-        [];
-
-      /*
-       * data.json
-       */
-
-      const jsonFile =
-        contents.find(
-          item =>
-            !item.isfolder &&
-            item.name ===
-              'data.json'
-        );
-
-      /*
-       * front画像
-       */
-
-      const frontFile =
-        contents.find(
-          item =>
-            !item.isfolder &&
-            /^front\./i.test(item.name)
-        );
-
-      let item = null;
-
-      /*
-       * data.jsonを読み込む
-       */
-
-      if(jsonFile){
-
-        const linkData =
-          await pcall(
-            'getfilelink',
-            {
-              fileid:
-                jsonFile.fileid,
-              forcedownload:1
-            }
-          );
-
-        const response =
-          await fetch(
-            linkData.link
-          );
-
-        if(response.ok){
-
-          item =
-            await response.json();
-
-        }
-
-      }
-
-      /*
-       * JSONが読めなかった場合
-       */
-
-      if(!item){
-
-        item = {
-
-          id:
-            folder.name.slice(5),
-
-          name:
-            '保存済みアイテム',
-
-          series:'',
-
-          kind:'',
-
-          rarity:'不明',
-
-          price:'',
-
-          memo:'',
-
-          savedAt:
-            folder.modified
-
-        };
-
-      }
-
-      /*
-       * folderidを必ず設定
-       */
-
-      item.folderid =
-        folder.folderid;
-
-      /*
-       * =================================================
-       * ★画像表示
-       *
-       * pCloud上のfront画像から
-       * 表示用URLを取得する。
-       * =================================================
-       */
-
-      if(frontFile){
-
-        item.preview =
-          await getImageLink(
-            frontFile.fileid
-          );
-
-        item.frontFile =
-          frontFile.name;
-
-      }
-
-      /*
-       * 古いJSONに画像ファイル名がある場合
-       */
-
-      if(
-        !item.preview &&
-        item.frontFile
-      ){
-
-        const oldFront =
-          contents.find(
-            file =>
-              !file.isfolder &&
-              file.name ===
-                item.frontFile
-          );
-
-        if(oldFront){
-
-          item.preview =
-            await getImageLink(
-              oldFront.fileid
-            );
-
-        }
-
-      }
-
-      records.push(
-        item
-      );
-
-    }
-
-    catch(error){
-
-      console.warn(
-        '保存データの読み込み失敗:',
-        error
-      );
-
-      records.push({
-
-        id:
-          folder.name.slice(5),
-
-        folderid:
-          folder.folderid,
-
-        name:
-          '保存済みアイテム',
-
-        series:'',
-
-        kind:'',
-
-        rarity:'不明',
-
-        price:'',
-
-        memo:'',
-
-        savedAt:
-          folder.modified
-
-      });
-
-    }
-
-  }
-
-  records.sort(
-    (a,b) =>
-      new Date(
-        b.savedAt || 0
-      ) -
-      new Date(
-        a.savedAt || 0
-      )
-  );
-
-  render();
-
-  setStatus('', 'list');
-
-  setSuccess(
-    records.length +
-    '件読み込みました。',
-    'list'
-  );
+  showCardView();
 
 }
-
-
-/* =========================================================
-   削除
-========================================================= */
-
-async function del(id){
-
-  const record =
-    records.find(
-      item =>
-        item.id === id
-    );
-
-  if(!record){
-    return;
-  }
-
-  if(
-    !confirm(
-      'このアイテムをpCloudから削除します。\n\nよろしいですか？'
-    )
-  ){
-
-    return;
-
-  }
-
-  clearMessage('list');
-
-  try{
-
-    setStatus(
-      'pCloudから削除しています…',
-      'list'
-    );
-
-    await pcall(
-      'deletefolderrecursive',
-      {
-        folderid:
-          record.folderid
-      }
-    );
-
-    records =
-      records.filter(
-        item =>
-          item.id !== id
-      );
-
-    render();
-
-    setStatus('', 'list');
-
-    setSuccess(
-      '削除しました。',
-      'list'
-    );
-
-  }
-
-  catch(error){
-
-    fail(error, 'list');
-
-  }
-
-}
-
-
-/* =========================================================
-   一覧表示
-========================================================= */
-
-function render(){
-
-  if(!records.length){
-
-    $('list').innerHTML =
-      '<p class="muted">まだ保存されていません。</p>';
-
-    return;
-
-  }
-
-  $('list').innerHTML =
-    records
-      .map(
-        record => `
-
-<div class="item">
-
-${
-  record.preview
-    ? `
-<img
-  class="thumb"
-  src="${esc(record.preview)}"
-  alt=""
-  loading="lazy"
-  onerror="this.style.display='none'">
-`
-    : `
-<div class="thumb"></div>
-`
-}
-
-<div class="grow">
-
-<h3>
-${esc(record.name)}
-</h3>
-
-<p>
-${esc(record.series || '')}
-　${esc(record.kind || '')}
-</p>
-
-<p>
-レア度：
-<strong>
-${esc(record.rarity || '不明')}
-</strong>
-</p>
-
-<p>
-相場：
-<strong>
-${esc(record.price || '未入力')}
-</strong>
-</p>
-
-<p>
-${
-  record.savedAt
-    ? new Date(
-        record.savedAt
-      ).toLocaleDateString(
-        'ja-JP'
-      )
-    : ''
-}
-</p>
-
-</div>
-
-<button
-class="btn small red"
-onclick="del('${esc(record.id)}')">
-削除
-</button>
-
-</div>
-
-`
-      )
-      .join('');
-
-}
-
-
-/* =========================================================
-   ボタン
-========================================================= */
-
-$('loginBtn').onclick =
-  () => {
-
-    try{
-
-      connect();
-
-    }
-
-    catch(error){
-
-      fail(error);
-
-    }
-
-  };
-
-
-$('logoutBtn').onclick =
-  () => {
-
-    store.removeItem(
-      'pcloudToken'
-    );
-
-    store.removeItem(
-      'pcloudHost'
-    );
-
-    updateCloud();
-
-    records = [];
-
-    render();
-
-  };
-
-
-$('scanBtn').onclick =
-  () =>
-    scan()
-      .catch(
-        error =>
-          fail(error, 'scan')
-      );
 
 
 $('confirmBtn').onclick =
@@ -3571,40 +2381,55 @@ $('confirmBtn').onclick =
   };
 
 
-$('saveBtn').onclick =
-  () =>
-    save()
-      .catch(
-        error =>
-          fail(error, 'confirm')
-      );
+$('backToFormBtn').onclick =
+  () => {
+
+    showFormView();
+
+  };
 
 
-$('refreshBtn').onclick =
-  () =>
-    refresh()
-      .catch(
-        error =>
-          fail(error, 'list')
-      );
+$('nextItemBtn').onclick =
+  () => {
+
+    /*
+     * 次のアイテムのために入力をリセットする。
+     * セッション履歴はそのまま残る。
+     */
+
+    $('front').value = '';
+    $('back').value = '';
+
+    $('frontPreview').src = '';
+    $('frontPreview').style.display = 'none';
+
+    $('backPreview').src = '';
+    $('backPreview').style.display = 'none';
+
+    $('name').value = '';
+    $('series').value = '';
+    $('kind').value = 'シール';
+    $('rarity').value = '';
+    $('price').value = '';
+    $('memo').value = '';
+
+    $('resultCard').style.display =
+      'none';
+
+    analysis = null;
+    confirmedItem = null;
+
+    clearMessage('scan');
+    clearMessage('confirm');
+
+    showFormView();
+
+  };
 
 
 /* =========================================================
    初期化
 ========================================================= */
-
-try{
-
-  readOAuth();
-
-}
-
-catch(error){
-
-  fail(error);
-
-}
-
 
 $('apiKey').value =
   store.getItem(
@@ -3612,21 +2437,8 @@ $('apiKey').value =
   ) || '';
 
 
-updateCloud();
-
-render();
-
-validateConnection();
-
-/*
- * ★このバージョン識別文字列が画面に表示されていれば、
- *   最新の修正版が読み込まれています。
- *   古いバージョンのまま挙動が変わらない場合は、
- *   ブラウザのキャッシュが残っている可能性が高いです。
- */
-
 $('buildStamp').textContent =
-  'v3：保存前の最終確認ダイアログ / メッセージ表示位置の分離を追加';
+  'v4：pCloud自動保存を廃止し、スクリーンショット保存方式に変更';
 
 </script>
 
