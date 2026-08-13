@@ -1102,6 +1102,43 @@ function updateCloud(){
 }
 
 
+/*
+ * ★起動時のトークン有効性チェック
+ *
+ * localStorageにトークンがあるというだけでは
+ * 「本当にpCloud側で有効か」はわからない。
+ *
+ * ここで軽いAPI呼び出し(userinfo)を1回投げて、
+ * 失敗したら（＝上のpcall内の認証エラー処理により）
+ * トークンが自動的に破棄され、画面が「未接続」に戻る。
+ */
+
+async function validateConnection(){
+
+  if(!token()){
+    return;
+  }
+
+  try{
+
+    await pcall(
+      'userinfo'
+    );
+
+  }
+
+  catch{
+
+    /*
+     * pcall内で既にトークン破棄・updateCloud()済み。
+     * ここでは何もしなくてよい。
+     */
+
+  }
+
+}
+
+
 function redirectURI(){
 
   return location.href
@@ -1334,13 +1371,59 @@ async function pcall(
     data.result !== 0
   ){
 
+    const rawMessage =
+      data.error ||
+      String(data.result) ||
+      String(response.status);
+
+    /*
+     * ★認証切れの検出
+     *
+     * pCloudは、トークンが無効・失効している場合に
+     * 「log in required」等のエラーを返す。
+     *
+     * この場合は「接続済み」表示のまま止まってしまうと
+     * 何度試してもエラーになり続けるため、
+     * ここでトークンを強制的に破棄し、
+     * 画面を「未接続」状態に戻す。
+     */
+
+    const isAuthError =
+      /log in required/i.test(rawMessage) ||
+      /login failed/i.test(rawMessage) ||
+      /invalid access token/i.test(rawMessage) ||
+      /invalid token/i.test(rawMessage) ||
+      data.result === 1000 ||
+      data.result === 2000 ||
+      data.result === 2094 ||
+      data.result === 2095;
+
+    if(isAuthError){
+
+      store.removeItem(
+        'pcloudToken'
+      );
+
+      store.removeItem(
+        'pcloudHost'
+      );
+
+      updateCloud();
+
+      throw Error(
+        'pCloudの接続が切れています（' +
+        rawMessage +
+        '）。\n\n' +
+        '「未接続」表示に戻しましたので、' +
+        'もう一度「pCloud に接続」を押して再接続してください。\n' +
+        '再接続後、確定済みの内容は消えていないので、そのまま「保存」を押し直せます。'
+      );
+
+    }
+
     throw Error(
       'pCloudエラー: ' +
-      (
-        data.error ||
-        data.result ||
-        response.status
-      )
+      rawMessage
     );
 
   }
@@ -3532,6 +3615,8 @@ $('apiKey').value =
 updateCloud();
 
 render();
+
+validateConnection();
 
 /*
  * ★このバージョン識別文字列が画面に表示されていれば、
