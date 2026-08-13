@@ -2000,6 +2000,15 @@ Web上で確認できる情報を優先してください。
 }
 
 
+$('scanBtn').onclick =
+  () =>
+    scan()
+      .catch(
+        error =>
+          fail(error, 'scan')
+      );
+
+
 $('chatgptBtn').onclick =
   () => {
 
