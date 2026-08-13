@@ -659,7 +659,8 @@ ChatGPTで調べた結果を入力してください。<br>
 <div class="confirmText">
 
 ここで確定した内容だけがpCloudに保存されます。<br>
-AI判定結果は保存処理では使用しません。
+AI判定結果は保存処理では使用しません。<br>
+<strong>確定後に上の項目を編集した場合は、保存前に必ずもう一度「確定する」を押してください。</strong>
 
 </div>
 
@@ -779,13 +780,15 @@ const store =
  * 重要
  *
  * analysis
- * = AI判定結果
+ * = AI判定結果（画面初期表示にしか使わない・保存には絶対使わない）
  *
  * confirmedItem
  * = ユーザーが「この内容で確定する」を押した時点の
- *   完全な保存用データ
+ *   完全な保存用データ（フィールドの現在値のスナップショット）
  *
  * pCloud保存では confirmedItem のみ使用する。
+ * さらに save() 実行直前に、画面の現在値と confirmedItem が
+ * 完全に一致しているかを検証し、ズレていれば保存を止める。
  */
 
 let analysis = null;
@@ -2048,7 +2051,7 @@ async function scan(){
       await runGeminiWithFallback(parts);
 
     /*
-     * ここはAI表示用。
+     * ここはAI表示用（初期値の下書き）。
      * 保存処理には使用しない。
      */
     analysis =
@@ -2112,7 +2115,8 @@ async function scan(){
     setSuccess(
       'AI判定が完了しました。\n\n' +
       'レア度・相場を確認・編集してください。\n' +
-      'その後「この内容で確定する」を押してください。'
+      'その後「この内容で確定する」を押してください。\n\n' +
+      '※ここで表示されているのはAIの下書きです。まだpCloudには保存されていません。'
     );
 
   }
@@ -2239,7 +2243,8 @@ $('chatgptBtn').onclick =
 
               setSuccess(
                 'ChatGPTを開きました。\n\n' +
-                '調査文をクリップボードにもコピーしました。'
+                '調査文をクリップボードにもコピーしました。\n\n' +
+                '※レア度・相場欄を更新したら、必ずもう一度「この内容で確定する」を押してください。'
               );
 
             }
@@ -2282,6 +2287,11 @@ $('chatgptBtn').onclick =
  * 画面上の入力欄から現在の値を読み取り、
  * その瞬間の値を「完全な保存用スナップショット」として
  * confirmedItem にコピーします。
+ *
+ * さらに Object.freeze することで、
+ * 確定後にこのオブジェクトのプロパティが
+ * 誤って書き換えられることを防ぎます
+ * （＝confirmedItemは常に「確定を押した瞬間の値」のまま）。
  */
 
 function createConfirmedItem(){
@@ -2366,7 +2376,13 @@ function createConfirmedItem(){
 
   };
 
-  return snapshot;
+  /*
+   * ★確定後に中身が書き換わらないようにロックする
+   */
+
+  return Object.freeze(
+    snapshot
+  );
 
 }
 
@@ -2446,6 +2462,97 @@ function confirmItem(){
 
 
 /* =========================================================
+   ★★★★★
+   確定済みデータと画面表示の整合性チェック
+========================================================= */
+
+/*
+ * save() の直前に必ず呼ぶ。
+ *
+ * 「確定を押した後に、確定を押し直さずに
+ *   入力欄だけ書き換えてしまった」ケースを検出し、
+ * ズレていれば保存自体をブロックする。
+ *
+ * これにより、画面に見えている内容と
+ * 実際にpCloudへ保存される内容が
+ * 常に一致することを機械的に保証する。
+ */
+
+function assertConfirmedMatchesScreen(){
+
+  if(!confirmedItem){
+
+    throw Error(
+      '先に「この内容で確定する」を押してください。'
+    );
+
+  }
+
+  const current = {
+
+    name:
+      $('name').value.trim(),
+
+    series:
+      $('series').value.trim(),
+
+    kind:
+      $('kind').value,
+
+    rarity:
+      $('rarity').value.trim(),
+
+    price:
+      $('price').value.trim(),
+
+    memo:
+      $('memo').value.trim()
+
+  };
+
+  const fieldLabels = {
+
+    name:'シール名',
+    series:'シリーズ',
+    kind:'種類',
+    rarity:'レア度',
+    price:'相場',
+    memo:'メモ'
+
+  };
+
+  const changed =
+    Object.keys(current)
+      .filter(
+        key =>
+          current[key] !==
+          confirmedItem[key]
+      );
+
+  if(changed.length){
+
+    const changedLabels =
+      changed
+        .map(
+          key =>
+            fieldLabels[key]
+        )
+        .join('、');
+
+    throw Error(
+      '確定後に「' +
+      changedLabels +
+      '」が編集されています。\n\n' +
+      '画面の内容と確定済みデータが一致していないため、保存を中止しました。\n' +
+      'もう一度「この内容で確定する」を押してから保存してください。'
+    );
+
+  }
+
+}
+
+
+/* =========================================================
    拡張子
 ========================================================= */
 
@@ -2486,6 +2593,15 @@ async function save(){
     );
 
   }
+
+  /*
+   * ★強制ガード
+   *
+   * 確定後に画面の値が変わっていないかを検証する。
+   * 変わっていれば例外を投げて保存を中止する。
+   */
+
+  assertConfirmedMatchesScreen();
 
   if(!token()){
 
@@ -2535,6 +2651,16 @@ async function save(){
           confirmedItem
         )
       );
+
+    /*
+     * デバッグ用：実際にアップロードされる中身を
+     * ブラウザのコンソールで確認できるようにしておく。
+     */
+
+    console.log(
+      '[pCloudへ保存する内容]',
+      item
+    );
 
     const rootFolderId =
       await root();
