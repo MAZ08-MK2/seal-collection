@@ -382,6 +382,8 @@ code{
 表面・裏面を撮影して、AIで判定・ChatGPTで相場確認・pCloud保存
 </p>
 
+<p class="hint" id="buildStamp" style="text-align:center;margin-top:-10px;margin-bottom:14px"></p>
+
 
 <!-- =====================================================
      pCloud
@@ -496,10 +498,10 @@ type="button">
 </button>
 
 
-<div id="status" class="status"></div>
-<div id="warning" class="warning"></div>
-<div id="success" class="success"></div>
-<div id="error" class="error"></div>
+<div id="scanStatus" class="status"></div>
+<div id="scanWarning" class="warning"></div>
+<div id="scanSuccess" class="success"></div>
+<div id="scanError" class="error"></div>
 
 </section>
 
@@ -701,6 +703,11 @@ disabled>
 
 </button>
 
+<div id="confirmStatus" class="status"></div>
+<div id="confirmWarning" class="warning"></div>
+<div id="confirmSuccess" class="success"></div>
+<div id="confirmError" class="error"></div>
+
 
 </div>
 
@@ -727,6 +734,11 @@ type="button">
 </button>
 
 </div>
+
+<div id="listStatus" class="status"></div>
+<div id="listWarning" class="warning"></div>
+<div id="listSuccess" class="success"></div>
+<div id="listError" class="error"></div>
 
 <div id="list">
 
@@ -802,43 +814,88 @@ let records = [];
    メッセージ
 ========================================================= */
 
-function setStatus(text){
+/*
+ * メッセージ表示は「どの操作か」ごとに別々の場所に出す。
+ *
+ * scope:
+ *   'scan'    → AI判定セクション（画像カードの下）
+ *   'confirm' → 確定・ChatGPT・保存セクション（結果カード内）
+ *   'list'    → マイコレクション一覧セクション
+ *
+ * これにより「削除しました」が確定/保存とは無関係な
+ * 場所に表示されてしまう問題を防ぐ。
+ */
 
-  $('status').textContent = text;
+function msgIds(scope){
 
-  $('status').style.display =
+  return {
+
+    status:
+      scope + 'Status',
+
+    warning:
+      scope + 'Warning',
+
+    success:
+      scope + 'Success',
+
+    error:
+      scope + 'Error'
+
+  };
+
+}
+
+
+function setStatus(text, scope = 'scan'){
+
+  const ids =
+    msgIds(scope);
+
+  $(ids.status).textContent =
+    text;
+
+  $(ids.status).style.display =
     text ? 'block' : 'none';
 
 }
 
 
-function setWarning(text){
+function setWarning(text, scope = 'scan'){
 
-  $('warning').textContent = text;
+  const ids =
+    msgIds(scope);
 
-  $('warning').style.display =
+  $(ids.warning).textContent =
+    text;
+
+  $(ids.warning).style.display =
     text ? 'block' : 'none';
 
 }
 
 
-function setSuccess(text){
+function setSuccess(text, scope = 'scan'){
 
-  $('success').textContent = text;
+  const ids =
+    msgIds(scope);
 
-  $('success').style.display =
+  $(ids.success).textContent =
+    text;
+
+  $(ids.success).style.display =
     text ? 'block' : 'none';
 
 }
 
 
-function fail(error){
+function fail(error, scope = 'scan'){
 
   console.error(error);
 
-  setStatus('');
-  setWarning('');
-  setSuccess('');
+  setStatus('', scope);
+  setWarning('', scope);
+  setSuccess('', scope);
 
   let message =
     error?.message ||
@@ -857,23 +914,29 @@ function fail(error){
 
   }
 
-  $('error').textContent =
+  const ids =
+    msgIds(scope);
+
+  $(ids.error).textContent =
     message;
 
-  $('error').style.display =
+  $(ids.error).style.display =
     'block';
 
 }
 
 
-function clearMessage(){
+function clearMessage(scope = 'scan'){
 
-  $('error').style.display =
+  const ids =
+    msgIds(scope);
+
+  $(ids.error).style.display =
     'none';
 
-  setWarning('');
-  setSuccess('');
-  setStatus('');
+  setWarning('', scope);
+  setSuccess('', scope);
+  setStatus('', scope);
 
 }
 
@@ -1887,7 +1950,8 @@ async function runGeminiWithFallback(parts){
 
     setStatus(
       'AI判定を実行しています…\n\n' +
-      attempt.label
+      attempt.label,
+      'scan'
     );
 
     try{
@@ -1967,7 +2031,7 @@ async function runGeminiWithFallback(parts){
 
 async function scan(){
 
-  clearMessage();
+  clearMessage('scan');
 
   const key =
     $('apiKey')
@@ -2116,7 +2180,8 @@ async function scan(){
       'AI判定が完了しました。\n\n' +
       'レア度・相場を確認・編集してください。\n' +
       'その後「この内容で確定する」を押してください。\n\n' +
-      '※ここで表示されているのはAIの下書きです。まだpCloudには保存されていません。'
+      '※ここで表示されているのはAIの下書きです。まだpCloudには保存されていません。',
+      'scan'
     );
 
   }
@@ -2216,7 +2281,7 @@ $('chatgptBtn').onclick =
 
     try{
 
-      clearMessage();
+      clearMessage('confirm');
 
       const prompt =
         buildChatGPTPrompt();
@@ -2244,7 +2309,8 @@ $('chatgptBtn').onclick =
               setSuccess(
                 'ChatGPTを開きました。\n\n' +
                 '調査文をクリップボードにもコピーしました。\n\n' +
-                '※レア度・相場欄を更新したら、必ずもう一度「この内容で確定する」を押してください。'
+                '※レア度・相場欄を更新したら、必ずもう一度「この内容で確定する」を押してください。',
+                'confirm'
               );
 
             }
@@ -2258,7 +2324,8 @@ $('chatgptBtn').onclick =
       if(!newWindow){
 
         setWarning(
-          'ChatGPTを開けませんでした。ブラウザのポップアップブロックを確認してください。'
+          'ChatGPTを開けませんでした。ブラウザのポップアップブロックを確認してください。',
+          'confirm'
         );
 
       }
@@ -2267,7 +2334,7 @@ $('chatgptBtn').onclick =
 
     catch(error){
 
-      fail(error);
+      fail(error, 'confirm');
 
     }
 
@@ -2394,7 +2461,7 @@ function createConfirmedItem(){
 
 function confirmItem(){
 
-  clearMessage();
+  clearMessage('confirm');
 
   /*
    * 既存のconfirmedItemを捨てて、
@@ -2455,7 +2522,8 @@ function confirmItem(){
     '相場：' +
     (confirmedItem.price || '未入力') +
     '\n\n' +
-    '現在の「確定済み保存データ」だけがpCloudへ保存されます。'
+    '現在の「確定済み保存データ」だけがpCloudへ保存されます。',
+    'confirm'
   );
 
 }
@@ -2580,7 +2648,7 @@ function ext(file){
 
 async function save(){
 
-  clearMessage();
+  clearMessage('confirm');
 
   /*
    * analysis はここでは絶対に使用しない。
@@ -2628,10 +2696,68 @@ async function save(){
   $('saveBtn').disabled =
     true;
 
+  /*
+   * ★★★★★
+   * 最終確認ダイアログ（絶対に見逃せない場所に出す）
+   *
+   * ここで表示する内容は confirmedItem そのもの。
+   * AI判定結果（analysis）は一切使わない。
+   *
+   * ユーザーがOKを押さない限り、
+   * pCloudへは1バイトもアップロードしない。
+   */
+
+  const finalPreview =
+    'シール名：' +
+    confirmedItem.name +
+    '\n' +
+
+    'シリーズ：' +
+    (confirmedItem.series || '未入力') +
+    '\n' +
+
+    '種類：' +
+    confirmedItem.kind +
+    '\n' +
+
+    'レア度：' +
+    (confirmedItem.rarity || '未入力') +
+    '\n' +
+
+    '相場：' +
+    (confirmedItem.price || '未入力') +
+    '\n' +
+
+    'メモ：' +
+    (confirmedItem.memo || '未入力');
+
+  const okToSave =
+    confirm(
+      '次の内容でpCloudに保存します。\n\n' +
+      finalPreview +
+      '\n\n' +
+      'よろしいですか？'
+    );
+
+  if(!okToSave){
+
+    $('saveBtn').disabled =
+      false;
+
+    setWarning(
+      '保存をキャンセルしました。内容を修正して、必要であればもう一度「この内容で確定する」を押してください。',
+      'confirm'
+    );
+
+    return;
+
+  }
+
   try{
 
     setStatus(
-      '確定済みの内容をpCloudへ保存しています…'
+      '確定済みの内容をpCloudへ保存しています…',
+      'confirm'
     );
 
     /*
@@ -2772,7 +2898,7 @@ async function save(){
 
     render();
 
-    setStatus('');
+    setStatus('', 'confirm');
 
     setSuccess(
       'pCloudに保存しました。\n\n' +
@@ -2787,7 +2913,8 @@ async function save(){
       (item.rarity || '未入力') +
       '\n' +
       '相場：' +
-      (item.price || '未入力')
+      (item.price || '未入力'),
+      'confirm'
     );
 
     /*
@@ -2863,7 +2990,7 @@ async function getImageLink(fileid){
 
 async function refresh(){
 
-  clearMessage();
+  clearMessage('list');
 
   if(!token()){
 
@@ -2874,7 +3001,8 @@ async function refresh(){
   }
 
   setStatus(
-    'pCloudの保存データを確認しています…'
+    'pCloudの保存データを確認しています…',
+    'list'
   );
 
   const rootFolderId =
@@ -3120,11 +3248,12 @@ async function refresh(){
 
   render();
 
-  setStatus('');
+  setStatus('', 'list');
 
   setSuccess(
     records.length +
-    '件読み込みました。'
+    '件読み込みました。',
+    'list'
   );
 
 }
@@ -3156,12 +3285,13 @@ async function del(id){
 
   }
 
-  clearMessage();
+  clearMessage('list');
 
   try{
 
     setStatus(
-      'pCloudから削除しています…'
+      'pCloudから削除しています…',
+      'list'
     );
 
     await pcall(
@@ -3180,17 +3310,18 @@ async function del(id){
 
     render();
 
-    setStatus('');
+    setStatus('', 'list');
 
     setSuccess(
-      '削除しました。'
+      '削除しました。',
+      'list'
     );
 
   }
 
   catch(error){
 
-    fail(error);
+    fail(error, 'list');
 
   }
 
@@ -3333,7 +3464,10 @@ $('logoutBtn').onclick =
 $('scanBtn').onclick =
   () =>
     scan()
-      .catch(fail);
+      .catch(
+        error =>
+          fail(error, 'scan')
+      );
 
 
 $('confirmBtn').onclick =
@@ -3347,7 +3481,7 @@ $('confirmBtn').onclick =
 
     catch(error){
 
-      fail(error);
+      fail(error, 'confirm');
 
     }
 
@@ -3357,13 +3491,19 @@ $('confirmBtn').onclick =
 $('saveBtn').onclick =
   () =>
     save()
-      .catch(fail);
+      .catch(
+        error =>
+          fail(error, 'confirm')
+      );
 
 
 $('refreshBtn').onclick =
   () =>
     refresh()
-      .catch(fail);
+      .catch(
+        error =>
+          fail(error, 'list')
+      );
 
 
 /* =========================================================
@@ -3392,6 +3532,16 @@ $('apiKey').value =
 updateCloud();
 
 render();
+
+/*
+ * ★このバージョン識別文字列が画面に表示されていれば、
+ *   最新の修正版が読み込まれています。
+ *   古いバージョンのまま挙動が変わらない場合は、
+ *   ブラウザのキャッシュが残っている可能性が高いです。
+ */
+
+$('buildStamp').textContent =
+  'v3：保存前の最終確認ダイアログ / メッセージ表示位置の分離を追加';
 
 </script>
 
