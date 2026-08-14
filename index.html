@@ -251,7 +251,7 @@ textarea{
   margin-bottom:8px;
 }
 
-.chatgptBox{
+.researchBox{
   background:#f5f3ff;
   border:1px solid #ddd6fe;
   border-radius:12px;
@@ -259,12 +259,12 @@ textarea{
   margin-top:4px;
 }
 
-.chatgptTitle{
+.researchTitle{
   font-weight:700;
   margin-bottom:6px;
 }
 
-.chatgptText{
+.researchText{
   font-size:12px;
   color:#5b21b6;
   line-height:1.5;
@@ -506,7 +506,7 @@ code{
 <h1>✨ シールコレクション AI</h1>
 
 <p class="lead">
-表面・裏面を撮影して、AIで判定・ChatGPTで相場確認。<br>
+表面・裏面を撮影して、AIで判定・画像付きでGeminiに相場確認。<br>
 最後にスクリーンショットしてpCloudへ手動保存します。
 </p>
 
@@ -671,29 +671,29 @@ placeholder="例：ホロ、プリズム、天使、UR、不明など">
 
 
 <!-- =====================================================
-     ChatGPT
+     Gemini 相場調査
 ===================================================== -->
 
-<div class="chatgptBox">
+<div class="researchBox">
 
-<div class="chatgptTitle">
-🔍 ChatGPTでレア度・相場を調べる
+<div class="researchTitle">
+🔍 Geminiで画像から相場を調べる
 </div>
 
-<div class="chatgptText">
+<div class="researchText">
 
-シール画像はChatGPTには送信しません。<br>
-AIで判定した「シール名」と「シリーズ名」だけを使って、
-調査用の質問を自動作成します。<br>
-調べた結果は、下の「相場」欄に手動で入力してください。
+AI判定に使った表面(・裏面)画像と、シール名・シリーズ名をGeminiに送り、
+Web検索を使ってレア度・相場を調べます。<br>
+結果は下の「レア度」「相場」欄に自動で入力されますが、
+必ず内容を確認してから確定してください。
 
 </div>
 
 <button
-id="chatgptBtn"
+id="marketResearchBtn"
 class="btn purple full"
 type="button">
-🤖 ChatGPTで調べる
+🔍 Geminiで相場を調べる
 </button>
 
 </div>
@@ -716,7 +716,7 @@ placeholder="例：2,500円～3,500円">
 
 <div class="source">
 
-ChatGPTで調べた結果を入力してください。<br>
+Geminiの調査結果が自動入力されます。手動でも修正できます。<br>
 価格が確認できない場合は「確認できません」としてください。
 
 </div>
@@ -1921,27 +1921,10 @@ async function scan(){
 
 
 /* =========================================================
-   ChatGPT
+   Gemini 相場調査プロンプト
 ========================================================= */
 
-function buildChatGPTPrompt(){
-
-  const name =
-    $('name').value.trim();
-
-  const series =
-    $('series').value.trim();
-
-  if(
-    !name ||
-    name === '確認できません'
-  ){
-
-    throw Error(
-      'シール名が確認できないため、ChatGPTで調べることができません。'
-    );
-
-  }
+function buildMarketResearchPrompt(name, series, kind){
 
   const today =
     new Date()
@@ -1956,7 +1939,9 @@ function buildChatGPTPrompt(){
 
   let itemText =
     'シール名：' +
-    name;
+    name +
+    '\n種類：' +
+    kind;
 
   if(
     series &&
@@ -1970,32 +1955,461 @@ function buildChatGPTPrompt(){
   }
 
   return `
-このコレクション品について、Web検索を使って調べてください。
+あなたは日本のコレクション品（シール・トレカ・食玩）の相場に詳しい専門家です。
+
+添付されている画像（表面、あれば裏面）をよく確認したうえで、
+Web検索を使って次のコレクション品について調べてください。
 
 ${itemText}
 
+添付画像の柄・色・印刷・箔押しなどの特徴を参考にして、
+旧版・復刻版・仕様違い・印刷違いなどがある場合は、
+画像に一致するものをできるだけ特定してください。
+
 調べたいのは次の2点だけです。
 
-① レア度
-② 現在の相場
+① レア度（画像から読み取れる表記があれば優先し、Web上の情報とも照らし合わせてください）
+② 現在の相場（実際の販売実績・出品価格を参考にしてください）
 
-旧版・復刻版・仕様違い・印刷違いなどがある場合は、商品名やシリーズ名から判断して、できるだけ該当するものを調べてください。
-
-相場は、実際の販売例や販売価格を参考にして、
-「〇〇円～〇〇円」
-の形式で回答してください。
-
+推測だけで価格やレア度を作らないでください。
 確認できない場合は「確認できません」としてください。
 
 回答は次の形式だけで、簡潔にしてください。
+説明文や前置きは不要です。
 
 レア度：〇〇
 相場：〇〇円～〇〇円
 確認日：${today}
-
-推測だけで価格を作らないでください。
-Web上で確認できる情報を優先してください。
 `.trim();
+
+}
+
+
+/* =========================================================
+   Gemini 検索グラウンディング呼び出し
+========================================================= */
+
+function extractGroundingSources(data){
+
+  const chunks =
+    data
+      ?.candidates?.[0]
+      ?.groundingMetadata
+      ?.groundingChunks;
+
+  if(!Array.isArray(chunks)){
+    return [];
+  }
+
+  return chunks
+    .map(
+      chunk =>
+        chunk?.web?.title ||
+        chunk?.web?.uri ||
+        ''
+    )
+    .filter(Boolean)
+    .slice(0,5);
+
+}
+
+
+async function callGeminiSearchOnce(
+  model,
+  parts,
+  useSearch
+){
+
+  const requestBody = {
+
+    contents:[
+      {
+        role:'user',
+        parts
+      }
+    ],
+
+    generationConfig:{
+      maxOutputTokens:700
+    }
+
+  };
+
+  if(useSearch){
+
+    requestBody.tools = [
+      {
+        google_search:{}
+      }
+    ];
+
+  }
+
+  const url =
+    'https://generativelanguage.googleapis.com/v1beta/models/' +
+    encodeURIComponent(model) +
+    ':generateContent?key=' +
+    encodeURIComponent(
+      $('apiKey').value.trim()
+    );
+
+  let response;
+
+  try{
+
+    response =
+      await fetch(
+        url,
+        {
+          method:'POST',
+
+          headers:{
+            'Content-Type':
+              'application/json'
+          },
+
+          body:
+            JSON.stringify(requestBody)
+        }
+      );
+
+  }
+
+  catch{
+
+    throw new Error(
+      'NETWORK_ERROR: Gemini APIへ接続できませんでした。'
+    );
+
+  }
+
+  let data;
+
+  try{
+
+    data =
+      await response.json();
+
+  }
+
+  catch{
+
+    throw new Error(
+      'INVALID_RESPONSE: GeminiからJSON応答を取得できませんでした。'
+    );
+
+  }
+
+  if(!response.ok){
+
+    const message =
+      data?.error?.message ||
+      ('HTTP ' + response.status);
+
+    const error =
+      new Error(
+        'HTTP_' +
+        response.status +
+        ': ' +
+        message
+      );
+
+    error.status =
+      response.status;
+
+    throw error;
+
+  }
+
+  const candidate =
+    data?.candidates?.[0];
+
+  if(!candidate){
+
+    throw new Error(
+      'NO_CANDIDATE: Geminiから調査結果が返ってきませんでした。'
+    );
+
+  }
+
+  const text =
+    extractGeminiText(data);
+
+  if(!text){
+
+    throw new Error(
+      'EMPTY_RESPONSE: Geminiの調査結果が空でした。'
+    );
+
+  }
+
+  return {
+    text,
+    sources:
+      extractGroundingSources(data)
+  };
+
+}
+
+
+async function callGeminiSearch(parts){
+
+  const models = [
+    GEMINI_MODEL,
+    ...GEMINI_FALLBACK_MODELS
+  ];
+
+  let lastError = null;
+
+  for(
+    const model of models
+  ){
+
+    try{
+
+      return await callGeminiSearchOnce(
+        model,
+        parts,
+        true
+      );
+
+    }
+
+    catch(error){
+
+      lastError =
+        error;
+
+      /*
+       * このモデル・APIバージョンで
+       * google_search ツールが使えない場合は、
+       * 検索なしのテキスト回答にフォールバックする
+       * （精度は落ちるが、完全に失敗するよりはよい）。
+       */
+
+      const toolUnsupported =
+        error.status === 400 ||
+        /tool/i.test(error.message) ||
+        /google_search/i.test(error.message);
+
+      if(toolUnsupported){
+
+        try{
+
+          return await callGeminiSearchOnce(
+            model,
+            parts,
+            false
+          );
+
+        }
+
+        catch(error2){
+
+          lastError =
+            error2;
+
+        }
+
+      }
+
+    }
+
+  }
+
+  throw new Error(
+    'Geminiでの相場調査に失敗しました。\n\n' +
+    (lastError?.message || '')
+  );
+
+}
+
+
+/* =========================================================
+   相場調査の実行
+========================================================= */
+
+async function researchMarket(){
+
+  clearMessage('confirm');
+
+  const key =
+    $('apiKey').value.trim();
+
+  const front =
+    $('front').files[0];
+
+  const back =
+    $('back').files[0];
+
+  const name =
+    $('name').value.trim();
+
+  const series =
+    $('series').value.trim();
+
+  const kind =
+    $('kind').value;
+
+  if(!key){
+
+    throw Error(
+      'Gemini API Keyを入力してください。'
+    );
+
+  }
+
+  if(!front){
+
+    throw Error(
+      '表面の画像がありません。'
+    );
+
+  }
+
+  if(
+    !name ||
+    name === '確認できません'
+  ){
+
+    throw Error(
+      'シール名が確認できないため、相場を調べることができません。'
+    );
+
+  }
+
+  $('marketResearchBtn').disabled =
+    true;
+
+  try{
+
+    setStatus(
+      'Geminiで画像を確認しながら相場を調べています…',
+      'confirm'
+    );
+
+    const parts = [
+
+      {
+        text:
+          buildMarketResearchPrompt(
+            name,
+            series,
+            kind
+          )
+      },
+
+      {
+        inline_data:{
+          mime_type:mime(front),
+          data:await b64(front)
+        }
+      }
+
+    ];
+
+    if(back){
+
+      parts.push({
+
+        inline_data:{
+          mime_type:mime(back),
+          data:await b64(back)
+        }
+
+      });
+
+    }
+
+    const {
+      text,
+      sources
+    } =
+      await callGeminiSearch(parts);
+
+    const rarityMatch =
+      text.match(
+        /レア度[:：]\s*(.+)/
+      );
+
+    const priceMatch =
+      text.match(
+        /相場[:：]\s*(.+)/
+      );
+
+    const foundRarity =
+      rarityMatch
+        ? rarityMatch[1].trim()
+        : '';
+
+    const foundPrice =
+      priceMatch
+        ? priceMatch[1]
+            .trim()
+            .split('\n')[0]
+        : '';
+
+    if(foundRarity){
+
+      $('rarity').value =
+        foundRarity;
+
+    }
+
+    if(foundPrice){
+
+      $('price').value =
+        foundPrice;
+
+    }
+
+    let sourceText = '';
+
+    if(sources.length){
+
+      sourceText =
+        '\n\n参照元：\n' +
+        sources
+          .map(
+            source =>
+              '・' + source
+          )
+          .join('\n');
+
+    }
+
+    setSuccess(
+      'Geminiでの調査が完了しました。\n\n' +
+      'レア度：' +
+      (foundRarity || '取得できませんでした（手動で入力してください）') +
+      '\n' +
+      '相場：' +
+      (foundPrice || '取得できませんでした（手動で入力してください）') +
+      sourceText +
+      '\n\n内容を確認・修正してから「確定する」を押してください。',
+      'confirm'
+    );
+
+    if(
+      !foundRarity &&
+      !foundPrice
+    ){
+
+      setWarning(
+        'Geminiの回答から自動で読み取れませんでした。上のメッセージの原文を参考に、レア度・相場欄を手動で入力してください。',
+        'confirm'
+      );
+
+    }
+
+  }
+
+  finally{
+
+    $('marketResearchBtn').disabled =
+      false;
+
+  }
 
 }
 
@@ -2009,69 +2423,13 @@ $('scanBtn').onclick =
       );
 
 
-$('chatgptBtn').onclick =
-  () => {
-
-    try{
-
-      clearMessage('confirm');
-
-      const prompt =
-        buildChatGPTPrompt();
-
-      const url =
-        'https://chatgpt.com/?q=' +
-        encodeURIComponent(prompt);
-
-      const newWindow =
-        window.open(
-          url,
-          '_blank'
-        );
-
-      if(
-        navigator.clipboard &&
-        navigator.clipboard.writeText
-      ){
-
-        navigator.clipboard
-          .writeText(prompt)
-          .then(
-            () => {
-
-              setSuccess(
-                'ChatGPTを開きました。\n\n' +
-                '調査文をクリップボードにもコピーしました。\n\n' +
-                '※調べた結果は「相場」欄に手動で入力してください。',
-                'confirm'
-              );
-
-            }
-          )
-          .catch(
-            () => {}
-          );
-
-      }
-
-      if(!newWindow){
-
-        setWarning(
-          'ChatGPTを開けませんでした。ブラウザのポップアップブロックを確認してください。',
-          'confirm'
-        );
-
-      }
-
-    }
-
-    catch(error){
-
-      fail(error, 'confirm');
-
-    }
-
-  };
+$('marketResearchBtn').onclick =
+  () =>
+    researchMarket()
+      .catch(
+        error =>
+          fail(error, 'confirm')
+      );
 
 
 /* =========================================================
@@ -2447,7 +2805,7 @@ $('apiKey').value =
 
 
 $('buildStamp').textContent =
-  'v4：pCloud自動保存を廃止し、スクリーンショット保存方式に変更';
+  'v5：ChatGPT連携を廃止し、Geminiに画像を送って相場調査する方式に変更';
 
 </script>
 
