@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+
 <title>シールコレクション AI</title>
 
 <style>
@@ -246,21 +247,6 @@ textarea{
   word-break:break-word;
 }
 
-.sourceBox a{
-  color:#1769d1;
-  text-decoration:none;
-}
-
-.sourceBox a:hover{
-  text-decoration:underline;
-}
-
-.sourceTitle{
-  font-weight:700;
-  color:var(--text);
-  margin-bottom:5px;
-}
-
 .confirmBox{
   background:#f0fdf4;
   border:1px solid #bbf7d0;
@@ -415,10 +401,6 @@ textarea{
   line-height:1.7;
 }
 
-.instructionBox b{
-  color:#0f3d78;
-}
-
 .divider{
   height:1px;
   background:var(--line);
@@ -448,8 +430,8 @@ textarea{
 <h1>✨ シールコレクション AI</h1>
 
 <p class="lead">
-表面・裏面を撮影して、AIで判定・Web検索・レア度・相場まで一度に調査します。<br>
-確定後にスクリーンショットして保存します。
+表面・裏面を撮影してAI判定します。<br>
+今回は原因切り分けのためGoogle検索を一時停止しています。
 </p>
 
 <p class="buildStamp"></p>
@@ -613,17 +595,16 @@ placeholder="例：ホロ、プリズム、UR、不明">
 <div class="marketBox">
 
 <div class="marketTitle">
-💰 現在の相場
+💰 相場
 </div>
 
 <input
 id="price"
 type="text"
-placeholder="例：2,500円～3,500円">
+placeholder="今回は検索OFFのため確認できません">
 
 <p class="hint">
-Google検索で確認した現在の相場が自動入力されます。
-必要ならここで手動修正できます。
+今回はGoogle Search groundingをOFFにして原因切り分け中です。
 </p>
 
 </div>
@@ -639,7 +620,7 @@ Google検索で確認した現在の相場が自動入力されます。
 id="sources"
 class="sourceBox">
 
-AI判定後にGoogle検索の参照元が表示されます。
+今回はGoogle検索を一時停止しています。
 
 </div>
 
@@ -654,7 +635,7 @@ AI判定後にGoogle検索の参照元が表示されます。
 
 <textarea
 id="researchMemo"
-placeholder="AIの調査内容"></textarea>
+placeholder="AIの判定内容"></textarea>
 
 </div>
 
@@ -672,9 +653,7 @@ placeholder="AIの調査内容"></textarea>
 
 <div class="confirmText">
 
-ここから先はAIが最初に判定した値ではなく、<br>
-<b>現在この画面に入力されている値だけ</b>を使用します。<br>
-レア度・相場などを修正してから確定できます。
+現在の入力欄の内容だけを使用します。
 
 </div>
 
@@ -782,8 +761,7 @@ class="screenshotMeta">
 <div class="instructionBox">
 
 <b>📱 保存方法</b><br>
-この画面をスクリーンショットして、必要に応じてpCloudへ手動で保存してください。<br>
-このアプリからpCloudへ自動保存することはありません。
+この画面をスクリーンショットして保存してください。
 
 </div>
 
@@ -815,7 +793,7 @@ const API_URL =
   + ":generateContent";
 
 const BUILD =
-  "2026-08-15 / Gemini 3.6 Flash / 429詳細診断対応";
+  "2026-08-15 / Gemini 3.6 Flash / Search OFF テスト";
 
 
 const $ =
@@ -823,101 +801,38 @@ const $ =
     document.getElementById(id);
 
 
-const apiKeyEl =
-  $("apiKey");
-
-const frontEl =
-  $("front");
-
-const backEl =
-  $("back");
-
-const frontPreview =
-  $("frontPreview");
-
-const backPreview =
-  $("backPreview");
-
-const scanBtn =
-  $("scanBtn");
-
-const scanStatus =
-  $("scanStatus");
-
-const scanWarning =
-  $("scanWarning");
-
-const scanSuccess =
-  $("scanSuccess");
-
-const scanError =
-  $("scanError");
-
-const resultCard =
-  $("resultCard");
-
-const nameEl =
-  $("name");
-
-const seriesEl =
-  $("series");
-
-const kindEl =
-  $("kind");
-
-const rarityEl =
-  $("rarity");
-
-const priceEl =
-  $("price");
-
-const researchMemoEl =
-  $("researchMemo");
-
-const sourcesEl =
-  $("sources");
-
-const confirmBtn =
-  $("confirmBtn");
-
-const formView =
-  $("formView");
-
-const cardView =
-  $("cardView");
-
-const screenshotPhotos =
-  $("screenshotPhotos");
-
-const screenshotFront =
-  $("screenshotFront");
-
-const screenshotBack =
-  $("screenshotBack");
-
-const screenshotName =
-  $("screenshotName");
-
-const screenshotSeries =
-  $("screenshotSeries");
-
-const screenshotKind =
-  $("screenshotKind");
-
-const screenshotRarity =
-  $("screenshotRarity");
-
-const screenshotPrice =
-  $("screenshotPrice");
-
-const screenshotMemo =
-  $("screenshotMemo");
-
-const screenshotMeta =
-  $("screenshotMeta");
-
-const backBtn =
-  $("backBtn");
+const apiKeyEl = $("apiKey");
+const frontEl = $("front");
+const backEl = $("back");
+const frontPreview = $("frontPreview");
+const backPreview = $("backPreview");
+const scanBtn = $("scanBtn");
+const scanStatus = $("scanStatus");
+const scanWarning = $("scanWarning");
+const scanSuccess = $("scanSuccess");
+const scanError = $("scanError");
+const resultCard = $("resultCard");
+const nameEl = $("name");
+const seriesEl = $("series");
+const kindEl = $("kind");
+const rarityEl = $("rarity");
+const priceEl = $("price");
+const researchMemoEl = $("researchMemo");
+const sourcesEl = $("sources");
+const confirmBtn = $("confirmBtn");
+const formView = $("formView");
+const cardView = $("cardView");
+const screenshotPhotos = $("screenshotPhotos");
+const screenshotFront = $("screenshotFront");
+const screenshotBack = $("screenshotBack");
+const screenshotName = $("screenshotName");
+const screenshotSeries = $("screenshotSeries");
+const screenshotKind = $("screenshotKind");
+const screenshotRarity = $("screenshotRarity");
+const screenshotPrice = $("screenshotPrice");
+const screenshotMemo = $("screenshotMemo");
+const screenshotMeta = $("screenshotMeta");
+const backBtn = $("backBtn");
 
 
 const savedApiKey =
@@ -951,17 +866,10 @@ apiKeyEl.addEventListener(
 );
 
 
-let frontData =
-  null;
-
-let backData =
-  null;
-
-let frontMime =
-  null;
-
-let backMime =
-  null;
+let frontData = null;
+let backData = null;
+let frontMime = null;
+let backMime = null;
 
 
 function loadImage(
@@ -973,7 +881,6 @@ function loadImage(
   if(!file){
     return;
   }
-
 
   if(
     !file.type.startsWith(
@@ -1105,19 +1012,6 @@ function showStatus(
 }
 
 
-function showWarning(
-  message
-){
-
-  scanWarning.textContent =
-    message;
-
-  scanWarning.style.display =
-    "block";
-
-}
-
-
 function showSuccess(
   message
 ){
@@ -1145,7 +1039,7 @@ function showError(
 
 
 /* =========================================================
-   Gemini APIエラー詳細解析
+   429詳細解析
 ========================================================= */
 
 async function getApiError(
@@ -1170,7 +1064,9 @@ async function getApiError(
   try{
 
     json =
-      JSON.parse(text);
+      JSON.parse(
+        text
+      );
 
   }catch(e){}
 
@@ -1203,7 +1099,8 @@ async function getApiError(
 
 
   if(
-    err?.code !== undefined
+    err?.code !==
+    undefined
   ){
 
     lines.push(
@@ -1222,7 +1119,8 @@ async function getApiError(
 
 
   for(
-    const detail of details
+    const detail
+    of details
   ){
 
     const type =
@@ -1240,28 +1138,6 @@ async function getApiError(
 
 
     if(
-      detail?.reason
-    ){
-
-      lines.push(
-        `reason: ${detail.reason}`
-      );
-
-    }
-
-
-    if(
-      detail?.domain
-    ){
-
-      lines.push(
-        `domain: ${detail.domain}`
-      );
-
-    }
-
-
-    if(
       detail?.retryDelay
     ){
 
@@ -1273,40 +1149,16 @@ async function getApiError(
 
 
     if(
-      detail?.metadata &&
-      typeof detail.metadata ===
-        "object"
-    ){
-
-      for(
-        const [key,value]
-        of Object.entries(
-          detail.metadata
-        )
-      ){
-
-        lines.push(
-          `${key}: ${
-            typeof value ===
-            "object"
-              ? JSON.stringify(value)
-              : value
-          }`
-        );
-
-      }
-
-    }
-
-
-    if(
       Array.isArray(
         detail?.violations
       )
     ){
 
       detail.violations.forEach(
-        (violation,index) => {
+        (
+          violation,
+          index
+        ) => {
 
           lines.push(
             `violation ${index + 1}:`
@@ -1314,33 +1166,11 @@ async function getApiError(
 
 
           if(
-            violation?.subject
-          ){
-
-            lines.push(
-              `  subject: ${violation.subject}`
-            );
-
-          }
-
-
-          if(
-            violation?.description
-          ){
-
-            lines.push(
-              `  description: ${violation.description}`
-            );
-
-          }
-
-
-          if(
             violation?.quotaMetric
           ){
 
             lines.push(
-              `  quotaMetric: ${violation.quotaMetric}`
+              `quotaMetric: ${violation.quotaMetric}`
             );
 
           }
@@ -1351,7 +1181,7 @@ async function getApiError(
           ){
 
             lines.push(
-              `  quotaId: ${violation.quotaId}`
+              `quotaId: ${violation.quotaId}`
             );
 
           }
@@ -1363,7 +1193,7 @@ async function getApiError(
           ){
 
             lines.push(
-              `  quotaValue: ${violation.quotaValue}`
+              `quotaValue: ${violation.quotaValue}`
             );
 
           }
@@ -1374,7 +1204,7 @@ async function getApiError(
           ){
 
             lines.push(
-              `  quotaDimensions: ${
+              `quotaDimensions: ${
                 JSON.stringify(
                   violation.quotaDimensions
                 )
@@ -1391,33 +1221,13 @@ async function getApiError(
   }
 
 
-  if(
-    !lines.length &&
-    json
-  ){
-
-    lines.push(
-      "raw details: "
-      + JSON.stringify(
-          json,
-          null,
-          2
-        )
-    );
-
-  }
-
-
   return {
 
     message:
       message,
 
     detailsText:
-      lines.join("\n"),
-
-    raw:
-      text
+      lines.join("\n")
 
   };
 
@@ -1425,7 +1235,7 @@ async function getApiError(
 
 
 /* =========================================================
-   Gemini JSON解析
+   JSON解析
 ========================================================= */
 
 function extractJson(
@@ -1514,234 +1324,34 @@ function extractJson(
 
 
 /* =========================================================
-   Google Search参照元
-========================================================= */
-
-function renderSources(
-  groundingMetadata
-){
-
-  sourcesEl.innerHTML =
-    "";
-
-
-  if(
-    !groundingMetadata
-  ){
-
-    sourcesEl.textContent =
-      "Google検索の参照情報は取得できませんでした。";
-
-    return;
-
-  }
-
-
-  const queries =
-    groundingMetadata.webSearchQueries ||
-    groundingMetadata.web_search_queries ||
-    [];
-
-
-  const chunks =
-    groundingMetadata.groundingChunks ||
-    groundingMetadata.grounding_chunks ||
-    [];
-
-
-  const title =
-    document.createElement(
-      "div"
-    );
-
-  title.className =
-    "sourceTitle";
-
-  title.textContent =
-    "Google検索の参照元";
-
-  sourcesEl.appendChild(
-    title
-  );
-
-
-  if(
-    queries.length
-  ){
-
-    const queryText =
-      document.createElement(
-        "div"
-      );
-
-    queryText.style.marginBottom =
-      "8px";
-
-    queryText.textContent =
-      "検索クエリ："
-      + queries.join(
-          " / "
-        );
-
-    sourcesEl.appendChild(
-      queryText
-    );
-
-  }
-
-
-  if(
-    !chunks.length
-  ){
-
-    const empty =
-      document.createElement(
-        "div"
-      );
-
-    empty.textContent =
-      "参照元URLは取得できませんでした。";
-
-    sourcesEl.appendChild(
-      empty
-    );
-
-    return;
-
-  }
-
-
-  chunks.forEach(
-    (
-      chunk,
-      index
-    ) => {
-
-      const web =
-        chunk.web ||
-        chunk;
-
-
-      const uri =
-        web.uri ||
-        web.url ||
-        "";
-
-
-      const sourceTitle =
-        web.title ||
-        uri ||
-        `参照元 ${index + 1}`;
-
-
-      const div =
-        document.createElement(
-          "div"
-        );
-
-      div.style.marginTop =
-        "5px";
-
-
-      if(uri){
-
-        const a =
-          document.createElement(
-            "a"
-          );
-
-        a.href =
-          uri;
-
-        a.target =
-          "_blank";
-
-        a.rel =
-          "noopener noreferrer";
-
-        a.textContent =
-          `${index + 1}. ${sourceTitle}`;
-
-        div.appendChild(
-          a
-        );
-
-      }else{
-
-        div.textContent =
-          `${index + 1}. ${sourceTitle}`;
-
-      }
-
-
-      sourcesEl.appendChild(
-        div
-      );
-
-    }
-  );
-
-}
-
-
-/* =========================================================
-   Geminiプロンプト
+   プロンプト
 ========================================================= */
 
 function buildPrompt(){
 
   return `
-あなたは日本のコレクション品・ビックリマンシール・食玩シール・トレーディングカード等を調査する専門AIです。
+あなたは日本のコレクション品を画像から判定するAIです。
 
-今回の目的は、
-「画像判定」
-「商品名・シリーズ特定」
-「レア度判定」
-「現在の相場調査」
-を1回のGemini API呼び出しで同時に行うことです。
-
-Google Search groundingが利用できます。
-必要に応じてGoogle検索を使用し、現在確認できる情報を調査してください。
+今回はWeb検索を使用せず、
+画像だけから判定してください。
 
 【重要】
-・画像を最優先して判定する
+・画像を最優先する
 ・表面と裏面を照合する
-・シリーズ名、番号、メーカー、印刷仕様なども確認する
-・旧版、復刻版、仕様違い、印刷違いがある場合は画像から判断する
-・判断できない場合は推測しない
-・確認できない場合は「確認できません」とする
-・相場は可能な範囲で複数の情報を比較する
-・明らかな異常価格だけで相場を決めない
-・日本円で回答する
-・架空のURLや出典を作らない
+・推測できない場合は「確認できません」
+・現在の相場はWeb検索を使わないため「確認できません」とする
 
-【出力】
 必ずJSONだけを返してください。
-Markdownは不要です。
 
 {
   "name":"シール名",
   "series":"シリーズ・作品名",
   "kind":"シール",
   "rarity":"レア度",
-  "price":"現在のおおよその相場",
-  "researchMemo":"判定理由・相場判断理由・仕様などを簡潔に説明",
+  "price":"確認できません",
+  "researchMemo":"画像から確認できた内容",
   "confidence":"高・中・低"
 }
-
-【ユーザー入力】
-
-シール名：
-${nameEl.value.trim()}
-
-シリーズ：
-${seriesEl.value.trim()}
-
-種類：
-${kindEl.value}
-
-現在の日付：
-2026年8月15日
 `;
 
 }
@@ -1757,9 +1367,7 @@ async function runGeminiAnalysis(){
     apiKeyEl.value.trim();
 
 
-  if(
-    !apiKey
-  ){
+  if(!apiKey){
 
     throw new Error(
       "Gemini API Keyを入力してください。"
@@ -1768,9 +1376,7 @@ async function runGeminiAnalysis(){
   }
 
 
-  if(
-    !frontData
-  ){
+  if(!frontData){
 
     throw new Error(
       "表面の画像を選択してください。"
@@ -1821,6 +1427,11 @@ async function runGeminiAnalysis(){
   }
 
 
+  /*
+   * Google Search groundingは
+   * 今回の切り分けテストでは使用しない
+   */
+
   const body = {
 
     contents:[
@@ -1830,12 +1441,6 @@ async function runGeminiAnalysis(){
 
         parts:
           parts
-      }
-    ],
-
-    tools:[
-      {
-        google_search:{}
       }
     ],
 
@@ -1879,10 +1484,6 @@ async function runGeminiAnalysis(){
     );
 
 
-  /* =====================================================
-     429詳細表示
-  ===================================================== */
-
   if(
     response.status ===
     429
@@ -1894,23 +1495,6 @@ async function runGeminiAnalysis(){
       );
 
 
-    let detailText =
-      "";
-
-
-    if(
-      info.detailsText
-    ){
-
-      detailText =
-        "\n\n"
-        + "===== Google API quota details ====="
-        + "\n"
-        + info.detailsText;
-
-    }
-
-
     const error =
       new Error(
 
@@ -1919,9 +1503,12 @@ async function runGeminiAnalysis(){
         + "429 Too Many Requests"
         + "\n\n"
         + info.message
-        + detailText
-        + "\n\n"
-        + "この詳細部分をそのままChatGPTに送ってください。"
+        + (
+            info.detailsText
+              ? "\n\n===== quota details =====\n"
+                + info.detailsText
+              : ""
+          )
 
       );
 
@@ -1945,27 +1532,13 @@ async function runGeminiAnalysis(){
       );
 
 
-    const error =
-      new Error(
+    throw new Error(
 
-        `Gemini APIエラー（HTTP ${response.status}）`
-        + "\n\n"
-        + info.message
-        + (
-            info.detailsText
-              ? "\n\n"
-                + info.detailsText
-              : ""
-          )
+      `Gemini APIエラー（HTTP ${response.status}）`
+      + "\n\n"
+      + info.message
 
-      );
-
-
-    error.code =
-      response.status;
-
-
-    throw error;
+    );
 
   }
 
@@ -2005,12 +1578,7 @@ async function runGeminiAnalysis(){
     result:
       extractJson(
         text
-      ),
-
-    groundingMetadata:
-      candidate?.groundingMetadata ||
-      candidate?.grounding_metadata ||
-      null
+      )
 
   };
 
@@ -2078,15 +1646,14 @@ scanBtn.addEventListener(
 
     showStatus(
       "画像を確認しています…\n"
-      + "Gemini 3.6 Flashで画像判定・Google検索・レア度・相場調査を実行します。"
+      + "今回はGoogle検索を使わず、Gemini 3.6 Flash本体だけでテストします。"
     );
 
 
     try{
 
       const {
-        result,
-        groundingMetadata
+        result
       } =
         await runGeminiAnalysis();
 
@@ -2149,9 +1716,8 @@ scanBtn.addEventListener(
         ).trim();
 
 
-      renderSources(
-        groundingMetadata
-      );
+      sourcesEl.textContent =
+        "今回はGoogle検索を一時停止しています。";
 
 
       resultCard.style.display =
@@ -2160,8 +1726,7 @@ scanBtn.addEventListener(
 
       showSuccess(
         "AI判定が完了しました。\n"
-        + "レア度・相場まで入力欄へ反映しています。\n"
-        + "この時点ではまだ保存していません。"
+        + "Google検索なしでGemini本体が正常に動作しました。"
       );
 
 
@@ -2238,51 +1803,9 @@ confirmBtn.addEventListener(
 
       back:
         backPreview.src ||
-        "",
-
-      confirmedAt:
-        new Date().toISOString()
+        ""
 
     };
-
-
-    if(
-      !confirmed.name
-    ){
-
-      showError(
-        "シール名を入力してください。"
-      );
-
-      return;
-
-    }
-
-
-    if(
-      !confirmed.rarity
-    ){
-
-      showError(
-        "レア度を入力してください。"
-      );
-
-      return;
-
-    }
-
-
-    if(
-      !confirmed.price
-    ){
-
-      showError(
-        "相場を入力してください。"
-      );
-
-      return;
-
-    }
 
 
     screenshotName.textContent =
@@ -2321,10 +1844,8 @@ confirmBtn.addEventListener(
       screenshotBack.src =
         confirmed.back;
 
-
       screenshotBack.style.display =
         "block";
-
 
       screenshotPhotos.classList
         .remove(
@@ -2333,13 +1854,8 @@ confirmBtn.addEventListener(
 
     }else{
 
-      screenshotBack.src =
-        "";
-
-
       screenshotBack.style.display =
         "none";
-
 
       screenshotPhotos.classList
         .add(
@@ -2366,20 +1882,13 @@ confirmBtn.addEventListener(
 
 
     window.scrollTo({
-      top:
-        0,
-
-      behavior:
-        "smooth"
+      top:0,
+      behavior:"smooth"
     });
 
   }
 );
 
-
-/* =========================================================
-   戻る
-========================================================= */
 
 backBtn.addEventListener(
   "click",
@@ -2394,11 +1903,8 @@ backBtn.addEventListener(
 
 
     window.scrollTo({
-      top:
-        0,
-
-      behavior:
-        "smooth"
+      top:0,
+      behavior:"smooth"
     });
 
   }
