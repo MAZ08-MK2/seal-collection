@@ -12,7 +12,6 @@
   --green:#16a34a;
   --red:#dc2626;
   --orange:#ea580c;
-  --purple:#7c3aed;
   --bg:#f5f7fb;
   --line:#dde3ee;
   --text:#172033;
@@ -247,6 +246,17 @@ textarea{
   word-break:break-word;
 }
 
+.sourceBox a{
+  color:#1769d1;
+  text-decoration:none;
+}
+
+.sourceTitle{
+  font-weight:700;
+  color:var(--text);
+  margin-bottom:5px;
+}
+
 .confirmBox{
   background:#f0fdf4;
   border:1px solid #bbf7d0;
@@ -430,8 +440,8 @@ textarea{
 <h1>✨ シールコレクション AI</h1>
 
 <p class="lead">
-表面・裏面を撮影してAI判定します。<br>
-今回は原因切り分けのためGoogle検索を一時停止しています。
+画像判定・Google検索・レア度・相場を一度に調査します。<br>
+検索制限時は自動で画像判定のみへ切り替えます。
 </p>
 
 <p class="buildStamp"></p>
@@ -587,7 +597,7 @@ placeholder="シリーズ名">
 <input
 id="rarity"
 type="text"
-placeholder="例：ホロ、プリズム、UR、不明">
+placeholder="例：ヘッド、ホロ、UR、不明">
 
 </div>
 
@@ -595,16 +605,16 @@ placeholder="例：ホロ、プリズム、UR、不明">
 <div class="marketBox">
 
 <div class="marketTitle">
-💰 相場
+💰 現在の相場
 </div>
 
 <input
 id="price"
 type="text"
-placeholder="今回は検索OFFのため確認できません">
+placeholder="例：500円～1,000円">
 
 <p class="hint">
-今回はGoogle Search groundingをOFFにして原因切り分け中です。
+Google検索が成功した場合は自動入力されます。
 </p>
 
 </div>
@@ -620,7 +630,7 @@ placeholder="今回は検索OFFのため確認できません">
 id="sources"
 class="sourceBox">
 
-今回はGoogle検索を一時停止しています。
+AI判定後に表示されます。
 
 </div>
 
@@ -635,7 +645,7 @@ class="sourceBox">
 
 <textarea
 id="researchMemo"
-placeholder="AIの判定内容"></textarea>
+placeholder="AIの調査内容"></textarea>
 
 </div>
 
@@ -652,9 +662,8 @@ placeholder="AIの判定内容"></textarea>
 </div>
 
 <div class="confirmText">
-
-現在の入力欄の内容だけを使用します。
-
+AI結果はまだ保存されていません。<br>
+<b>現在の入力欄の内容だけ</b>を確定します。
 </div>
 
 <button
@@ -759,10 +768,8 @@ class="screenshotMeta">
 
 
 <div class="instructionBox">
-
 <b>📱 保存方法</b><br>
 この画面をスクリーンショットして保存してください。
-
 </div>
 
 
@@ -793,7 +800,7 @@ const API_URL =
   + ":generateContent";
 
 const BUILD =
-  "2026-08-15 / Gemini 3.6 Flash / Search OFF テスト";
+  "2026-08-15 / Search ON + 429 Fallback";
 
 
 const $ =
@@ -937,16 +944,6 @@ function loadImage(
     };
 
 
-  reader.onerror =
-    () => {
-
-      showError(
-        "画像の読み込みに失敗しました。"
-      );
-
-    };
-
-
   reader.readAsDataURL(
     file
   );
@@ -956,29 +953,23 @@ function loadImage(
 
 frontEl.addEventListener(
   "change",
-  () => {
-
+  () =>
     loadImage(
       frontEl.files[0],
       frontPreview,
       "front"
-    );
-
-  }
+    )
 );
 
 
 backEl.addEventListener(
   "change",
-  () => {
-
+  () =>
     loadImage(
       backEl.files[0],
       backPreview,
       "back"
-    );
-
-  }
+    )
 );
 
 
@@ -999,9 +990,7 @@ function hideMessages(){
 }
 
 
-function showStatus(
-  message
-){
+function showStatus(message){
 
   scanStatus.textContent =
     message;
@@ -1012,9 +1001,18 @@ function showStatus(
 }
 
 
-function showSuccess(
-  message
-){
+function showWarning(message){
+
+  scanWarning.textContent =
+    message;
+
+  scanWarning.style.display =
+    "block";
+
+}
+
+
+function showSuccess(message){
 
   scanSuccess.textContent =
     message;
@@ -1025,9 +1023,7 @@ function showSuccess(
 }
 
 
-function showError(
-  message
-){
+function showError(message){
 
   scanError.textContent =
     message;
@@ -1039,208 +1035,10 @@ function showError(
 
 
 /* =========================================================
-   429詳細解析
-========================================================= */
-
-async function getApiError(
-  response
-){
-
-  let text =
-    "";
-
-  try{
-
-    text =
-      await response.text();
-
-  }catch(e){}
-
-
-  let json =
-    null;
-
-
-  try{
-
-    json =
-      JSON.parse(
-        text
-      );
-
-  }catch(e){}
-
-
-  const err =
-    json?.error ||
-    json ||
-    {};
-
-
-  const message =
-    err?.message ||
-    text ||
-    `HTTP ${response.status}`;
-
-
-  const lines =
-    [];
-
-
-  if(
-    err?.status
-  ){
-
-    lines.push(
-      `status: ${err.status}`
-    );
-
-  }
-
-
-  if(
-    err?.code !==
-    undefined
-  ){
-
-    lines.push(
-      `code: ${err.code}`
-    );
-
-  }
-
-
-  const details =
-    Array.isArray(
-      err?.details
-    )
-      ? err.details
-      : [];
-
-
-  for(
-    const detail
-    of details
-  ){
-
-    const type =
-      detail?.["@type"] ||
-      "";
-
-
-    if(type){
-
-      lines.push(
-        `type: ${type}`
-      );
-
-    }
-
-
-    if(
-      detail?.retryDelay
-    ){
-
-      lines.push(
-        `retryDelay: ${detail.retryDelay}`
-      );
-
-    }
-
-
-    if(
-      Array.isArray(
-        detail?.violations
-      )
-    ){
-
-      detail.violations.forEach(
-        (
-          violation,
-          index
-        ) => {
-
-          lines.push(
-            `violation ${index + 1}:`
-          );
-
-
-          if(
-            violation?.quotaMetric
-          ){
-
-            lines.push(
-              `quotaMetric: ${violation.quotaMetric}`
-            );
-
-          }
-
-
-          if(
-            violation?.quotaId
-          ){
-
-            lines.push(
-              `quotaId: ${violation.quotaId}`
-            );
-
-          }
-
-
-          if(
-            violation?.quotaValue !==
-            undefined
-          ){
-
-            lines.push(
-              `quotaValue: ${violation.quotaValue}`
-            );
-
-          }
-
-
-          if(
-            violation?.quotaDimensions
-          ){
-
-            lines.push(
-              `quotaDimensions: ${
-                JSON.stringify(
-                  violation.quotaDimensions
-                )
-              }`
-            );
-
-          }
-
-        }
-      );
-
-    }
-
-  }
-
-
-  return {
-
-    message:
-      message,
-
-    detailsText:
-      lines.join("\n")
-
-  };
-
-}
-
-
-/* =========================================================
    JSON解析
 ========================================================= */
 
-function extractJson(
-  text
-){
+function extractJson(text){
 
   if(!text){
 
@@ -1252,28 +1050,19 @@ function extractJson(
 
 
   let cleaned =
-    text.trim();
-
-
-  cleaned =
-    cleaned.replace(
-      /^```json\s*/i,
-      ""
-    );
-
-
-  cleaned =
-    cleaned.replace(
-      /^```\s*/i,
-      ""
-    );
-
-
-  cleaned =
-    cleaned.replace(
-      /\s*```$/i,
-      ""
-    );
+    text.trim()
+      .replace(
+        /^```json\s*/i,
+        ""
+      )
+      .replace(
+        /^```\s*/i,
+        ""
+      )
+      .replace(
+        /\s*```$/i,
+        ""
+      );
 
 
   try{
@@ -1286,14 +1075,10 @@ function extractJson(
 
 
   const first =
-    cleaned.indexOf(
-      "{"
-    );
+    cleaned.indexOf("{");
 
   const last =
-    cleaned.lastIndexOf(
-      "}"
-    );
+    cleaned.lastIndexOf("}");
 
 
   if(
@@ -1316,8 +1101,135 @@ function extractJson(
 
 
   throw new Error(
-    "Geminiの回答をJSONとして解析できませんでした。\n\n"
-    + cleaned
+    "Geminiの回答をJSONとして解析できませんでした。"
+  );
+
+}
+
+
+/* =========================================================
+   参照元
+========================================================= */
+
+function renderSources(
+  groundingMetadata
+){
+
+  sourcesEl.innerHTML =
+    "";
+
+
+  if(
+    !groundingMetadata
+  ){
+
+    sourcesEl.textContent =
+      "参照元は取得できませんでした。";
+
+    return;
+
+  }
+
+
+  const chunks =
+    groundingMetadata.groundingChunks ||
+    groundingMetadata.grounding_chunks ||
+    [];
+
+
+  if(
+    !chunks.length
+  ){
+
+    sourcesEl.textContent =
+      "参照元URLは取得できませんでした。";
+
+    return;
+
+  }
+
+
+  const title =
+    document.createElement(
+      "div"
+    );
+
+  title.className =
+    "sourceTitle";
+
+  title.textContent =
+    "Google検索の参照元";
+
+  sourcesEl.appendChild(
+    title
+  );
+
+
+  chunks.forEach(
+    (
+      chunk,
+      index
+    ) => {
+
+      const web =
+        chunk.web ||
+        chunk;
+
+
+      const uri =
+        web.uri ||
+        web.url ||
+        "";
+
+
+      const sourceTitle =
+        web.title ||
+        uri ||
+        `参照元 ${index + 1}`;
+
+
+      const div =
+        document.createElement(
+          "div"
+        );
+
+
+      if(uri){
+
+        const a =
+          document.createElement(
+            "a"
+          );
+
+        a.href =
+          uri;
+
+        a.target =
+          "_blank";
+
+        a.rel =
+          "noopener noreferrer";
+
+        a.textContent =
+          `${index + 1}. ${sourceTitle}`;
+
+        div.appendChild(
+          a
+        );
+
+      }else{
+
+        div.textContent =
+          `${index + 1}. ${sourceTitle}`;
+
+      }
+
+
+      sourcesEl.appendChild(
+        div
+      );
+
+    }
   );
 
 }
@@ -1327,25 +1239,60 @@ function extractJson(
    プロンプト
 ========================================================= */
 
-function buildPrompt(){
+function buildPrompt(
+  useSearch
+){
 
-  return `
-あなたは日本のコレクション品を画像から判定するAIです。
+  if(useSearch){
 
-今回はWeb検索を使用せず、
-画像だけから判定してください。
+    return `
+あなたは日本のコレクション品を調査する専門AIです。
+
+画像とGoogle検索を使って、
+シール名、シリーズ、種類、レア度、現在の相場を判定してください。
 
 【重要】
-・画像を最優先する
-・表面と裏面を照合する
-・推測できない場合は「確認できません」
-・現在の相場はWeb検索を使わないため「確認できません」とする
+・画像を最優先
+・表裏を照合
+・旧版、復刻版、仕様違いを区別
+・推測しない
+・相場は現在確認できる日本国内の販売・取引情報を参考
+・確認できない場合は「確認できません」
 
 必ずJSONだけを返してください。
 
 {
   "name":"シール名",
-  "series":"シリーズ・作品名",
+  "series":"シリーズ",
+  "kind":"シール",
+  "rarity":"レア度",
+  "price":"〇〇円～〇〇円",
+  "researchMemo":"判定理由と相場根拠",
+  "confidence":"高・中・低"
+}
+`;
+
+  }
+
+
+  return `
+あなたは日本のコレクション品を画像から判定する専門AIです。
+
+今回はGoogle検索を使用しません。
+
+画像のみから、
+シール名、シリーズ、種類、レア度を判定してください。
+
+【重要】
+・表裏を照合
+・推測しない
+・相場は検索できないため必ず「確認できません」
+
+必ずJSONだけを返してください。
+
+{
+  "name":"シール名",
+  "series":"シリーズ",
   "kind":"シール",
   "rarity":"レア度",
   "price":"確認できません",
@@ -1358,31 +1305,15 @@ function buildPrompt(){
 
 
 /* =========================================================
-   Gemini実行
+   Gemini API
 ========================================================= */
 
-async function runGeminiAnalysis(){
+async function callGemini(
+  useSearch
+){
 
   const apiKey =
     apiKeyEl.value.trim();
-
-
-  if(!apiKey){
-
-    throw new Error(
-      "Gemini API Keyを入力してください。"
-    );
-
-  }
-
-
-  if(!frontData){
-
-    throw new Error(
-      "表面の画像を選択してください。"
-    );
-
-  }
 
 
   const parts =
@@ -1390,7 +1321,9 @@ async function runGeminiAnalysis(){
 
       {
         text:
-          buildPrompt()
+          buildPrompt(
+            useSearch
+          )
       },
 
       {
@@ -1427,11 +1360,6 @@ async function runGeminiAnalysis(){
   }
 
 
-  /*
-   * Google Search groundingは
-   * 今回の切り分けテストでは使用しない
-   */
-
   const body = {
 
     contents:[
@@ -1455,6 +1383,20 @@ async function runGeminiAnalysis(){
     }
 
   };
+
+
+  if(
+    useSearch
+  ){
+
+    body.tools =
+      [
+        {
+          google_search:{}
+        }
+      ];
+
+  }
 
 
   const response =
@@ -1485,60 +1427,24 @@ async function runGeminiAnalysis(){
 
 
   if(
-    response.status ===
-    429
+    !response.ok
   ){
 
-    const info =
-      await getApiError(
-        response
-      );
+    const text =
+      await response.text();
 
 
     const error =
       new Error(
-
-        "Gemini APIの利用上限に達しました。"
-        + "\n\n"
-        + "429 Too Many Requests"
-        + "\n\n"
-        + info.message
-        + (
-            info.detailsText
-              ? "\n\n===== quota details =====\n"
-                + info.detailsText
-              : ""
-          )
-
+        text
       );
 
 
     error.code =
-      429;
+      response.status;
 
 
     throw error;
-
-  }
-
-
-  if(
-    !response.ok
-  ){
-
-    const info =
-      await getApiError(
-        response
-      );
-
-
-    throw new Error(
-
-      `Gemini APIエラー（HTTP ${response.status}）`
-      + "\n\n"
-      + info.message
-
-    );
 
   }
 
@@ -1554,23 +1460,12 @@ async function runGeminiAnalysis(){
   const text =
     candidate?.content?.parts
       ?.map(
-        part =>
-          part.text ||
+        p =>
+          p.text ||
           ""
       )
       .join("")
       .trim();
-
-
-  if(
-    !text
-  ){
-
-    throw new Error(
-      "Geminiから解析結果が返されませんでした。"
-    );
-
-  }
 
 
   return {
@@ -1578,7 +1473,12 @@ async function runGeminiAnalysis(){
     result:
       extractJson(
         text
-      )
+      ),
+
+    groundingMetadata:
+      candidate?.groundingMetadata ||
+      candidate?.grounding_metadata ||
+      null
 
   };
 
@@ -1586,7 +1486,7 @@ async function runGeminiAnalysis(){
 
 
 /* =========================================================
-   AI判定ボタン
+   AI判定
 ========================================================= */
 
 scanBtn.addEventListener(
@@ -1609,12 +1509,8 @@ scanBtn.addEventListener(
     }
 
 
-    const apiKey =
-      apiKeyEl.value.trim();
-
-
     if(
-      !apiKey
+      !apiKeyEl.value.trim()
     ){
 
       showError(
@@ -1628,7 +1524,7 @@ scanBtn.addEventListener(
 
     localStorage.setItem(
       "seal_gemini_api_key",
-      apiKey
+      apiKeyEl.value.trim()
     );
 
 
@@ -1644,18 +1540,63 @@ scanBtn.addEventListener(
       "none";
 
 
-    showStatus(
-      "画像を確認しています…\n"
-      + "今回はGoogle検索を使わず、Gemini 3.6 Flash本体だけでテストします。"
-    );
-
-
     try{
 
-      const {
-        result
-      } =
-        await runGeminiAnalysis();
+      showStatus(
+        "Google検索付きで判定しています…"
+      );
+
+
+      let responseData;
+
+
+      try{
+
+        responseData =
+          await callGemini(
+            true
+          );
+
+      }
+      catch(
+        error
+      ){
+
+        if(
+          error.code !==
+          429
+        ){
+
+          throw error;
+
+        }
+
+
+        showWarning(
+          "Google検索付き判定が429になりました。\n"
+          + "画像判定のみへ自動で切り替えます。"
+        );
+
+
+        showStatus(
+          "Google検索なしで画像判定を再実行しています…"
+        );
+
+
+        responseData =
+          await callGemini(
+            false
+          );
+
+
+        responseData.fallback =
+          true;
+
+      }
+
+
+      const result =
+        responseData.result;
 
 
       nameEl.value =
@@ -1679,18 +1620,14 @@ scanBtn.addEventListener(
         ).trim();
 
 
-      const kindExists =
+      kindEl.value =
         Array.from(
           kindEl.options
         ).some(
           option =>
             option.value ===
             kind
-        );
-
-
-      kindEl.value =
-        kindExists
+        )
           ? kind
           : "シール";
 
@@ -1716,18 +1653,35 @@ scanBtn.addEventListener(
         ).trim();
 
 
-      sourcesEl.textContent =
-        "今回はGoogle検索を一時停止しています。";
+      if(
+        responseData.fallback
+      ){
+
+        sourcesEl.textContent =
+          "Google検索が429のため、今回は画像判定のみです。";
+
+
+        showSuccess(
+          "画像判定は完了しました。\n"
+          + "Google検索が制限されたため、相場は確認できません。"
+        );
+
+      }else{
+
+        renderSources(
+          responseData.groundingMetadata
+        );
+
+
+        showSuccess(
+          "AI判定・Google検索・相場調査が完了しました。"
+        );
+
+      }
 
 
       resultCard.style.display =
         "block";
-
-
-      showSuccess(
-        "AI判定が完了しました。\n"
-        + "Google検索なしでGemini本体が正常に動作しました。"
-      );
 
 
       resultCard.scrollIntoView({
@@ -1749,8 +1703,11 @@ scanBtn.addEventListener(
 
 
       showError(
-        error.message ||
-        "AI判定中にエラーが発生しました。"
+        "Gemini APIエラー\n\n"
+        + (
+            error.message ||
+            "確認できません"
+          )
       );
 
     }
@@ -1847,20 +1804,18 @@ confirmBtn.addEventListener(
       screenshotBack.style.display =
         "block";
 
-      screenshotPhotos.classList
-        .remove(
-          "single"
-        );
+      screenshotPhotos.classList.remove(
+        "single"
+      );
 
     }else{
 
       screenshotBack.style.display =
         "none";
 
-      screenshotPhotos.classList
-        .add(
-          "single"
-        );
+      screenshotPhotos.classList.add(
+        "single"
+      );
 
     }
 
