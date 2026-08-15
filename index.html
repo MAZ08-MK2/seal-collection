@@ -220,6 +220,26 @@ textarea{
   margin-bottom:8px;
 }
 
+.club80Box{
+  background:#fff7ed;
+  border:1px solid #fed7aa;
+  border-radius:12px;
+  padding:12px;
+  margin-top:2px;
+}
+
+.club80Title{
+  font-weight:700;
+  color:#9a3412;
+  margin-bottom:4px;
+}
+
+.club80Text{
+  color:#9a3412;
+  font-size:12px;
+  line-height:1.6;
+}
+
 .confirmBox{
   background:#f0fdf4;
   border:1px solid #bbf7d0;
@@ -238,6 +258,10 @@ textarea{
   font-size:12px;
   color:#166534;
   line-height:1.6;
+}
+
+.hidden{
+  display:none !important;
 }
 
 #cardView{
@@ -360,6 +384,7 @@ textarea{
 }
 
 @media(max-width:390px){
+
   .grid{
     gap:7px;
   }
@@ -383,7 +408,7 @@ textarea{
 
 <p class="lead">
 表面・裏面を撮影して、名前・シリーズ・種類・レア度をAI判定します。<br>
-必要なら修正して、そのままスクリーンショットできます。
+古いビックリマン系は80年代倶楽部でも確認できます。
 </p>
 
 <p class="buildStamp"></p>
@@ -556,6 +581,36 @@ placeholder="AIが画像から確認した内容"></textarea>
 
 </div>
 
+
+<!-- =====================================================
+     80年代倶楽部
+===================================================== -->
+
+<div
+id="club80Box"
+class="club80Box hidden">
+
+<div class="club80Title">
+📚 80年代倶楽部で確認
+</div>
+
+<div class="club80Text">
+古いビックリマン系の可能性があります。<br>
+AI判定されたシール名で80年代倶楽部のデータベースを検索できます。
+</div>
+
+<button
+id="club80Btn"
+class="btn secondary full"
+type="button">
+
+🔎 80年代倶楽部で確認する
+
+</button>
+
+</div>
+
+
 </div>
 
 
@@ -588,6 +643,10 @@ type="button">
 
 </div>
 
+
+<!-- =====================================================
+     スクリーンショット画面
+===================================================== -->
 
 <div id="cardView">
 
@@ -699,7 +758,7 @@ const API_URL =
   + ":generateContent";
 
 const BUILD =
-  "2026-08-15 / Gemini 3.6 Flash / Image Only";
+  "2026-08-15 / Gemini 3.6 Flash / 80年代倶楽部連携";
 
 
 const $ =
@@ -712,29 +771,41 @@ const frontEl = $("front");
 const backEl = $("back");
 const frontPreview = $("frontPreview");
 const backPreview = $("backPreview");
+
 const scanBtn = $("scanBtn");
+
 const scanStatus = $("scanStatus");
 const scanWarning = $("scanWarning");
 const scanSuccess = $("scanSuccess");
 const scanError = $("scanError");
+
 const resultCard = $("resultCard");
+
 const nameEl = $("name");
 const seriesEl = $("series");
 const kindEl = $("kind");
 const rarityEl = $("rarity");
 const researchMemoEl = $("researchMemo");
+
+const club80Box = $("club80Box");
+const club80Btn = $("club80Btn");
+
 const confirmBtn = $("confirmBtn");
+
 const formView = $("formView");
 const cardView = $("cardView");
+
 const screenshotPhotos = $("screenshotPhotos");
 const screenshotFront = $("screenshotFront");
 const screenshotBack = $("screenshotBack");
+
 const screenshotName = $("screenshotName");
 const screenshotSeries = $("screenshotSeries");
 const screenshotKind = $("screenshotKind");
 const screenshotRarity = $("screenshotRarity");
 const screenshotMemo = $("screenshotMemo");
 const screenshotMeta = $("screenshotMeta");
+
 const backBtn = $("backBtn");
 
 
@@ -746,6 +817,7 @@ const savedApiKey =
   localStorage.getItem(
     "seal_gemini_api_key"
   );
+
 
 if(savedApiKey){
 
@@ -761,6 +833,7 @@ apiKeyEl.addEventListener(
 
     const value =
       apiKeyEl.value.trim();
+
 
     if(value){
 
@@ -974,6 +1047,7 @@ async function getApiError(
   let text =
     "";
 
+
   try{
 
     text =
@@ -1121,7 +1195,7 @@ function buildPrompt(){
 ・Web検索は使用しない
 
 【種類】
-原則として以下のどれかを使用してください。
+以下のどれかを使用してください。
 
 シール
 トレカ
@@ -1143,6 +1217,14 @@ UR
 SEC
 プロモ
 確認できません
+
+【シリーズ名】
+できるだけ短く、コレクション表示に適した名称にしてください。
+
+例：
+ビックリマン伝説
+悪魔VS天使シール
+ドラゴンボールスーパーダイバーズ
 
 必ずJSONだけを返してください。
 Markdownコードブロックは不要です。
@@ -1253,12 +1335,6 @@ async function runGeminiAnalysis(){
   };
 
 
-  /*
-   * Gemini APIは1回だけ
-   * Google Searchなし
-   * 別モデル切替なし
-   */
-
   const response =
     await fetch(
       API_URL,
@@ -1297,23 +1373,15 @@ async function runGeminiAnalysis(){
       );
 
 
-    const error =
-      new Error(
+    throw new Error(
 
-        "Gemini APIの利用上限に達しました。"
-        + "\n\n"
-        + "429 Too Many Requests"
-        + "\n\n"
-        + message
+      "Gemini APIの利用上限に達しました。"
+      + "\n\n"
+      + "429 Too Many Requests"
+      + "\n\n"
+      + message
 
-      );
-
-
-    error.code =
-      429;
-
-
-    throw error;
+    );
 
   }
 
@@ -1380,6 +1448,168 @@ async function runGeminiAnalysis(){
 
 
 /* =========================================================
+   80年代倶楽部ボタン判定
+========================================================= */
+
+function update80ClubButton(){
+
+  const text =
+    [
+      nameEl.value,
+      seriesEl.value,
+      rarityEl.value,
+      researchMemoEl.value
+    ]
+    .join(" ")
+    .toLowerCase();
+
+
+  const isBikkuriman =
+    text.includes(
+      "ビックリマン"
+    )
+    ||
+    text.includes(
+      "悪魔vs天使"
+    )
+    ||
+    text.includes(
+      "悪魔ｖｓ天使"
+    );
+
+
+  const oldKeywords =
+    [
+      "ヘッド",
+      "天使",
+      "悪魔",
+      "お守り",
+      "旧ビックリマン",
+      "旧版",
+      "ビックリマン伝説",
+      "復刻"
+    ];
+
+
+  const looksOld =
+    oldKeywords.some(
+      keyword =>
+        text.includes(
+          keyword
+        )
+    );
+
+
+  const isSticker =
+    kindEl.value ===
+    "シール";
+
+
+  if(
+    isBikkuriman &&
+    looksOld &&
+    isSticker
+  ){
+
+    club80Box.classList.remove(
+      "hidden"
+    );
+
+  }else{
+
+    club80Box.classList.add(
+      "hidden"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   入力修正時にも再判定
+========================================================= */
+
+nameEl.addEventListener(
+  "input",
+  update80ClubButton
+);
+
+
+seriesEl.addEventListener(
+  "input",
+  update80ClubButton
+);
+
+
+rarityEl.addEventListener(
+  "input",
+  update80ClubButton
+);
+
+
+researchMemoEl.addEventListener(
+  "input",
+  update80ClubButton
+);
+
+
+kindEl.addEventListener(
+  "change",
+  update80ClubButton
+);
+
+
+/* =========================================================
+   80年代倶楽部を検索
+========================================================= */
+
+club80Btn.addEventListener(
+  "click",
+  () => {
+
+    const name =
+      nameEl.value.trim();
+
+
+    if(!name){
+
+      showError(
+        "シール名が入力されていません。"
+      );
+
+      return;
+
+    }
+
+
+    /*
+     * 80年代倶楽部のDBを
+     * Google site検索で探す
+     */
+
+    const query =
+      encodeURIComponent(
+        `${name} site:80th.club/db`
+      );
+
+
+    const url =
+      "https://www.google.com/search?q="
+      + query;
+
+
+    window.open(
+      url,
+      "_blank",
+      "noopener,noreferrer"
+    );
+
+  }
+);
+
+
+/* =========================================================
    AI判定
 ========================================================= */
 
@@ -1388,6 +1618,11 @@ scanBtn.addEventListener(
   async () => {
 
     hideMessages();
+
+
+    club80Box.classList.add(
+      "hidden"
+    );
 
 
     if(!frontData){
@@ -1499,6 +1734,13 @@ scanBtn.addEventListener(
         ).trim();
 
 
+      /*
+       * 80年代倶楽部表示判定
+       */
+
+      update80ClubButton();
+
+
       resultCard.style.display =
         "block";
 
@@ -1555,11 +1797,6 @@ scanBtn.addEventListener(
 confirmBtn.addEventListener(
   "click",
   () => {
-
-    /*
-     * AIが最初に返したオブジェクトは使わず、
-     * 今の入力欄だけを使う
-     */
 
     const confirmed = {
 
@@ -1724,6 +1961,9 @@ backBtn.addEventListener(
       "block";
 
 
+    update80ClubButton();
+
+
     window.scrollTo({
       top:
         0,
@@ -1747,6 +1987,10 @@ document.querySelector(
 
 
 hideMessages();
+
+club80Box.classList.add(
+  "hidden"
+);
 
 </script>
 
