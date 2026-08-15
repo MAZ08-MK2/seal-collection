@@ -11,7 +11,6 @@
   --blue:#1677ff;
   --green:#16a34a;
   --red:#dc2626;
-  --orange:#ea580c;
   --bg:#f5f7fb;
   --line:#dde3ee;
   --text:#172033;
@@ -211,19 +210,6 @@ textarea{
   margin-top:7px;
 }
 
-.marketBox{
-  background:#f8fafc;
-  border:1px solid var(--line);
-  border-radius:12px;
-  padding:12px;
-  margin-top:4px;
-}
-
-.marketTitle{
-  font-weight:700;
-  margin-bottom:8px;
-}
-
 .aiBadge{
   display:inline-block;
   font-size:11px;
@@ -232,29 +218,6 @@ textarea{
   background:#eef4ff;
   color:#125dc9;
   margin-bottom:8px;
-}
-
-.sourceBox{
-  background:#f8fafc;
-  border:1px solid var(--line);
-  border-radius:10px;
-  padding:10px;
-  margin-top:10px;
-  font-size:11px;
-  line-height:1.6;
-  color:var(--sub);
-  word-break:break-word;
-}
-
-.sourceBox a{
-  color:#1769d1;
-  text-decoration:none;
-}
-
-.sourceTitle{
-  font-weight:700;
-  color:var(--text);
-  margin-bottom:5px;
 }
 
 .confirmBox{
@@ -356,27 +319,6 @@ textarea{
   color:#9a3412;
 }
 
-.screenshotPriceBox{
-  text-align:center;
-  background:#ecfdf3;
-  border:1px solid #bbf7d0;
-  border-radius:14px;
-  padding:14px;
-  margin-bottom:14px;
-}
-
-.screenshotPriceLabel{
-  font-size:12px;
-  color:#166534;
-  margin-bottom:4px;
-}
-
-.screenshotPrice{
-  font-size:24px;
-  font-weight:800;
-  color:#166534;
-}
-
 .screenshotMemoLabel{
   font-size:12px;
   font-weight:700;
@@ -440,8 +382,8 @@ textarea{
 <h1>✨ シールコレクション AI</h1>
 
 <p class="lead">
-画像判定・Google検索・レア度・相場を一度に調査します。<br>
-検索制限時は自動で画像判定のみへ切り替えます。
+表面・裏面を撮影して、名前・シリーズ・種類・レア度をAI判定します。<br>
+必要なら修正して、そのままスクリーンショットできます。
 </p>
 
 <p class="buildStamp"></p>
@@ -597,25 +539,7 @@ placeholder="シリーズ名">
 <input
 id="rarity"
 type="text"
-placeholder="例：ヘッド、ホロ、UR、不明">
-
-</div>
-
-
-<div class="marketBox">
-
-<div class="marketTitle">
-💰 現在の相場
-</div>
-
-<input
-id="price"
-type="text"
-placeholder="例：500円～1,000円">
-
-<p class="hint">
-Google検索が成功した場合は自動入力されます。
-</p>
+placeholder="例：ヘッド、ホロ、プリズム、UR、不明">
 
 </div>
 
@@ -623,29 +547,12 @@ Google検索が成功した場合は自動入力されます。
 <div>
 
 <label>
-🔎 Web検索・参照元
-</label>
-
-<div
-id="sources"
-class="sourceBox">
-
-AI判定後に表示されます。
-
-</div>
-
-</div>
-
-
-<div>
-
-<label>
-📝 AI調査メモ
+📝 AI判定メモ
 </label>
 
 <textarea
 id="researchMemo"
-placeholder="AIの調査内容"></textarea>
+placeholder="AIが画像から確認した内容"></textarea>
 
 </div>
 
@@ -663,7 +570,7 @@ placeholder="AIの調査内容"></textarea>
 
 <div class="confirmText">
 AI結果はまだ保存されていません。<br>
-<b>現在の入力欄の内容だけ</b>を確定します。
+必要なら修正してから、<b>現在の入力欄の内容だけ</b>を確定します。
 </div>
 
 <button
@@ -735,22 +642,8 @@ class="badge rarityBadge">
 </div>
 
 
-<div class="screenshotPriceBox">
-
-<div class="screenshotPriceLabel">
-現在の相場
-</div>
-
-<div
-id="screenshotPrice"
-class="screenshotPrice">
-</div>
-
-</div>
-
-
 <div class="screenshotMemoLabel">
-調査メモ
+AI判定メモ
 </div>
 
 <div
@@ -768,8 +661,10 @@ class="screenshotMeta">
 
 
 <div class="instructionBox">
+
 <b>📱 保存方法</b><br>
-この画面をスクリーンショットして保存してください。
+この画面をスクリーンショットして、必要に応じてpCloudへ手動保存してください。
+
 </div>
 
 
@@ -791,6 +686,10 @@ type="button">
 
 <script>
 
+/* =========================================================
+   基本設定
+========================================================= */
+
 const MODEL =
   "gemini-3.6-flash";
 
@@ -800,7 +699,7 @@ const API_URL =
   + ":generateContent";
 
 const BUILD =
-  "2026-08-15 / Search ON + 429 Fallback";
+  "2026-08-15 / Gemini 3.6 Flash / Image Only";
 
 
 const $ =
@@ -823,9 +722,7 @@ const nameEl = $("name");
 const seriesEl = $("series");
 const kindEl = $("kind");
 const rarityEl = $("rarity");
-const priceEl = $("price");
 const researchMemoEl = $("researchMemo");
-const sourcesEl = $("sources");
 const confirmBtn = $("confirmBtn");
 const formView = $("formView");
 const cardView = $("cardView");
@@ -836,11 +733,14 @@ const screenshotName = $("screenshotName");
 const screenshotSeries = $("screenshotSeries");
 const screenshotKind = $("screenshotKind");
 const screenshotRarity = $("screenshotRarity");
-const screenshotPrice = $("screenshotPrice");
 const screenshotMemo = $("screenshotMemo");
 const screenshotMeta = $("screenshotMeta");
 const backBtn = $("backBtn");
 
+
+/* =========================================================
+   APIキー保存
+========================================================= */
 
 const savedApiKey =
   localStorage.getItem(
@@ -848,8 +748,10 @@ const savedApiKey =
   );
 
 if(savedApiKey){
+
   apiKeyEl.value =
     savedApiKey;
+
 }
 
 
@@ -873,11 +775,20 @@ apiKeyEl.addEventListener(
 );
 
 
+/* =========================================================
+   画像状態
+========================================================= */
+
 let frontData = null;
 let backData = null;
+
 let frontMime = null;
 let backMime = null;
 
+
+/* =========================================================
+   画像読込
+========================================================= */
 
 function loadImage(
   file,
@@ -888,6 +799,7 @@ function loadImage(
   if(!file){
     return;
   }
+
 
   if(
     !file.type.startsWith(
@@ -914,8 +826,10 @@ function loadImage(
       const result =
         reader.result;
 
+
       previewEl.src =
         result;
+
 
       previewEl.style.display =
         "block";
@@ -944,6 +858,16 @@ function loadImage(
     };
 
 
+  reader.onerror =
+    () => {
+
+      showError(
+        "画像の読み込みに失敗しました。"
+      );
+
+    };
+
+
   reader.readAsDataURL(
     file
   );
@@ -953,25 +877,35 @@ function loadImage(
 
 frontEl.addEventListener(
   "change",
-  () =>
+  () => {
+
     loadImage(
       frontEl.files[0],
       frontPreview,
       "front"
-    )
+    );
+
+  }
 );
 
 
 backEl.addEventListener(
   "change",
-  () =>
+  () => {
+
     loadImage(
       backEl.files[0],
       backPreview,
       "back"
-    )
+    );
+
+  }
 );
 
+
+/* =========================================================
+   メッセージ
+========================================================= */
 
 function hideMessages(){
 
@@ -990,7 +924,9 @@ function hideMessages(){
 }
 
 
-function showStatus(message){
+function showStatus(
+  message
+){
 
   scanStatus.textContent =
     message;
@@ -1001,18 +937,9 @@ function showStatus(message){
 }
 
 
-function showWarning(message){
-
-  scanWarning.textContent =
-    message;
-
-  scanWarning.style.display =
-    "block";
-
-}
-
-
-function showSuccess(message){
+function showSuccess(
+  message
+){
 
   scanSuccess.textContent =
     message;
@@ -1023,7 +950,9 @@ function showSuccess(message){
 }
 
 
-function showError(message){
+function showError(
+  message
+){
 
   scanError.textContent =
     message;
@@ -1035,10 +964,55 @@ function showError(message){
 
 
 /* =========================================================
-   JSON解析
+   Geminiエラー解析
 ========================================================= */
 
-function extractJson(text){
+async function getApiError(
+  response
+){
+
+  let text =
+    "";
+
+  try{
+
+    text =
+      await response.text();
+
+  }catch(e){}
+
+
+  let json =
+    null;
+
+
+  try{
+
+    json =
+      JSON.parse(
+        text
+      );
+
+  }catch(e){}
+
+
+  return (
+    json?.error?.message ||
+    json?.message ||
+    text ||
+    `HTTP ${response.status}`
+  );
+
+}
+
+
+/* =========================================================
+   JSON抽出
+========================================================= */
+
+function extractJson(
+  text
+){
 
   if(!text){
 
@@ -1075,10 +1049,15 @@ function extractJson(text){
 
 
   const first =
-    cleaned.indexOf("{");
+    cleaned.indexOf(
+      "{"
+    );
+
 
   const last =
-    cleaned.lastIndexOf("}");
+    cleaned.lastIndexOf(
+      "}"
+    );
 
 
   if(
@@ -1108,195 +1087,72 @@ function extractJson(text){
 
 
 /* =========================================================
-   参照元
-========================================================= */
-
-function renderSources(
-  groundingMetadata
-){
-
-  sourcesEl.innerHTML =
-    "";
-
-
-  if(
-    !groundingMetadata
-  ){
-
-    sourcesEl.textContent =
-      "参照元は取得できませんでした。";
-
-    return;
-
-  }
-
-
-  const chunks =
-    groundingMetadata.groundingChunks ||
-    groundingMetadata.grounding_chunks ||
-    [];
-
-
-  if(
-    !chunks.length
-  ){
-
-    sourcesEl.textContent =
-      "参照元URLは取得できませんでした。";
-
-    return;
-
-  }
-
-
-  const title =
-    document.createElement(
-      "div"
-    );
-
-  title.className =
-    "sourceTitle";
-
-  title.textContent =
-    "Google検索の参照元";
-
-  sourcesEl.appendChild(
-    title
-  );
-
-
-  chunks.forEach(
-    (
-      chunk,
-      index
-    ) => {
-
-      const web =
-        chunk.web ||
-        chunk;
-
-
-      const uri =
-        web.uri ||
-        web.url ||
-        "";
-
-
-      const sourceTitle =
-        web.title ||
-        uri ||
-        `参照元 ${index + 1}`;
-
-
-      const div =
-        document.createElement(
-          "div"
-        );
-
-
-      if(uri){
-
-        const a =
-          document.createElement(
-            "a"
-          );
-
-        a.href =
-          uri;
-
-        a.target =
-          "_blank";
-
-        a.rel =
-          "noopener noreferrer";
-
-        a.textContent =
-          `${index + 1}. ${sourceTitle}`;
-
-        div.appendChild(
-          a
-        );
-
-      }else{
-
-        div.textContent =
-          `${index + 1}. ${sourceTitle}`;
-
-      }
-
-
-      sourcesEl.appendChild(
-        div
-      );
-
-    }
-  );
-
-}
-
-
-/* =========================================================
    プロンプト
 ========================================================= */
 
-function buildPrompt(
-  useSearch
-){
-
-  if(useSearch){
-
-    return `
-あなたは日本のコレクション品を調査する専門AIです。
-
-画像とGoogle検索を使って、
-シール名、シリーズ、種類、レア度、現在の相場を判定してください。
-
-【重要】
-・画像を最優先
-・表裏を照合
-・旧版、復刻版、仕様違いを区別
-・推測しない
-・相場は現在確認できる日本国内の販売・取引情報を参考
-・確認できない場合は「確認できません」
-
-必ずJSONだけを返してください。
-
-{
-  "name":"シール名",
-  "series":"シリーズ",
-  "kind":"シール",
-  "rarity":"レア度",
-  "price":"〇〇円～〇〇円",
-  "researchMemo":"判定理由と相場根拠",
-  "confidence":"高・中・低"
-}
-`;
-
-  }
-
+function buildPrompt(){
 
   return `
 あなたは日本のコレクション品を画像から判定する専門AIです。
 
-今回はGoogle検索を使用しません。
+対象は、
+・ビックリマンシール
+・食玩シール
+・カード
+・トレーディングカード
+などです。
 
-画像のみから、
-シール名、シリーズ、種類、レア度を判定してください。
+表面画像と裏面画像を確認し、
+次の4項目を判定してください。
+
+1. 名前
+2. シリーズ・作品名
+3. 種類
+4. レア度
 
 【重要】
-・表裏を照合
-・推測しない
-・相場は検索できないため必ず「確認できません」
+・画像に写っている文字を慎重に確認する
+・表面と裏面の情報を照合する
+・裏面の商品名、シリーズ名、番号、メーカー情報も確認する
+・旧版、復刻版、仕様違い、印刷違いが判別できる場合は考慮する
+・画像だけで確認できないことは推測しない
+・判断できない場合は「確認できません」とする
+・現在の相場や価格は調べない
+・Web検索は使用しない
+
+【種類】
+原則として以下のどれかを使用してください。
+
+シール
+トレカ
+食玩
+
+【レア度】
+その商品・シリーズ内で分かる範囲の分類を回答してください。
+
+例：
+ヘッド
+ホロ
+プリズム
+キラ
+ノーマル
+レア
+SR
+SSR
+UR
+SEC
+プロモ
+確認できません
 
 必ずJSONだけを返してください。
+Markdownコードブロックは不要です。
 
 {
-  "name":"シール名",
-  "series":"シリーズ",
+  "name":"名前",
+  "series":"シリーズ・作品名",
   "kind":"シール",
   "rarity":"レア度",
-  "price":"確認できません",
-  "researchMemo":"画像から確認できた内容",
+  "researchMemo":"画像から判定した根拠や特徴を簡潔に説明",
   "confidence":"高・中・低"
 }
 `;
@@ -1308,12 +1164,28 @@ function buildPrompt(
    Gemini API
 ========================================================= */
 
-async function callGemini(
-  useSearch
-){
+async function runGeminiAnalysis(){
 
   const apiKey =
     apiKeyEl.value.trim();
+
+
+  if(!apiKey){
+
+    throw new Error(
+      "Gemini API Keyを入力してください。"
+    );
+
+  }
+
+
+  if(!frontData){
+
+    throw new Error(
+      "表面の画像を選択してください。"
+    );
+
+  }
 
 
   const parts =
@@ -1321,9 +1193,7 @@ async function callGemini(
 
       {
         text:
-          buildPrompt(
-            useSearch
-          )
+          buildPrompt()
       },
 
       {
@@ -1340,9 +1210,7 @@ async function callGemini(
     ];
 
 
-  if(
-    backData
-  ){
+  if(backData){
 
     parts.push({
 
@@ -1385,19 +1253,11 @@ async function callGemini(
   };
 
 
-  if(
-    useSearch
-  ){
-
-    body.tools =
-      [
-        {
-          google_search:{}
-        }
-      ];
-
-  }
-
+  /*
+   * Gemini APIは1回だけ
+   * Google Searchなし
+   * 別モデル切替なし
+   */
 
   const response =
     await fetch(
@@ -1427,24 +1287,54 @@ async function callGemini(
 
 
   if(
-    !response.ok
+    response.status ===
+    429
   ){
 
-    const text =
-      await response.text();
+    const message =
+      await getApiError(
+        response
+      );
 
 
     const error =
       new Error(
-        text
+
+        "Gemini APIの利用上限に達しました。"
+        + "\n\n"
+        + "429 Too Many Requests"
+        + "\n\n"
+        + message
+
       );
 
 
     error.code =
-      response.status;
+      429;
 
 
     throw error;
+
+  }
+
+
+  if(
+    !response.ok
+  ){
+
+    const message =
+      await getApiError(
+        response
+      );
+
+
+    throw new Error(
+
+      `Gemini APIエラー（HTTP ${response.status}）`
+      + "\n\n"
+      + message
+
+    );
 
   }
 
@@ -1460,12 +1350,21 @@ async function callGemini(
   const text =
     candidate?.content?.parts
       ?.map(
-        p =>
-          p.text ||
+        part =>
+          part.text ||
           ""
       )
       .join("")
       .trim();
+
+
+  if(!text){
+
+    throw new Error(
+      "Geminiから解析結果が返されませんでした。"
+    );
+
+  }
 
 
   return {
@@ -1473,12 +1372,7 @@ async function callGemini(
     result:
       extractJson(
         text
-      ),
-
-    groundingMetadata:
-      candidate?.groundingMetadata ||
-      candidate?.grounding_metadata ||
-      null
+      )
 
   };
 
@@ -1496,9 +1390,7 @@ scanBtn.addEventListener(
     hideMessages();
 
 
-    if(
-      !frontData
-    ){
+    if(!frontData){
 
       showError(
         "表面の画像を選択してください。"
@@ -1509,9 +1401,11 @@ scanBtn.addEventListener(
     }
 
 
-    if(
-      !apiKeyEl.value.trim()
-    ){
+    const apiKey =
+      apiKeyEl.value.trim();
+
+
+    if(!apiKey){
 
       showError(
         "Gemini API Keyを入力してください。"
@@ -1524,7 +1418,7 @@ scanBtn.addEventListener(
 
     localStorage.setItem(
       "seal_gemini_api_key",
-      apiKeyEl.value.trim()
+      apiKey
     );
 
 
@@ -1540,63 +1434,18 @@ scanBtn.addEventListener(
       "none";
 
 
+    showStatus(
+      "画像を確認しています…\n"
+      + "名前・シリーズ・種類・レア度を判定しています。"
+    );
+
+
     try{
 
-      showStatus(
-        "Google検索付きで判定しています…"
-      );
-
-
-      let responseData;
-
-
-      try{
-
-        responseData =
-          await callGemini(
-            true
-          );
-
-      }
-      catch(
-        error
-      ){
-
-        if(
-          error.code !==
-          429
-        ){
-
-          throw error;
-
-        }
-
-
-        showWarning(
-          "Google検索付き判定が429になりました。\n"
-          + "画像判定のみへ自動で切り替えます。"
-        );
-
-
-        showStatus(
-          "Google検索なしで画像判定を再実行しています…"
-        );
-
-
-        responseData =
-          await callGemini(
-            false
-          );
-
-
-        responseData.fallback =
-          true;
-
-      }
-
-
-      const result =
-        responseData.result;
+      const {
+        result
+      } =
+        await runGeminiAnalysis();
 
 
       nameEl.value =
@@ -1620,14 +1469,18 @@ scanBtn.addEventListener(
         ).trim();
 
 
-      kindEl.value =
+      const kindExists =
         Array.from(
           kindEl.options
         ).some(
           option =>
             option.value ===
             kind
-        )
+        );
+
+
+      kindEl.value =
+        kindExists
           ? kind
           : "シール";
 
@@ -1639,13 +1492,6 @@ scanBtn.addEventListener(
         ).trim();
 
 
-      priceEl.value =
-        String(
-          result?.price ||
-          "確認できません"
-        ).trim();
-
-
       researchMemoEl.value =
         String(
           result?.researchMemo ||
@@ -1653,35 +1499,14 @@ scanBtn.addEventListener(
         ).trim();
 
 
-      if(
-        responseData.fallback
-      ){
-
-        sourcesEl.textContent =
-          "Google検索が429のため、今回は画像判定のみです。";
-
-
-        showSuccess(
-          "画像判定は完了しました。\n"
-          + "Google検索が制限されたため、相場は確認できません。"
-        );
-
-      }else{
-
-        renderSources(
-          responseData.groundingMetadata
-        );
-
-
-        showSuccess(
-          "AI判定・Google検索・相場調査が完了しました。"
-        );
-
-      }
-
-
       resultCard.style.display =
         "block";
+
+
+      showSuccess(
+        "AI判定が完了しました。\n"
+        + "必要なら内容を修正してから確定してください。"
+      );
 
 
       resultCard.scrollIntoView({
@@ -1703,11 +1528,8 @@ scanBtn.addEventListener(
 
 
       showError(
-        "Gemini APIエラー\n\n"
-        + (
-            error.message ||
-            "確認できません"
-          )
+        error.message ||
+        "AI判定中にエラーが発生しました。"
       );
 
     }
@@ -1734,6 +1556,11 @@ confirmBtn.addEventListener(
   "click",
   () => {
 
+    /*
+     * AIが最初に返したオブジェクトは使わず、
+     * 今の入力欄だけを使う
+     */
+
     const confirmed = {
 
       name:
@@ -1748,9 +1575,6 @@ confirmBtn.addEventListener(
       rarity:
         rarityEl.value.trim(),
 
-      price:
-        priceEl.value.trim(),
-
       researchMemo:
         researchMemoEl.value.trim(),
 
@@ -1763,6 +1587,39 @@ confirmBtn.addEventListener(
         ""
 
     };
+
+
+    if(!confirmed.name){
+
+      showError(
+        "シール名を入力してください。"
+      );
+
+      return;
+
+    }
+
+
+    if(!confirmed.series){
+
+      showError(
+        "シリーズ・作品名を入力してください。"
+      );
+
+      return;
+
+    }
+
+
+    if(!confirmed.rarity){
+
+      showError(
+        "レア度を入力してください。"
+      );
+
+      return;
+
+    }
 
 
     screenshotName.textContent =
@@ -1781,13 +1638,9 @@ confirmBtn.addEventListener(
       confirmed.rarity;
 
 
-    screenshotPrice.textContent =
-      confirmed.price;
-
-
     screenshotMemo.textContent =
       confirmed.researchMemo ||
-      "調査メモなし";
+      "判定メモなし";
 
 
     screenshotFront.src =
@@ -1801,8 +1654,10 @@ confirmBtn.addEventListener(
       screenshotBack.src =
         confirmed.back;
 
+
       screenshotBack.style.display =
         "block";
+
 
       screenshotPhotos.classList.remove(
         "single"
@@ -1810,8 +1665,13 @@ confirmBtn.addEventListener(
 
     }else{
 
+      screenshotBack.src =
+        "";
+
+
       screenshotBack.style.display =
         "none";
+
 
       screenshotPhotos.classList.add(
         "single"
@@ -1837,13 +1697,20 @@ confirmBtn.addEventListener(
 
 
     window.scrollTo({
-      top:0,
-      behavior:"smooth"
+      top:
+        0,
+
+      behavior:
+        "smooth"
     });
 
   }
 );
 
+
+/* =========================================================
+   戻る
+========================================================= */
 
 backBtn.addEventListener(
   "click",
@@ -1858,13 +1725,20 @@ backBtn.addEventListener(
 
 
     window.scrollTo({
-      top:0,
-      behavior:"smooth"
+      top:
+        0,
+
+      behavior:
+        "smooth"
     });
 
   }
 );
 
+
+/* =========================================================
+   初期表示
+========================================================= */
 
 document.querySelector(
   ".buildStamp"
